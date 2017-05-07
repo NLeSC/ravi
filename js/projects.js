@@ -131,6 +131,24 @@ function delProject() {
         }
     }
 
+function printProjects()
+{
+    var print_window = window.open('', 'PRINT', 'height=600,width=1000')
+
+    print_window.document.write('<html><head><title>' + document.title  + '</title>')
+    print_window.document.write('</head><body><h1>Project planning</h1><div style="height:100%">')
+    print_window.document.write(document.getElementById("projects").innerHTML)
+    print_window.document.write('<table><tr><td style="width: 100px"></td><td>')
+    print_window.document.write(document.getElementById("xLabels2").innerHTML)
+    print_window.document.write('</td></tr></table></div><script src="js/plotly-latest.min.js"></script></body></html>')
+    print_window.document.close(); // necessary for IE >= 10
+    print_window.focus(); // necessary for IE >= 10*/
+//    print_window.print();
+//    print_window.close();
+
+    return true;
+}
+
 var request_projects = new XMLHttpRequest();
 request_projects.open('GET', 'http://localhost:5000/get_projects');
 request_projects.onload = function() {

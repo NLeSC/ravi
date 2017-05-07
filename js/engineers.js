@@ -139,7 +139,6 @@ function printEngineers()
     print_window.document.write('</td></tr></table></div><script src="js/plotly-latest.min.js"></script></body></html>')
     print_window.document.close(); // necessary for IE >= 10
     print_window.focus(); // necessary for IE >= 10*/
-
 //    print_window.print();
 //    print_window.close();
 
