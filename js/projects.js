@@ -110,7 +110,9 @@ function addProject() {
         "end": end,
         "exact": exact
         }
-    addProjectTableRow(pid)        
+    if (!(pid in projects)) {
+        addProjectTableRow(pid)
+        }
     projects[pid] = new Project(project_data)
 
     request_add_project = new XMLHttpRequest()

@@ -106,7 +106,9 @@ function addEngineer() {
         "end": end,
         "exact_id": exact
         }
-    addEngineerTableRow(eid)        
+    if (!(eid in engineers)) {
+        addEngineerTableRow(eid)
+        }
     engineers[eid] = new Engineer(engineer_data)
 
     request_add_engineer = new XMLHttpRequest()

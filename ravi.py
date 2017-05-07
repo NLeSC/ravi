@@ -74,13 +74,21 @@ def get_engineer_data():
 @app.route('/add_engineer', methods = ['POST'])
 def add_engineer():
     engineer_data = json.loads(request.form['data'])
-    engineer = Engineer()
-    engineer.eid = unicode(engineer_data['eid'])
-    engineer.exact_id = engineer_data['exact_id']
-    engineer.fte = engineer_data['fte']
-    engineer.start = date2ym(engineer_data['start'])
-    engineer.end = date2ym(engineer_data['end'])
-    db_session.add(engineer)
+    try:
+        db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
+            'fte': unicode(engineer_data['fte']),
+            'start': date2ym(engineer_data['start']),
+            'end': date2ym(engineer_data['end']),
+            'exact_id': engineer_data['exact_id']
+            })
+    except:
+        engineer = Engineer()
+        engineer.eid = unicode(engineer_data['eid'])
+        engineer.exact_id = engineer_data['exact_id']
+        engineer.fte = engineer_data['fte']
+        engineer.start = date2ym(engineer_data['start'])
+        engineer.end = date2ym(engineer_data['end'])
+        db_session.add(engineer)
     db_session.commit()
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -171,13 +179,21 @@ def get_project_data():
 @app.route('/add_project', methods = ['POST'])
 def add_project():
     project_data = json.loads(request.form['data'])
-    project = Project()
-    project.pid = unicode(project_data['pid'])
-    project.exact_code = project_data['exact']
-    project.fte = project_data['fte']
-    project.start = date2ym(project_data['start'])
-    project.end = date2ym(project_data['end'])
-    db_session.add(project)
+    try:
+        db_session.query(Project).filter_by(pid=project_data['pid']).update({
+            'fte': unicode(project_data['fte']),
+            'start': date2ym(project_data['start']),
+            'end': date2ym(project_data['end']),
+            'exact_code': project_data['exact']
+            })
+    except:
+        project = Project()
+        project.pid = unicode(project_data['pid'])
+        project.exact_code = project_data['exact']
+        project.fte = project_data['fte']
+        project.start = date2ym(project_data['start'])
+        project.end = date2ym(project_data['end'])
+        db_session.add(project)
     db_session.commit()
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
@@ -255,8 +271,7 @@ def set_user_settings():
     setting = request.form['setting']
     value = request.form['value']
     try:
-        sys.stderr.write('---->'+value)
-        usersetting = db_session.query(Usersetting).filter_by(setting=setting).update({'value': value})
+        db_session.query(Usersetting).filter_by(setting=setting).update({'value': value})
     except:
         newsetting = Usersetting()
         newsetting.setting = setting
