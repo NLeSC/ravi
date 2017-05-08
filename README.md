@@ -19,7 +19,7 @@ python setup.py install
 # Running Ravi
 ```
 source ravi/bin/activate
-ravi database.db
+ravi database.db dump_from_exact.csv
 ```
 then open ravi/index.html in browser
 
