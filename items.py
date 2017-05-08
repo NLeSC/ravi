@@ -11,7 +11,7 @@ class Engineer(Base):
     """
     __tablename__ = 'engineers'
     eid = Column(Unicode, primary_key = True)
-    exact_id = Column(Integer)
+    exact_id = Column(Unicode)
     fte = Column(Float)
     start = Column(Integer)
     end = Column(Integer)
@@ -27,7 +27,7 @@ class Project(Base):
     """
     __tablename__ = 'projects'
     pid = Column(Unicode, primary_key = True)
-    exact_code = Column(Integer)
+    exact_code = Column(Unicode)
     fte = Column(Float)
     start = Column(Integer)
     end = Column(Integer)

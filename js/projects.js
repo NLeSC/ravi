@@ -33,7 +33,7 @@ function Project(project_data) {
         var projectPlot = document.getElementById("plot_" + this.pid)
         var request = new XMLHttpRequest();
 
-        request.open('POST', 'http://localhost:5000/get_project_data', true);
+        request.open('POST', 'http://localhost:5000/get_project_data');
         request.onload = function() {
             var data = JSON.parse(request.responseText);
             var layout = {
@@ -58,6 +58,34 @@ function Project(project_data) {
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
         request.send('pid='+this.pid);
         }
+    }
+
+function plotProject() {
+    var pid = document.getElementById('projectform').elements['name'].value
+    var request = new XMLHttpRequest();
+    request.open('POST', 'http://localhost:5000/get_project_plot');
+    request.onload = function() {
+        var data = JSON.parse(request.responseText)
+        console.log(Plotly.d3.scale.category20())
+        var plot_detailed = document.getElementById("plot_detailed")
+        var layout = {
+            autosize: true,
+            height: 250,
+            margin: {l:50,r:0,b:100,t:10},
+            showlegend: true,
+            xaxis: {
+                type: 'date',
+                autotick: true,
+                ticks: 'outside',
+                tickangle: 90,
+                nticks: 24
+                },
+            };
+
+        Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});
+        }
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+    request.send('pid=' + pid);
     }
 
 

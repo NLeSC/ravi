@@ -10,7 +10,7 @@
         <div id="projects" style="height:100%; width:50%; overflow:auto; margin-left: 50%">
             <table id="project_table"></table></div>
 </div>
-<div style="height: 80px; width: 100%; overflow: hidden; margin-top: 0"><form id="timerangeform">
+<div style="height: 80px; width: 100%; overflow: hidden; margin-top: 0%"><form id="timerangeform">
         <div style="height:100%; width:50%; float: left">
             <table><tr>
                 <td style="width: 100px; vertical-align: top; background-color: lightgray">
@@ -28,7 +28,7 @@
                 <td id="xLabels2" style="background-color: lightgray"></td></tr></table>
             </div>
     </form></div>
-<div style="width: 100%; overflow: hidden; margin-top: 1%">
+<div style="width: 100%; overflow: hidden; margin-top: 0%">
         <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
             <table><tr>
@@ -48,7 +48,8 @@
             <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
             <input type="button" name="button" value="Add" onClick="addEngineer();">
             <input type="button" name="button" value="Delete" onClick="delEngineer();">
-            <input type="button" name="button" value="Print" onClick="printEngineers();">
+            <input type="button" name="button" value="Plot Engineer" onClick="plotEngineer();">
+            <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
             </form></div>
         <div style="width:50%; margin-left: 50%">
         <form id="projectform" name="projectform" action="" method="GET">
@@ -69,10 +70,12 @@
             <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
             <input type="button" name="button" value="Add" onClick="addProject();">
             <input type="button" name="button" value="Delete" onClick="delProject();">
-            <input type="button" name="button" value="Print" onClick="printProjects();">
+            <input type="button" name="button" value="Plot Project" onClick="plotProject();">
+            <input type="button" name="button" value="Print Overview" onClick="printProjects();">
             </form></div>
 </div>
-<div style="width: 100%; overflow: hidden; margin-top: 1%">
+<div style="width: 100%; overflow: hidden; margin-top: 0%">
+    <table><tr><td style="vertical-align: top">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
         Assignments:<br>
             <table id="assignment_table"><tr>
@@ -92,11 +95,13 @@
                 <td><input type="button" name="button" value="Add" onClick="addAssignment();"></td>
                 </tr></table>
             </form>
+        </td><td style="vertical-align: top" id="plot_detailed"></td></tr></table>
 </div>
 <script src="js/plotly-latest.min.js"></script>
 <script src="js/engineers.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/axis.js"></script>
 <script src="js/assignments.js"></script>
+<script src="js/exact.js"></script>
 </body>
 </html>

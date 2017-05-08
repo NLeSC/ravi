@@ -33,7 +33,7 @@ function Engineer(engineer_data) {
         var engineerPlot = document.getElementById("plot_" + this.eid)
         var request = new XMLHttpRequest();
 
-        request.open('POST', 'http://localhost:5000/get_engineer_data', true);
+        request.open('POST', 'http://localhost:5000/get_engineer_data');
         request.onload = function() {
             var data = JSON.parse(request.responseText);
             var layout = {
@@ -56,10 +56,39 @@ function Engineer(engineer_data) {
             Plotly.newPlot(engineerPlot, data, layout, {displayModeBar: false});
             }
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request.send('eid='+this.eid);
+        request.send('eid=' + this.eid);
         }
     }
 
+function plotEngineer() {
+    var eid = document.getElementById('engineerform').elements['name'].value
+    var exact_id = document.getElementById('engineerform').elements['exact'].value
+    console.log(exact_id)
+    var request = new XMLHttpRequest();
+    request.open('POST', 'http://localhost:5000/get_engineer_plot');
+    request.onload = function() {
+        var data = JSON.parse(request.responseText)
+        console.log(data)
+        var plot_detailed = document.getElementById("plot_detailed")
+        var layout = {
+            autosize: true,
+            height: 250,
+            margin: {l:50,r:0,b:100,t:10},
+            showlegend: true,
+            xaxis: {
+                type: 'date',
+                autotick: true,
+                ticks: 'outside',
+                tickangle: 90,
+                nticks: 24
+                },
+            };
+
+        Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});
+        }
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+    request.send('eid=' + eid + '&exact=' + exact_id);
+    }
 
 function selectEngineer() {
     engineer = engineers[this.id]
