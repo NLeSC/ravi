@@ -23,5 +23,13 @@ ravi database.db dump_from_exact.csv
 ```
 then open ravi/index.html in browser
 
+# Exporting data from Exact
+- Go to Projecten=>Tijd- en kosteninvoer=>Ingevoerde tijd en kosten
+- Select tab "Exporteerbaar"
+- Make sure the following columns are included:
+- Projectcode
+-- 
+
+
 # Contact #
 * l.ridder@escienecenter.nl
