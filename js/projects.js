@@ -24,7 +24,7 @@ function addProjectTableRow(pid) {
 
 function Project(project_data) {
     this.pid = project_data.pid
-    this.exact_id = project_data.exact_id
+    this.exact = project_data.exact_code
     this.start = project_data.start
     this.end = project_data.end
     this.fte = project_data.fte
@@ -113,7 +113,7 @@ function selectProject() {
         document.getElementById("project_fte").value = project.fte
         document.getElementById("project_start").value = project.start
         document.getElementById("project_end").value = project.end
-        document.getElementById("project_exact").value = project.code
+        document.getElementById("project_exact").value = project.exact
         document.getElementById("assignment_pid").value = project.pid
         document.getElementById("assignment_start").value = project.start
         document.getElementById("assignment_end").value = project.end
@@ -150,7 +150,7 @@ function addProject() {
         "fte": fte,
         "start": start,
         "end": end,
-        "exact": exact
+        "exact_code": exact
         }
     if (!(pid in projects)) {
         addProjectTableRow(pid)
@@ -168,6 +168,7 @@ function delProject() {
     pid = document.getElementById("project_name").value
     if (confirm("Do you want to remove project " + pid + " and all its assignments?") == true) {
         document.getElementById(pid).remove()
+        delete projects[pid]
         request_del_project = new XMLHttpRequest()
         request_del_project.open('POST', 'http://localhost:5000/del_project')
         request_del_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")

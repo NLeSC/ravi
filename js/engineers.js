@@ -152,6 +152,7 @@ function delEngineer() {
     eid = document.getElementById("engineer_name").value
     if (confirm("Do you want to remove engineer " + eid + " and all his/her assignments?") == true) {
         document.getElementById(eid).remove()
+        delete engineers[eid]
         request_del_engineer = new XMLHttpRequest()
         request_del_engineer.open('POST', 'http://localhost:5000/del_engineer')
         request_del_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")

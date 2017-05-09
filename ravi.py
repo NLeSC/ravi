@@ -132,14 +132,12 @@ def get_engineer_plot():
 @app.route('/add_engineer', methods = ['POST'])
 def add_engineer():
     engineer_data = json.loads(request.form['data'])
-    try:
-        db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
+    if 0 == db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
             'fte': unicode(engineer_data['fte']),
             'start': date2ym(engineer_data['start']),
             'end': date2ym(engineer_data['end']),
             'exact_id': engineer_data['exact_id']
-            })
-    except:
+            }):
         engineer = Engineer()
         engineer.eid = unicode(engineer_data['eid'])
         engineer.exact_id = engineer_data['exact_id']
@@ -312,18 +310,17 @@ def get_project_plot():
 @app.route('/add_project', methods = ['POST'])
 def add_project():
     project_data = json.loads(request.form['data'])
-    try:
-        db_session.query(Project).filter_by(pid=project_data['pid']).update({
-            'fte': unicode(project_data['fte']),
+    if 0 == db_session.query(Project).filter_by(pid=project_data['pid']).update({
+            'fte': float(project_data['fte']),
             'start': date2ym(project_data['start']),
             'end': date2ym(project_data['end']),
-            'exact_code': project_data['exact']
-            })
-    except:
+            'exact_code': unicode(project_data['exact_code'])
+            }):
+        sys.stderr.write(str(project_data))
         project = Project()
         project.pid = unicode(project_data['pid'])
-        project.exact_code = project_data['exact']
-        project.fte = project_data['fte']
+        project.exact_code = unicode(project_data['exact_code'])
+        project.fte = float(project_data['fte'])
         project.start = date2ym(project_data['start'])
         project.end = date2ym(project_data['end'])
         db_session.add(project)
