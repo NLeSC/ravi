@@ -71,7 +71,7 @@ function plotProject() {
         var layout = {
             autosize: true,
             height: 250,
-            margin: {l:50,r:0,b:100,t:10},
+            margin: {l:50,r:0,b:100,t:0},
             showlegend: true,
             xaxis: {
                 type: 'date',
@@ -80,6 +80,20 @@ function plotProject() {
                 tickangle: 90,
                 nticks: 24
                 },
+            annotations: [{
+                xref: 'paper',
+                yref: 'paper',
+                x: 0.05,
+                xanchor: 'left',
+                y: 1,
+                yanchor: 'top',
+                font: {
+                    size: 20
+                    },
+                borderwidth: 0,
+                text: '<b>' + pid + '</b>',
+                showarrow: false
+                }],
             };
 
         Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});

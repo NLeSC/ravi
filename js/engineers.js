@@ -71,9 +71,10 @@ function plotEngineer() {
         console.log(data)
         var plot_detailed = document.getElementById("plot_detailed")
         var layout = {
+            title: eid,
             autosize: true,
             height: 250,
-            margin: {l:50,r:0,b:100,t:10},
+            margin: {l:50,r:0,b:100,t:25},
             showlegend: true,
             xaxis: {
                 type: 'date',

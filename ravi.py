@@ -255,7 +255,7 @@ def get_project_plot():
 
     # Total written hours
     written_fte = [0]
-    current_ym = datetime.date.today().year * 12 + datetime.date.today().month
+    current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
     if hours_total:
         for ym in range(p.start, current_ym):
             index = (str(p.exact_code), ym)
@@ -275,7 +275,7 @@ def get_project_plot():
     for i, a in enumerate(assignments):
         # make sure lines don't overlap for engineer with equal assignments
         if len(assignments) > 1:
-            projected_fte = [(i-len(assignments)/2+0.5)/70]
+            projected_fte = [(i-len(assignments)/2.0+0.5)/30.0]
         else:
             projected_fte = [0]
         written_fte = [0]
