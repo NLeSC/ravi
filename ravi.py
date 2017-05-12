@@ -235,6 +235,20 @@ def get_project_data():
 @app.route('/get_project_plot', methods = ['POST'])
 def get_project_plot():
     pid = request.form['pid']
+    data = get_project_plot_data(pid)
+    resp = Response(json.dumps(data), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+@app.route('/get_all_project_plots_data', methods = ['GET'])
+def get_all_project_plots_data():
+    data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
+    sys.stderr.write(str(data))
+    resp = Response(json.dumps(data), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+def get_project_plot_data(pid):
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
     data = []
@@ -303,9 +317,7 @@ def get_project_plot():
                 'y': written_fte,
                 'showlegend': (hours is not None), #show this legend only if there are hours from exact
                 'line': {'color': colors[i]}})
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return data
 
 @app.route('/add_project', methods = ['POST'])
 def add_project():
@@ -434,6 +446,23 @@ def read_exact_data(filename):
             except:
                 sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
 
+def create_all_project_plots(output_folder):
+    import matplotlib.pyplot as plt
+    import matplotlib.patheffects as path_effects
+    plt.figure(1)
+    pids = db_session.query(Project.pid).all()
+    for pid, in pids:
+        data = get_project_plot_data(pid)
+        for trace in data:
+            plt.plot(trace['y'], '-' + '-'*('dash' in trace['line']), color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
+        plt.title('Project: '+pid)
+        plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
+        plt.tight_layout()
+        plt.legend(loc='upper left')
+        plt.savefig(output_folder+'/'+pid+'.pdf')
+        plt.close()
+
+
 def main():
     db_name = sys.argv[1]
     if len(sys.argv) > 2:
@@ -451,6 +480,9 @@ def main():
         db_session.add(start_date)
         db_session.add(end_date)
     db_session.commit()
+    if len(sys.argv) == 4:
+        create_all_project_plots(sys.argv[3])
+        exit()
     app.run(debug = True)
 
 if __name__ == '__main__':
