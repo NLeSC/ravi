@@ -5,21 +5,32 @@
 * Flask
 * SQLAlchemy
 * Plotly
+* Matplotlib (Only for generating the project plots offline)
 
 # Installation
+First install miniconda
 ```
 git clone https://ridderlars@bitbucket.org/ridderlars/ravi.git
 cd ravi
 wget -P js https://cdn.plot.ly/plotly-latest.min.js
-virtualenv ravi
-source ravi/bin/activate
+conda create -n ravi
+source activate ravi
+conda install matplotlib
 python setup.py install
 ```
 
 # Running Ravi
+First start the server:
 ```
-source ravi/bin/activate
+source activate ravi
 ravi database.db dump_from_exact.csv
+```
+then open index.html in browser
+
+# Generating all project plots offline (planned vs written hours)
+```
+source activate ravi
+ravi database.db dump_from_exact.csv output_folder
 ```
 then open index.html in browser
 
