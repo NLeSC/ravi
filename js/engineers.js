@@ -92,7 +92,7 @@ function plotEngineer() {
     }
 
 function selectEngineer() {
-    engineer = engineers[this.id]
+    var engineer = engineers[this.id]
     if (this.style.backgroundColor == "lavender") {
         clearEngineerSelection()
         }
@@ -102,7 +102,7 @@ function selectEngineer() {
         document.getElementById("engineer_start").value = engineer.start
         document.getElementById("engineer_end").value = engineer.end
         document.getElementById("engineer_exact").value = engineer.exact_id
-        document.getElementById("assignment_eid").value = engineer.eid
+        resetAssignmentForm()
         unhighlightEngineers()
         this.style.backgroundColor = "lavender"
         }
@@ -111,8 +111,8 @@ function selectEngineer() {
 
 function clearEngineerSelection() {
     document.getElementById("engineerform").reset()
-    document.getElementById("assignment_eid").value = ""
     unhighlightEngineers()
+    resetAssignmentForm()
     updateAssignments()
     }
 
@@ -124,12 +124,12 @@ function unhighlightEngineers() {
     }
 
 function addEngineer() {
-    eid = document.getElementById("engineer_name").value
-    fte = document.getElementById("engineer_fte").value
-    start = document.getElementById("engineer_start").value
-    end = document.getElementById("engineer_end").value
-    exact = document.getElementById("engineer_exact").value
-    engineer_data = {
+    var eid = document.getElementById("engineer_name").value
+    var fte = document.getElementById("engineer_fte").value
+    var start = document.getElementById("engineer_start").value
+    var end = document.getElementById("engineer_end").value
+    var exact = document.getElementById("engineer_exact").value
+    var engineer_data = {
         "eid": eid,
         "fte": fte,
         "start": start,
@@ -149,7 +149,7 @@ function addEngineer() {
     }
 
 function delEngineer() {
-    eid = document.getElementById("engineer_name").value
+    var eid = document.getElementById("engineer_name").value
     if (confirm("Do you want to remove engineer " + eid + " and all his/her assignments?") == true) {
         document.getElementById(eid).remove()
         delete engineers[eid]

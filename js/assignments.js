@@ -1,7 +1,7 @@
 function updateAssignments() {
     clearAssignmentTable()
-    eid = document.getElementById("assignment_eid").value
-    pid = document.getElementById("assignment_pid").value
+    var eid = document.getElementById("assignment_eid").value
+    var pid = document.getElementById("assignment_pid").value
     request_assignments = new XMLHttpRequest()
     request_assignments.open('POST', 'http://localhost:5000/get_assignments')
     request_assignments.onload = function() {
@@ -40,8 +40,17 @@ function clearAssignmentTable() {
         }
     }
 
+function resetAssignmentForm() {
+    var aform = document.getElementById('assignmentsform')
+    aform.elements['eid'].value = document.getElementById('engineer_name').value
+    aform.elements['pid'].value = document.getElementById('project_name').value
+    aform.elements['fte'].value = ''
+    aform.elements['start'].value = document.getElementById('project_start').value
+    aform.elements['end'].value = document.getElementById('project_end').value
+    }
+
 function addAssignment(data) {
-    form = document.getElementById('assignmentsform')
+    var form = document.getElementById('assignmentsform')
     assignment_data = {
         "eid": form.elements["eid"].value,
         "pid": form.elements["pid"].value,
@@ -53,6 +62,7 @@ function addAssignment(data) {
     request_add_assignment = new XMLHttpRequest()
     request_add_assignment.open('POST', 'http://localhost:5000/add_assignment')
     request_add_assignment.onload = function() {
+        resetAssignmentForm()
         updateAssignments()
         engineers[assignment_data['eid']].plot()
         projects[assignment_data['pid']].plot()

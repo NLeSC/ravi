@@ -38,8 +38,9 @@ function Project(project_data) {
             var data = JSON.parse(request.responseText);
             var layout = {
                 autosize: false,
+                width: 750,
                 height: 100,
-                margin: {l:20,r:0,b:20,t:10},
+                margin: {l:20,r:50,b:20,t:10},
                 barmode: 'stack',
                 bargap: 0,
                 showlegend: true,
@@ -50,10 +51,25 @@ function Project(project_data) {
                     showticklabels: false},
                 yaxis: {range: [0, this.fte+0.1]},
                 paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)'
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                annotations: [{
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 1,
+                    xanchor: 'left',
+                    y: 1,
+                    yanchor: 'top',
+                    font: {
+                        size: 18,
+                        color: data.warn_color
+                        },
+                    borderwidth: 0,
+                    text: data.planned,
+                    showarrow: false
+                    }],
                 };
 
-            Plotly.newPlot(projectPlot, data, layout, {displayModeBar: false});
+            Plotly.newPlot(projectPlot, data.plot, layout, {displayModeBar: false});
             }
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
         request.send('pid='+this.pid);
@@ -66,7 +82,6 @@ function plotProject() {
     request.open('POST', 'http://localhost:5000/get_project_plot');
     request.onload = function() {
         var data = JSON.parse(request.responseText)
-        console.log(Plotly.d3.scale.category20())
         var plot_detailed = document.getElementById("plot_detailed")
         var layout = {
             autosize: true,
@@ -114,9 +129,7 @@ function selectProject() {
         document.getElementById("project_start").value = project.start
         document.getElementById("project_end").value = project.end
         document.getElementById("project_exact").value = project.exact
-        document.getElementById("assignment_pid").value = project.pid
-        document.getElementById("assignment_start").value = project.start
-        document.getElementById("assignment_end").value = project.end
+        resetAssignmentForm()
         unhighlightProjects()
         this.style.backgroundColor = "lavender"
         }
@@ -125,10 +138,8 @@ function selectProject() {
 
 function clearProjectSelection() {
     document.getElementById("projectform").reset()
-    document.getElementById("assignment_pid").value = ""
-    document.getElementById("assignment_start").value = ""
-    document.getElementById("assignment_end").value = ""
     unhighlightProjects()
+    resetAssignmentForm()
     updateAssignments()
     }
 
@@ -140,12 +151,12 @@ function unhighlightProjects() {
     }
 
 function addProject() {
-    pid = document.getElementById("project_name").value
-    fte = document.getElementById("project_fte").value
-    start = document.getElementById("project_start").value
-    end = document.getElementById("project_end").value
-    exact = document.getElementById("project_exact").value
-    project_data = {
+    var pid = document.getElementById("project_name").value
+    var fte = document.getElementById("project_fte").value
+    var start = document.getElementById("project_start").value
+    var end = document.getElementById("project_end").value
+    var exact = document.getElementById("project_exact").value
+    var project_data = {
         "pid": pid,
         "fte": fte,
         "start": start,

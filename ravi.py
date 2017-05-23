@@ -9,6 +9,7 @@ from sqlalchemy.sql import func, desc
 from items import Base, Engineer, Project, Assignment, Usersetting
 import sys, csv
 import datetime
+from itertools import groupby
 
 colors = ['#1f77b4',
     '#ff7f0e',
@@ -20,6 +21,11 @@ colors = ['#1f77b4',
     '#7f7f7f',
     '#bcbd22',
     '#17becf']
+
+warn_color = {
+    'red': '#990000',
+    'orange': '#999900',
+    'green': '#009900'}
 
 hours = None
 hours_total = None
@@ -41,7 +47,7 @@ def ym2date(ym):
 def date2ym(date):
     if date:
         d = date.split('-')
-        return 12*int(d[0]) + int(d[1]) -1
+        return 12 * int(d[0]) + int(d[1]) - 1
     else:
         return None
 
@@ -67,11 +73,14 @@ def get_engineer_data():
     e = db_session.query(Engineer).filter_by(eid=eid).one()
     assignments = db_session.query(Assignment).filter_by(eid=eid).all()
     assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
-    for a in assignments:
-        ym_fte=[a.fte if a.start <= ym < a.end else 0 for ym in range(start, end)]
+    for pid, assignments_grouped in groupby(assignments, lambda a: a.pid):
+        ym_fte = [0] * (end - start)
+        for a in assignments_grouped:
+            for i in range(end - start):
+                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         data.append({
             'type': 'bar',
-            'name': a.pid,
+            'name': pid,
             'y': ym_fte})
     data.append({
         'type': 'line',
@@ -208,16 +217,22 @@ def get_project_data():
     pid = request.form['pid']
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
-    data = []
+    plot_data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     assignments = db_session.query(Assignment).filter_by(pid=pid).all()
     assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
-    for a in assignments:
-        ym_fte=[a.fte if a.start <= ym < a.end else 0 for ym in range(start, end)]
-        data.append({
+    total_planned = 0
+    for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
+        ym_fte = [0] * (end - start)
+        for a in assignments_grouped:
+            total_planned += (a.end - a.start) / 12.0 * a.fte
+            for i in range(end - start):
+                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
+        plot_data.append({
             'type': 'bar',
-            'name': a.eid,
+            'name': eid,
             'y': ym_fte})
+    """
     data.append({
         'type': 'line',
         'name': 'fte',
@@ -228,6 +243,19 @@ def get_project_data():
             'dash': 'dot',
             'width': 2,
             'color': 'black'}})
+    """
+    ratio = total_planned / p.fte
+    if 0.95 < ratio < 1.01:
+        color = 'green'
+    elif 0.8 < ratio < 1.05:
+        color = 'orange'
+    else:
+        color = 'red'
+    data = {
+        'planned': '<b>{:.2f}</b><br>{:.2f}'.format(total_planned, p.fte),
+        'warn_color': warn_color[color],
+        'plot': plot_data
+        }
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -249,59 +277,36 @@ def get_all_project_plots_data():
     return resp
 
 def get_project_plot_data(pid):
-    start = date2ym(get_start_date())
-    end = date2ym(get_end_date())
+    # start = date2ym(get_start_date())
+    # end = date2ym(get_end_date())
+    current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
     data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
-    x = [ym2date(ym) for ym in range(p.start, p.end)]
-
-    # total projected hours
-    projected_total_fte = [(i+1) * p.fte/12 for i in range(p.end - p.start)]
-    data = [({
-        'type': 'line',
-        'name': 'total',
-        'x': x,
-        'y': projected_total_fte,
-        'showlegend': (hours_total is None),
-        'line': {'dash': 'dot', 'color': 'black'}})]
-
-    # Total written hours
-    written_fte = [0]
-    current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-    if hours_total:
-        for ym in range(p.start, current_ym):
-            index = (str(p.exact_code), ym)
-            written_hours = hours_total[index] if (index in hours_total) else 0
-            written_fte.append(written_fte[-1] + written_hours / 1680.0)
-        data.append({
-            'type': 'line',
-            'name': 'total written',
-            'x': x,
-            'y': written_fte,
-            'showlegend': (hours_total is not None),
-            'line': {'color': 'black'}})
+    x = [ym2date(ym) for ym in range(p.start, p.end + 1)]
 
     # Assigned engineer hours
-    assignments = db_session.query(Assignment).filter_by(pid=pid).all()
-    assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
-    for i, a in enumerate(assignments):
+    assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
+    #assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
+    projected_total = [0.01] * (p.end - p.start + 1)
+    for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
         # make sure lines don't overlap for engineer with equal assignments
-        if len(assignments) > 1:
-            projected_fte = [(i-len(assignments)/2.0+0.5)/30.0]
-        else:
-            projected_fte = [0]
+        projected_fte = [(i-len(assignments)/2.0+0.5)/30.0] * (p.end - p.start + 1)
         written_fte = [0]
-        for ym in range(p.start, p.end):
-            # Projected hours
-            ym_fte = a.fte if a.start <= ym < a.end else 0
-            projected_fte.append(projected_fte[-1] + ym_fte / 12)
-            if hours:
-                # Written hours
-                exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=a.eid).one()
-                if ym < current_ym:
-                    index = (str(p.exact_code), str(exact_id), ym)
-                    written_hours = hours[index] if (index in hours) else 0
-                    written_fte.append(written_fte[-1] + written_hours / 1680.0)
+        for a in assignments_grouped:
+            ym_fte = 0
+            for m in range(p.end - p.start):
+                ym = m + p.start
+                # Projected hours
+                ym_fte += a.fte if a.start <= ym < a.end else 0
+                projected_fte[m+1] += ym_fte / 12
+                projected_total[m+1] += ym_fte / 12
+                if hours:
+                    # Written hours
+                    exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=a.eid).one()
+                    if ym < current_ym:
+                        index = (str(p.exact_code), str(exact_id), ym)
+                        written_hours = hours[index] if (index in hours) else 0
+                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
         data.append({
             'type': 'line',
             'name': a.eid,
@@ -317,6 +322,31 @@ def get_project_plot_data(pid):
                 'y': written_fte,
                 'showlegend': (hours is not None), #show this legend only if there are hours from exact
                 'line': {'color': colors[i]}})
+
+    # total projected hours
+    data.append({
+        'type': 'line',
+        'name': 'total',
+        'x': x,
+        'y': projected_total,
+        'showlegend': (hours_total is None),
+        'line': {'dash': 'dot', 'color': 'black'}})
+
+    # Total written hours
+    written_fte = [0]
+    if hours_total:
+        for ym in range(p.start, current_ym):
+            index = (str(p.exact_code), ym)
+            written_hours = hours_total[index] if (index in hours_total) else 0
+            written_fte.append(written_fte[-1] + written_hours / 1680.0)
+        data.append({
+            'type': 'line',
+            'name': 'total written',
+            'x': x,
+            'y': written_fte,
+            'showlegend': (hours_total is not None),
+            'line': {'color': 'black'}})
+
     return data
 
 @app.route('/add_project', methods = ['POST'])
