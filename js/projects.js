@@ -12,7 +12,7 @@ function createProjectTable(projectList) {
 
 function addProjectTableRow(pid) {
     var projectTable = document.getElementById('project_table')
-    var newrow = projectTable.insertRow(0)
+    var newrow = projectTable.insertRow(-1)
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
     newrow.id = pid

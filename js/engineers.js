@@ -12,7 +12,7 @@ function createEngineerTable(engineerList) {
 
 function addEngineerTableRow(eid) {
     var engineerTable = document.getElementById('engineer_table')
-    var newrow = engineerTable.insertRow(0)
+    var newrow = engineerTable.insertRow(-1)
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
     newrow.id = eid

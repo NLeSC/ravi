@@ -55,7 +55,7 @@ def date2ym(date):
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
     data = []
-    for e in db_session.query(Engineer).all():
+    for e in db_session.query(Engineer).order_by(Engineer.eid).all():
         d = dict(e)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
@@ -203,11 +203,12 @@ def get_end_date():
 @app.route('/get_projects', methods = ['GET'])
 def get_projects():
     data = []
-    for p in db_session.query(Project).all():
+    for p in db_session.query(Project).order_by(Project.pid).all():
         d = dict(p)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
+    sys.stderr.write(str(data))
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
