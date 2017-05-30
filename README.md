@@ -16,25 +16,24 @@ wget -P js https://cdn.plot.ly/plotly-latest.min.js
 conda create -n ravi
 source activate ravi
 conda install matplotlib
-python setup.py install
+python setup.py develop
 ```
 
 # Running Ravi
 First start the server:
 ```
 source activate ravi
-ravi database.db dump_from_exact.csv
+ravi database.db exported_hours_from_exact.csv
 ```
 then open index.html in browser
 
 # Generating all project plots offline (planned vs written hours)
 ```
 source activate ravi
-ravi database.db dump_from_exact.csv output_folder
+ravi database.db exported_hours_from_exact.csv output_folder
 ```
-then open index.html in browser
 
-# Exporting data from Exact
+# Exporting hours from Exact
 * Go to "Projecten" => "Tijd- en kosteninvoer" => "Ingevoerde tijd en kosten"
 * Select tab "Exporteerbaar"
 * Make sure the following columns are included (add if necessary by the option "aanpassen" in the top-right menu):
