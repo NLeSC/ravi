@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func, desc
 from items import Base, Engineer, Project, Assignment, Usersetting
-import sys, csv
+import sys, csv, os
 import datetime
 from itertools import groupby
 
@@ -487,9 +487,18 @@ def read_exact_data(filename):
 def create_all_project_plots(output_folder):
     import matplotlib.pyplot as plt
     import matplotlib.patheffects as path_effects
+    try:
+        os.makedirs(output_folder)
+    except OSError as error:
+        sys.stderr.write(str(error))
     plt.figure(1)
-    pids = db_session.query(Project.pid).all()
-    for pid, in pids:
+    projects = db_session.query(Project.pid, Project.coordinator).all()
+    for pid, coordinator in projects:
+        folder = output_folder+'/'+coordinator
+        try:
+            os.makedirs(folder)
+        except:
+            pass
         data = get_project_plot_data(pid)
         for trace in data:
             plt.plot(trace['y'], '-' + '-'*('dash' in trace['line']), color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
@@ -497,7 +506,7 @@ def create_all_project_plots(output_folder):
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
         plt.tight_layout()
         plt.legend(loc='upper left')
-        plt.savefig(output_folder+'/'+pid+'.pdf')
+        plt.savefig(folder+'/'+pid+'.pdf')
         plt.close()
 
 
