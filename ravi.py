@@ -217,6 +217,7 @@ def get_project_data():
     pid = request.form['pid']
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
+    x_axis = [ym2date(ymi) for ymi in range(start, end)]
     plot_data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     assignments = db_session.query(Assignment).filter_by(pid=pid).all()
@@ -231,6 +232,7 @@ def get_project_data():
         plot_data.append({
             'type': 'bar',
             'name': eid,
+            # 'x': x_axis,
             'y': ym_fte})
     """
     data.append({
@@ -309,6 +311,7 @@ def get_project_plot_data(pid):
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
         data.append({
             'type': 'line',
+            'mode': 'lines',
             'name': a.eid,
             'x': x,
             'y': projected_fte,
@@ -317,6 +320,7 @@ def get_project_plot_data(pid):
         if hours:
             data.append({
                 'type': 'line',
+                'mode': 'lines',
                 'name': a.eid,
                 'x': x[:len(written_fte)],
                 'y': written_fte,
@@ -326,6 +330,7 @@ def get_project_plot_data(pid):
     # total projected hours
     data.append({
         'type': 'line',
+        'mode': 'lines',
         'name': 'total',
         'x': x,
         'y': projected_total,
@@ -341,6 +346,7 @@ def get_project_plot_data(pid):
             written_fte.append(written_fte[-1] + written_hours / 1680.0)
         data.append({
             'type': 'line',
+            'mode': 'lines',
             'name': 'total written',
             'x': x,
             'y': written_fte,
@@ -356,7 +362,8 @@ def add_project():
             'fte': float(project_data['fte']),
             'start': date2ym(project_data['start']),
             'end': date2ym(project_data['end']),
-            'exact_code': unicode(project_data['exact_code'])
+            'exact_code': unicode(project_data['exact_code']),
+            'coordinator': unicode(project_data['coordinator'])
             }):
         sys.stderr.write(str(project_data))
         project = Project()
@@ -365,6 +372,7 @@ def add_project():
         project.fte = float(project_data['fte'])
         project.start = date2ym(project_data['start'])
         project.end = date2ym(project_data['end'])
+        project.coordinator = unicode(project_data['coordinator'])
         db_session.add(project)
     db_session.commit()
     resp = Response(json.dumps('["success"]'), mimetype='application/json')

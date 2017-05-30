@@ -15,6 +15,7 @@ class Engineer(Base):
     fte = Column(Float)
     start = Column(Integer)
     end = Column(Integer)
+    coordinator = Column(Unicode, ForeignKey('engineers.eid'))
     
     def __iter__(self):
         for k,v in self.__dict__.items():
@@ -31,6 +32,7 @@ class Project(Base):
     fte = Column(Float)
     start = Column(Integer)
     end = Column(Integer)
+    coordinator = Column(Unicode, ForeignKey('engineers.eid'))
     
     def __iter__(self):
         for k,v in self.__dict__.items():

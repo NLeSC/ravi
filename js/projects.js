@@ -28,6 +28,7 @@ function Project(project_data) {
     this.start = project_data.start
     this.end = project_data.end
     this.fte = project_data.fte
+    this.coordinator = project_data.coordinator
     
     this.plot = function () {
         var projectPlot = document.getElementById("plot_" + this.pid)
@@ -48,8 +49,12 @@ function Project(project_data) {
                 xaxis: {
                     autotick: false,
                     ticks: 'outside',
-                    showticklabels: false},
-                yaxis: {range: [0, this.fte+0.1]},
+                    showticklabels: false,
+                    nticks: 24,
+                    fixedrange: true},
+                yaxis: {
+                    range: [0, this.fte+0.1],
+                    fixedrange: true},
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 annotations: [{
@@ -128,6 +133,7 @@ function selectProject() {
         document.getElementById("project_fte").value = project.fte
         document.getElementById("project_start").value = project.start
         document.getElementById("project_end").value = project.end
+        document.getElementById("project_coordinator").value = project.coordinator
         document.getElementById("project_exact").value = project.exact
         resetAssignmentForm()
         unhighlightProjects()
@@ -156,12 +162,14 @@ function addProject() {
     var start = document.getElementById("project_start").value
     var end = document.getElementById("project_end").value
     var exact = document.getElementById("project_exact").value
+    var coordinator = document.getElementById("project_coordinator").value
     var project_data = {
         "pid": pid,
         "fte": fte,
         "start": start,
         "end": end,
-        "exact_code": exact
+        "exact_code": exact,
+        "coordinator": coordinator
         }
     if (!(pid in projects)) {
         addProjectTableRow(pid)
