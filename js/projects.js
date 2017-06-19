@@ -140,6 +140,7 @@ function selectProject() {
         resetAssignmentForm()
         unhighlightProjects()
         this.style.backgroundColor = "lavender"
+        plotProject()
         }
     updateAssignments()
     }
