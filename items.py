@@ -16,6 +16,7 @@ class Engineer(Base):
     start = Column(Integer)
     end = Column(Integer)
     coordinator = Column(Unicode, ForeignKey('engineers.eid'))
+    comments = Column(Unicode)
     
     def __iter__(self):
         for k,v in self.__dict__.items():
@@ -33,6 +34,7 @@ class Project(Base):
     start = Column(Integer)
     end = Column(Integer)
     coordinator = Column(Unicode, ForeignKey('engineers.eid'))
+    comments = Column(Unicode)
     
     def __iter__(self):
         for k,v in self.__dict__.items():

@@ -28,6 +28,7 @@ function Engineer(engineer_data) {
     this.start = engineer_data.start
     this.end = engineer_data.end
     this.fte = engineer_data.fte
+    this.comments = engineer_data.comments
     
     this.plot = function () {
         var engineerPlot = document.getElementById("plot_" + this.eid)
@@ -102,6 +103,7 @@ function selectEngineer() {
         document.getElementById("engineer_start").value = engineer.start
         document.getElementById("engineer_end").value = engineer.end
         document.getElementById("engineer_exact").value = engineer.exact_id
+        document.getElementById("engineer_comments").value = engineer.comments
         resetAssignmentForm()
         unhighlightEngineers()
         this.style.backgroundColor = "lavender"
@@ -129,12 +131,14 @@ function addEngineer() {
     var start = document.getElementById("engineer_start").value
     var end = document.getElementById("engineer_end").value
     var exact = document.getElementById("engineer_exact").value
+    var comments = document.getElementById("engineer_comments").value
     var engineer_data = {
         "eid": eid,
         "fte": fte,
         "start": start,
         "end": end,
-        "exact_id": exact
+        "exact_id": exact,
+        "comments": comments
         }
     if (!(eid in engineers)) {
         addEngineerTableRow(eid)

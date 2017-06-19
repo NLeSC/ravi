@@ -29,6 +29,7 @@ function Project(project_data) {
     this.end = project_data.end
     this.fte = project_data.fte
     this.coordinator = project_data.coordinator
+    this.comments = project_data.comments
     
     this.plot = function () {
         var projectPlot = document.getElementById("plot_" + this.pid)
@@ -135,6 +136,7 @@ function selectProject() {
         document.getElementById("project_end").value = project.end
         document.getElementById("project_coordinator").value = project.coordinator
         document.getElementById("project_exact").value = project.exact
+        document.getElementById("project_comments").value = project.comments
         resetAssignmentForm()
         unhighlightProjects()
         this.style.backgroundColor = "lavender"
@@ -163,13 +165,15 @@ function addProject() {
     var end = document.getElementById("project_end").value
     var exact = document.getElementById("project_exact").value
     var coordinator = document.getElementById("project_coordinator").value
+    var comments = document.getElementById("project_comments").value
     var project_data = {
         "pid": pid,
         "fte": fte,
         "start": start,
         "end": end,
         "exact_code": exact,
-        "coordinator": coordinator
+        "coordinator": coordinator,
+        "comments": comments
         }
     if (!(pid in projects)) {
         addProjectTableRow(pid)

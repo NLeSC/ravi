@@ -145,7 +145,8 @@ def add_engineer():
             'fte': unicode(engineer_data['fte']),
             'start': date2ym(engineer_data['start']),
             'end': date2ym(engineer_data['end']),
-            'exact_id': engineer_data['exact_id']
+            'exact_id': engineer_data['exact_id'],
+            'comments': engineer_data['comments']
             }):
         engineer = Engineer()
         engineer.eid = unicode(engineer_data['eid'])
@@ -153,6 +154,7 @@ def add_engineer():
         engineer.fte = engineer_data['fte']
         engineer.start = date2ym(engineer_data['start'])
         engineer.end = date2ym(engineer_data['end'])
+        engineer.comments = engineer_data['comments']
         db_session.add(engineer)
     db_session.commit()
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
@@ -364,7 +366,8 @@ def add_project():
             'start': date2ym(project_data['start']),
             'end': date2ym(project_data['end']),
             'exact_code': unicode(project_data['exact_code']),
-            'coordinator': unicode(project_data['coordinator'])
+            'coordinator': unicode(project_data['coordinator']),
+            'comments': unicode(project_data['comments'])
             }):
         sys.stderr.write(str(project_data))
         project = Project()
@@ -374,6 +377,7 @@ def add_project():
         project.start = date2ym(project_data['start'])
         project.end = date2ym(project_data['end'])
         project.coordinator = unicode(project_data['coordinator'])
+        project.comments = unicode(project_data['comments'])
         db_session.add(project)
     db_session.commit()
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
