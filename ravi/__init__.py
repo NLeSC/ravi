@@ -10,6 +10,7 @@ from items import Base, Engineer, Project, Assignment, Usersetting
 import sys, csv, os
 import datetime
 from itertools import groupby
+import pandas as pd
 
 colors = ['#1f77b4',
     '#ff7f0e',
@@ -27,8 +28,7 @@ warn_color = {
     'orange': '#999900',
     'green': '#009900'}
 
-hours = None
-hours_total = None
+exact_data = None
 
 
 app = Flask(__name__)
@@ -305,29 +305,33 @@ def get_project_plot_data(pid):
                 ym_fte += a.fte if a.start <= ym < a.end else 0
                 projected_fte[m+1] += ym_fte / 12
                 projected_total[m+1] += ym_fte / 12
-                if hours:
+                if exact_data is not None:
                     # Written hours
                     exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=a.eid).one()
                     if ym < current_ym:
-                        index = (str(p.exact_code), str(exact_id), ym)
-                        written_hours = hours[index] if (index in hours) else 0
-                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                        try:
+                            written_hours = exact_data[(exact_data.exact_code == p.exact_code) & 
+                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.ym == ym)].hours.values[0]
+                            written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                        except IndexError:
+                            written_fte.append(written_fte[-1])
         data.append({
             'type': 'line',
             'mode': 'lines',
             'name': a.eid,
             'x': x,
             'y': projected_fte,
-            'showlegend': (hours is None), #show this legend only if there are no hours from exact
+            'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
             'line': {'dash': 'dot', 'color': colors[i]}})
-        if hours:
+        if exact_data is not None:
             data.append({
                 'type': 'line',
                 'mode': 'lines',
                 'name': a.eid,
                 'x': x[:len(written_fte)],
                 'y': written_fte,
-                'showlegend': (hours is not None), #show this legend only if there are hours from exact
+                'showlegend': True, #show this legend only if there are hours from exact
                 'line': {'color': colors[i]}})
 
     # total projected hours
@@ -337,25 +341,27 @@ def get_project_plot_data(pid):
         'name': 'total',
         'x': x,
         'y': projected_total,
-        'showlegend': (hours_total is None),
+        'showlegend': (exact_data is None),
         'line': {'dash': 'dot', 'color': 'black'}})
 
     # Total written hours
     written_fte = [0]
-    if hours_total:
+    if exact_data is not None:
         for ym in range(p.start, current_ym):
-            index = (str(p.exact_code), ym)
-            written_hours = hours_total[index] if (index in hours_total) else 0
-            written_fte.append(written_fte[-1] + written_hours / 1680.0)
+            try:
+                written_hours = exact_data[(exact_data.exact_code == p.exact_code) & 
+                                           (exact_data.ym == ym)].hours.sum()
+                written_fte.append(written_fte[-1] + written_hours / 1680.0)
+            except IndexError:
+                written_fte.append(written_fte[-1])
         data.append({
             'type': 'line',
             'mode': 'lines',
             'name': 'total written',
             'x': x,
             'y': written_fte,
-            'showlegend': (hours_total is not None),
+            'showlegend': True,
             'line': {'color': 'black'}})
-
     return data
 
 @app.route('/add_project', methods = ['POST'])
@@ -467,7 +473,7 @@ def set_user_settings():
     return resp
 
 def read_exact_data(filename):
-    global hours, hours_total
+    global exact_data
     hours = {}
     hours_total = {}
     with open(filename, "r") as csvfile:
@@ -488,6 +494,8 @@ def read_exact_data(filename):
                     hours_total[t] = int(float(line['Aantal']))
             except:
                 sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
+    data = [list(k) + [v] for k,v in hours.items()]
+    exact_data = pd.DataFrame(data, columns=['exact_code', 'exact_id', 'ym', 'hours'])
 
 def create_all_project_plots(output_folder):
     import matplotlib.pyplot as plt
@@ -525,7 +533,6 @@ def main():
     global db_session
     db_session = session()
     Base.metadata.create_all(engine)
-    print "Create db"
     if len(db_session.query(Usersetting).all()) < 2:
         start_date = Usersetting(setting = u'start_date', value = u'2015-01')
         end_date = Usersetting(setting = u'end_date', value = u'2019-01')
