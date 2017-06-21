@@ -21,7 +21,9 @@ colors = ['#1f77b4',
     '#e377c2',
     '#7f7f7f',
     '#bcbd22',
-    '#17becf']
+    '#17becf',
+    "#1f77b4",
+    "#ff7f0e"]
 
 warn_color = {
     'red': '#990000',
@@ -149,7 +151,6 @@ def get_engineer_plot():
         writing_projects = exact_data[exact_data.exact_id == exact_id].groupby('exact_code').count().index.values
         writing_project_ids = db_session.query(Project).filter(Project.exact_code.in_(writing_projects)).all()
         other_projects = [(p.pid, p.exact_code) for p in writing_project_ids if p.pid not in assigned_projects]
-        print other_projects
         for i, (pid, exact_code) in enumerate(other_projects):
             written_fte = []
             for ym in range(p.start, p.end):
@@ -405,7 +406,6 @@ def get_project_plot_data(pid):
         writing_engineers = exact_data[exact_data.exact_code == p.exact_code].groupby('exact_id').count().index.values
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
         other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
-        print other_engineers
         for i, (eid, exact_id) in enumerate(other_engineers):
             written_fte = [0]
             for ym in range(p.start, p.end):
@@ -417,6 +417,11 @@ def get_project_plot_data(pid):
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
+            colornr = i + len(assigned_engineers)
+            if colornr > 10:
+                color = 'black'
+            else:
+                color = colors[colornr]
             data.append({
                 'type': 'line',
                 'mode': 'lines',
@@ -424,7 +429,7 @@ def get_project_plot_data(pid):
                 'x': x[:len(written_fte)],
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
-                'line': {'dash': 'dash', 'color': colors[i + len(assigned_engineers)]}})
+                'line': {'dash': 'dash', 'color': color}})
 
     return data
 
@@ -546,7 +551,7 @@ def read_exact_data(filename):
             try:
                 day, month, year = line['Datum'].split('-')
                 ym = date2ym("-".join([year,month]))
-                t = (line['Projectcode'], line['Medewerker ID'], ym)
+                t = (unicode(line['Projectcode']), unicode(line['Medewerker ID']), ym)
                 if t in hours:
                     hours[t] += int(float(line['Aantal']))
                 else:
@@ -579,7 +584,13 @@ def create_all_project_plots(output_folder):
             pass
         data = get_project_plot_data(pid)
         for trace in data:
-            plt.plot(trace['y'], '-' + '-'*('dash' in trace['line']), color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
+            style = '-'
+            if 'dash' in trace['line']:
+                if trace['line']['dash'] == 'dash':
+                    style = '--'
+                elif trace['line']['dash'] == 'dot':
+                    style = ':'
+            plt.plot(trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
         plt.title('Project: '+pid)
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
         plt.tight_layout()
