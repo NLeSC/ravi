@@ -296,7 +296,6 @@ def get_project_plot_data(pid):
     for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
         # make sure lines don't overlap for engineer with equal assignments
         projected_fte = [(i-len(assignments)/2.0+0.5)/30.0] * (p.end - p.start + 1)
-        written_fte = [0]
         for a in assignments_grouped:
             ym_fte = 0
             for m in range(p.end - p.start):
@@ -305,17 +304,6 @@ def get_project_plot_data(pid):
                 ym_fte += a.fte if a.start <= ym < a.end else 0
                 projected_fte[m+1] += ym_fte / 12
                 projected_total[m+1] += ym_fte / 12
-                if exact_data is not None:
-                    # Written hours
-                    exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=a.eid).one()
-                    if ym < current_ym:
-                        try:
-                            written_hours = exact_data[(exact_data.exact_code == p.exact_code) & 
-                                                       (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.values[0]
-                            written_fte.append(written_fte[-1] + written_hours / 1680.0)
-                        except IndexError:
-                            written_fte.append(written_fte[-1])
         data.append({
             'type': 'line',
             'mode': 'lines',
@@ -325,6 +313,18 @@ def get_project_plot_data(pid):
             'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
             'line': {'dash': 'dot', 'color': colors[i]}})
         if exact_data is not None:
+            # Written hours
+            written_fte = [0]
+            exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
+            for ym in range(p.start, current_ym):
+                if ym < current_ym:
+                    try:
+                        written_hours = exact_data[(exact_data.exact_code == p.exact_code) &
+                                                   (exact_data.exact_id == exact_id) &
+                                                   (exact_data.ym == ym)].hours.values[0]
+                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                    except IndexError:
+                        written_fte.append(written_fte[-1])
             data.append({
                 'type': 'line',
                 'mode': 'lines',
@@ -363,6 +363,7 @@ def get_project_plot_data(pid):
             'showlegend': True,
             'line': {'color': 'black'}})
 
+    # Written hours by non-assigned engineers
     if exact_data is not None:
         assigned_engineers = [eid for eid, a in groupby(assignments, lambda a: a.eid)]
         writing_engineers = exact_data[exact_data.exact_code == p.exact_code].groupby('exact_id').count().index.values
