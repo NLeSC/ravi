@@ -66,6 +66,7 @@ function addAssignment(data) {
         updateAssignments()
         engineers[assignment_data['eid']].plot()
         projects[assignment_data['pid']].plot()
+        plotProject()
         }
     request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request_add_assignment.send('data=' + JSON.stringify(assignment_data))    
@@ -79,6 +80,7 @@ function delAssignment(aid) {
         updateAssignments()
         engineers[assignment.eid].plot()
         projects[assignment.pid].plot()
+        plotProject()
         form = document.getElementById('assignmentsform')
         form.elements["eid"].value = assignment.eid
         form.elements["pid"].value = assignment.pid
