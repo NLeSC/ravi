@@ -143,6 +143,32 @@ def get_engineer_plot():
 #        'x': x,
 #        'y': ym_fte_t,
 #        'line': {'dash': 'dot', 'color': 'black'}})
+    # Written hours on non-assigned projects
+    if exact_data is not None:
+        assigned_projects = [a.pid for a in assignments]
+        writing_projects = exact_data[exact_data.exact_id == exact_id].groupby('exact_code').count().index.values
+        writing_project_ids = db_session.query(Project).filter(Project.exact_code.in_(writing_projects)).all()
+        other_projects = [(p.pid, p.exact_code) for p in writing_project_ids if p.pid not in assigned_projects]
+        print other_projects
+        for i, (pid, exact_code) in enumerate(other_projects):
+            written_fte = []
+            for ym in range(p.start, p.end):
+                if ym < current_ym:
+                    try:
+                        written_hours = exact_data[(exact_data.exact_code == exact_code) &
+                                                   (exact_data.exact_id == exact_id) &
+                                                   (exact_data.ym == ym)].hours.values[0]
+                        written_fte.append(written_hours / 140.0)
+                    except IndexError:
+                        written_fte.append(0)
+            data.append({
+                'type': 'line',
+                'mode': 'lines',
+                'name': pid,
+                'x': x[:len(written_fte)],
+                'y': written_fte,
+                'showlegend': True, #show this legend only if there are hours from exact
+                'line': {'dash': 'dash', 'color': colors[i + len(assigned_projects)]}})
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
