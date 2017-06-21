@@ -72,18 +72,31 @@ function plotEngineer() {
         console.log(data)
         var plot_detailed = document.getElementById("plot_detailed")
         var layout = {
-            title: eid,
             autosize: true,
-            height: 250,
-            margin: {l:50,r:0,b:100,t:25},
+            height: 270,
+            margin: {l:50,r:0,b:100,t:0},
             showlegend: true,
             xaxis: {
                 type: 'date',
                 autotick: true,
                 ticks: 'outside',
-                tickangle: 90,
+                tickangle: 30,
                 nticks: 24
                 },
+            annotations: [{
+                xref: 'paper',
+                yref: 'paper',
+                x: 0.95,
+                xanchor: 'right',
+                y: 1,
+                yanchor: 'top',
+                font: {
+                    size: 20
+                    },
+                borderwidth: 0,
+                text: '<b>' + eid + '</b>',
+                showarrow: false
+                }],
             };
 
         Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});

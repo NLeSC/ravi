@@ -91,14 +91,14 @@ function plotProject() {
         var plot_detailed = document.getElementById("plot_detailed")
         var layout = {
             autosize: true,
-            height: 250,
+            height: 270,
             margin: {l:50,r:0,b:100,t:0},
             showlegend: true,
             xaxis: {
                 type: 'date',
                 autotick: true,
                 ticks: 'outside',
-                tickangle: 90,
+                tickangle: 30,
                 nticks: 24
                 },
             annotations: [{
