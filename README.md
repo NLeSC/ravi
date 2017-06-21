@@ -16,6 +16,7 @@ wget -P js https://cdn.plot.ly/plotly-latest.min.js
 conda create -n ravi
 source activate ravi
 conda install matplotlib
+conda install pandas
 python setup.py develop
 ```
 
