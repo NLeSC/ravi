@@ -362,6 +362,33 @@ def get_project_plot_data(pid):
             'y': written_fte,
             'showlegend': True,
             'line': {'color': 'black'}})
+
+    if exact_data is not None:
+        assigned_engineers = [eid for eid, a in groupby(assignments, lambda a: a.eid)]
+        writing_engineers = exact_data[exact_data.exact_code == p.exact_code].groupby('exact_id').count().index.values
+        writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
+        other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
+        print other_engineers
+        for i, (eid, exact_id) in enumerate(other_engineers):
+            written_fte = [0]
+            for ym in range(p.start, p.end):
+                if ym < current_ym:
+                    try:
+                        written_hours = exact_data[(exact_data.exact_code == p.exact_code) &
+                                                   (exact_data.exact_id == exact_id) &
+                                                   (exact_data.ym == ym)].hours.values[0]
+                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                    except IndexError:
+                        written_fte.append(written_fte[-1])
+            data.append({
+                'type': 'line',
+                'mode': 'lines',
+                'name': eid,
+                'x': x[:len(written_fte)],
+                'y': written_fte,
+                'showlegend': True, #show this legend only if there are hours from exact
+                'line': {'dash': 'dash', 'color': colors[i + len(assigned_engineers)]}})
+
     return data
 
 @app.route('/add_project', methods = ['POST'])
@@ -496,6 +523,7 @@ def read_exact_data(filename):
                 sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
     data = [list(k) + [v] for k,v in hours.items()]
     exact_data = pd.DataFrame(data, columns=['exact_code', 'exact_id', 'ym', 'hours'])
+    return exact_data
 
 def create_all_project_plots(output_folder):
     import matplotlib.pyplot as plt
