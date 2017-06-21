@@ -200,8 +200,7 @@ function delProject() {
         }
     }
 
-function printProjects()
-{
+function printProjects() {
     var print_window = window.open('', 'PRINT', 'height=600,width=1000')
 
     print_window.document.write('<html><head><title>' + document.title  + '</title>')
@@ -216,7 +215,26 @@ function printProjects()
 //    print_window.close();
 
     return true;
-}
+    }
+
+function date2ym(date) {
+    var d = date.split('-');
+    return 12 * parseInt(d[0]) + parseInt(d[1]) - 1;
+    }
+
+function assignCoordinator() {
+    var pid = document.getElementById("project_name").value
+    var fte = document.getElementById("project_fte").value
+    var start = document.getElementById("project_start").value
+    var end = document.getElementById("project_end").value
+    var coordinator = document.getElementById("project_coordinator").value
+    var form = document.getElementById('assignmentsform')
+    form.elements['eid'].value = coordinator
+    form.elements['pid'].value = pid
+    form.elements['fte'].value = Math.round(fte * 12 / (date2ym(end) - date2ym(start)) * 5) / 100
+    form.elements['start'].value = start
+    form.elements['end'].value = end
+    }
 
 var request_projects = new XMLHttpRequest();
 request_projects.open('GET', 'http://localhost:5000/get_projects');
