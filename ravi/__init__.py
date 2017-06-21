@@ -102,6 +102,7 @@ def get_engineer_plot():
     exact_id = request.form['exact']
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
+    current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
     data = []
     assignments = db_session.query(Assignment).filter_by(eid=eid).all()
     assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
@@ -115,24 +116,33 @@ def get_engineer_plot():
             'name': a.pid,
             'x': x,
             'y': ym_fte_a,
-            'showlegend': (hours is None), #show this legend only if there are no hours from exact
+            'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
             'line': {'dash': 'dot', 'color': colors[i]}})
-        if hours:
+        if exact_data is not None:
+            # Written hours
             exact_code, = db_session.query(Project.exact_code).filter_by(pid=a.pid).one()
-            ym_fte_w = [hours[(str(exact_code), str(exact_id), ym)]/140.0 if (str(exact_code), str(exact_id), ym) in hours else 0 for ym in range(start, end)]
+            written_fte = []
+            for ym in range(start, current_ym):
+                try:
+                    written_hours = exact_data[(exact_data.exact_code == exact_code) &
+                                               (exact_data.exact_id == exact_id) &
+                                               (exact_data.ym == ym)].hours.values[0]
+                    written_fte.append(written_hours / 140.0)
+                except IndexError:
+                    written_fte.append(0)
             data.append({
                 'type': 'line',
                 'name': a.pid,
                 'x': x,
-                'y': ym_fte_w,
-                'showlegend': (hours is not None), #show this legend only if there are hours from exact
+                'y': written_fte,
+                'showlegend': True, #show this legend only if there are hours from exact
                 'line': {'color': colors[i]}})
-    data.append({
-        'type': 'line',
-        'name': 'total',
-        'x': x,
-        'y': ym_fte_t,
-        'line': {'dash': 'dot', 'color': 'black'}})
+#    data.append({
+#        'type': 'line',
+#        'name': 'total',
+#        'x': x,
+#        'y': ym_fte_t,
+#        'line': {'dash': 'dot', 'color': 'black'}})
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
