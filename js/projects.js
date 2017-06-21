@@ -176,14 +176,17 @@ function addProject() {
         "coordinator": coordinator,
         "comments": comments
         }
-    if (!(pid in projects)) {
-        addProjectTableRow(pid)
-        }
-    projects[pid] = new Project(project_data)
-
     request_add_project = new XMLHttpRequest()
     request_add_project.open('POST', 'http://localhost:5000/add_project')
-    request_add_project.onload = function() {projects[pid].plot()}
+    request_add_project.onload = function() {
+        if (checkResponse(request_add_project)) {
+            if (!(pid in projects)) {
+                addProjectTableRow(pid)
+                }
+            projects[pid] = new Project(project_data)
+            projects[pid].plot()
+            }
+        }
     request_add_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request_add_project.send('data=' + JSON.stringify(project_data))    
     }

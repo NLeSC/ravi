@@ -2,7 +2,7 @@
 Resources Assignment and VIewing (RAVI) tool
 """
 
-from flask import Flask, Response, json, request
+from flask import Flask, Response, json, request, abort
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func, desc
@@ -52,6 +52,13 @@ def date2ym(date):
         return 12 * int(d[0]) + int(d[1]) - 1
     else:
         return None
+
+
+@app.errorhandler(500)
+def custom500(error):
+    resp = Response(json.dumps({'error': error.description}), 500, mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 
 @app.route('/get_engineers', methods = ['GET'])
@@ -177,23 +184,30 @@ def get_engineer_plot():
 
 @app.route('/add_engineer', methods = ['POST'])
 def add_engineer():
-    engineer_data = json.loads(request.form['data'])
-    if 0 == db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
-            'fte': unicode(engineer_data['fte']),
-            'start': date2ym(engineer_data['start']),
-            'end': date2ym(engineer_data['end']),
-            'exact_id': engineer_data['exact_id'],
-            'comments': engineer_data['comments']
-            }):
-        engineer = Engineer()
-        engineer.eid = unicode(engineer_data['eid'])
-        engineer.exact_id = engineer_data['exact_id']
-        engineer.fte = engineer_data['fte']
-        engineer.start = date2ym(engineer_data['start'])
-        engineer.end = date2ym(engineer_data['end'])
-        engineer.comments = engineer_data['comments']
-        db_session.add(engineer)
-    db_session.commit()
+    try:
+        engineer_data = json.loads(request.form['data'])
+        if 0 == db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
+                'fte': unicode(engineer_data['fte']),
+                'start': date2ym(engineer_data['start']),
+                'end': date2ym(engineer_data['end']),
+                'exact_id': engineer_data['exact_id'],
+                'comments': engineer_data['comments']
+                }):
+            engineer = Engineer()
+            engineer.eid = unicode(engineer_data['eid'])
+            engineer.exact_id = engineer_data['exact_id']
+            engineer.fte = engineer_data['fte']
+            engineer.start = date2ym(engineer_data['start'])
+            engineer.end = date2ym(engineer_data['end'])
+            engineer.comments = engineer_data['comments']
+            db_session.add(engineer)
+    except Exception as err:
+        abort(500, "Incorrect engineer input:\n\n" + str(err))
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Adding engineer failed:\n\n" + str(err))
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -319,8 +333,6 @@ def get_all_project_plots_data():
     return resp
 
 def get_project_plot_data(pid):
-    # start = date2ym(get_start_date())
-    # end = date2ym(get_end_date())
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
     data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
@@ -435,26 +447,33 @@ def get_project_plot_data(pid):
 
 @app.route('/add_project', methods = ['POST'])
 def add_project():
-    project_data = json.loads(request.form['data'])
-    if 0 == db_session.query(Project).filter_by(pid=project_data['pid']).update({
-            'fte': float(project_data['fte']),
-            'start': date2ym(project_data['start']),
-            'end': date2ym(project_data['end']),
-            'exact_code': unicode(project_data['exact_code']),
-            'coordinator': unicode(project_data['coordinator']),
-            'comments': unicode(project_data['comments'])
-            }):
-        sys.stderr.write(str(project_data))
-        project = Project()
-        project.pid = unicode(project_data['pid'])
-        project.exact_code = unicode(project_data['exact_code'])
-        project.fte = float(project_data['fte'])
-        project.start = date2ym(project_data['start'])
-        project.end = date2ym(project_data['end'])
-        project.coordinator = unicode(project_data['coordinator'])
-        project.comments = unicode(project_data['comments'])
-        db_session.add(project)
-    db_session.commit()
+    try:
+        project_data = json.loads(request.form['data'])
+        if 0 == db_session.query(Project).filter_by(pid=project_data['pid']).update({
+                'fte': float(project_data['fte']),
+                'start': date2ym(project_data['start']),
+                'end': date2ym(project_data['end']),
+                'exact_code': unicode(project_data['exact_code']),
+                'coordinator': unicode(project_data['coordinator']),
+                'comments': unicode(project_data['comments'])
+                }):
+            sys.stderr.write(str(project_data))
+            project = Project()
+            project.pid = unicode(project_data['pid'])
+            project.exact_code = unicode(project_data['exact_code'])
+            project.fte = float(project_data['fte'])
+            project.start = date2ym(project_data['start'])
+            project.end = date2ym(project_data['end'])
+            project.coordinator = unicode(project_data['coordinator'])
+            project.comments = unicode(project_data['comments'])
+            db_session.add(project)
+    except Exception as err:
+        abort(500, "Incorrect project input:\n\n" + str(err))
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Adding project failed:\n\n" + str(err))
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -492,15 +511,22 @@ def get_assignments():
   
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
-    assignment_data = json.loads(request.form['data'])
-    assignment = Assignment()
-    assignment.eid = unicode(assignment_data['eid'])
-    assignment.pid = unicode(assignment_data['pid'])
-    assignment.fte = assignment_data['fte']
-    assignment.start = date2ym(assignment_data['start'])
-    assignment.end = date2ym(assignment_data['end'])
-    db_session.add(assignment)
-    db_session.commit()
+    try:
+        assignment_data = json.loads(request.form['data'])
+        assignment = Assignment()
+        assignment.eid = unicode(assignment_data['eid'])
+        assignment.pid = unicode(assignment_data['pid'])
+        assignment.fte = assignment_data['fte']
+        assignment.start = date2ym(assignment_data['start'])
+        assignment.end = date2ym(assignment_data['end'])
+        db_session.add(assignment)
+    except Exception as err:
+        abort(500, "Incorrect assignment input:\n\n" + str(err))
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Adding assignment failed:\n\n" + str(err))
     resp = Response(json.dumps('["success"]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp

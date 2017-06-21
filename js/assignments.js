@@ -49,6 +49,16 @@ function resetAssignmentForm() {
     aform.elements['end'].value = document.getElementById('project_end').value
     }
 
+function checkResponse(request_object) {
+    if (request_object.readyState == 4 && request_object.status == 200) {
+        return true
+        }
+    else {
+        alert(JSON.parse(request_object.responseText)['error'])
+        return false
+        }
+    }
+
 function addAssignment(data) {
     var form = document.getElementById('assignmentsform')
     assignment_data = {
@@ -62,11 +72,13 @@ function addAssignment(data) {
     request_add_assignment = new XMLHttpRequest()
     request_add_assignment.open('POST', 'http://localhost:5000/add_assignment')
     request_add_assignment.onload = function() {
-        resetAssignmentForm()
-        updateAssignments()
-        engineers[assignment_data['eid']].plot()
-        projects[assignment_data['pid']].plot()
-        plotProject()
+        if (checkResponse(request_add_assignment)) {
+            resetAssignmentForm()
+            updateAssignments()
+            engineers[assignment_data['eid']].plot()
+            projects[assignment_data['pid']].plot()
+            plotProject()
+            }
         }
     request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request_add_assignment.send('data=' + JSON.stringify(assignment_data))    

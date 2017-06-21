@@ -153,14 +153,17 @@ function addEngineer() {
         "exact_id": exact,
         "comments": comments
         }
-    if (!(eid in engineers)) {
-        addEngineerTableRow(eid)
-        }
-    engineers[eid] = new Engineer(engineer_data)
-
     request_add_engineer = new XMLHttpRequest()
     request_add_engineer.open('POST', 'http://localhost:5000/add_engineer')
-    request_add_engineer.onload = function() {engineers[eid].plot()}
+    request_add_engineer.onload = function() {
+        if (checkResponse(request_add_engineer)) {
+            if (!(eid in engineers)) {
+                addEngineerTableRow(eid)
+                }
+            engineers[eid] = new Engineer(engineer_data)
+            engineers[eid].plot()
+            }
+        }
     request_add_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request_add_engineer.send('data=' + JSON.stringify(engineer_data))    
     }
