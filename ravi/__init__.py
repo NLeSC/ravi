@@ -481,7 +481,8 @@ def add_project():
 @app.route('/del_project', methods = ['POST'])
 def del_project():
     pid = request.form['pid']
-    p = db_session.query(Project).filter_by(pid=pid).one()
+    print 'pid: ', unicode(pid)
+    p = db_session.query(Project).filter_by(pid=unicode(pid)).one()
     db_session.delete(p)
     for a in db_session.query(Assignment).filter_by(pid=pid):
         db_session.delete(a)
