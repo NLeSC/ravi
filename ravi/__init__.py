@@ -337,6 +337,7 @@ def get_project_plot_data(pid):
     data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     x = [ym2date(ym) for ym in range(p.start, p.end + 1)]
+    exact_code = p.exact_code.split('#')
 
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
@@ -368,9 +369,15 @@ def get_project_plot_data(pid):
             for ym in range(p.start, current_ym):
                 if ym < current_ym:
                     try:
-                        written_hours = exact_data[(exact_data.exact_code == p.exact_code) &
-                                                   (exact_data.exact_id == exact_id) &
-                                                   (exact_data.ym == ym)].hours.values[0]
+                        if len(exact_code) == 1:
+                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.ym == ym)].hours.values[0]
+                        else:
+                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                       (exact_data.hour_code == exact_code[1]) &
+                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.ym == ym)].hours.values[0]
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
@@ -415,7 +422,11 @@ def get_project_plot_data(pid):
     # Written hours by non-assigned engineers
     if exact_data is not None:
         assigned_engineers = [eid for eid, a in groupby(assignments, lambda a: a.eid)]
-        writing_engineers = exact_data[exact_data.exact_code == p.exact_code].groupby('exact_id').count().index.values
+        if len(exact_code) == 1:
+            writing_engineers = exact_data[exact_data.exact_code == exact_code[0]].groupby('exact_id').count().index.values
+        else:
+            writing_engineers = exact_data[(exact_data.exact_code == exact_code[0]) & (exact_data.hour_code == exact_code[1])].\
+                groupby('exact_id').count().index.values
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
         other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
         for i, (eid, exact_id) in enumerate(other_engineers):
@@ -423,9 +434,15 @@ def get_project_plot_data(pid):
             for ym in range(p.start, p.end):
                 if ym < current_ym:
                     try:
-                        written_hours = exact_data[(exact_data.exact_code == p.exact_code) &
-                                                   (exact_data.exact_id == exact_id) &
-                                                   (exact_data.ym == ym)].hours.values[0]
+                        if len(exact_code) == 1:
+                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.ym == ym)].hours.values[0]
+                        else:
+                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                       (exact_data.hour_code == exact_code[1]) &
+                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.ym == ym)].hours.values[0]
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
@@ -481,7 +498,6 @@ def add_project():
 @app.route('/del_project', methods = ['POST'])
 def del_project():
     pid = request.form['pid']
-    print 'pid: ', unicode(pid)
     p = db_session.query(Project).filter_by(pid=unicode(pid)).one()
     db_session.delete(p)
     for a in db_session.query(Assignment).filter_by(pid=pid):
@@ -578,20 +594,15 @@ def read_exact_data(filename):
             try:
                 day, month, year = line['Datum'].split('-')
                 ym = date2ym("-".join([year,month]))
-                t = (unicode(line['Projectcode']), unicode(line['Medewerker ID']), ym)
+                t = (unicode(line['Projectcode']), unicode(line['Uur- of kostensoort (Code)']), unicode(line['Medewerker ID']), ym)
                 if t in hours:
                     hours[t] += int(float(line['Aantal']))
                 else:
                     hours[t] = int(float(line['Aantal']))
-                t = (line['Projectcode'], ym)
-                if t in hours_total:
-                    hours_total[t] += int(float(line['Aantal']))
-                else:
-                    hours_total[t] = int(float(line['Aantal']))
             except:
                 sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
     data = [list(k) + [v] for k,v in hours.items()]
-    exact_data = pd.DataFrame(data, columns=['exact_code', 'exact_id', 'ym', 'hours'])
+    exact_data = pd.DataFrame(data, columns=['exact_code', 'hour_code', 'exact_id', 'ym', 'hours'])
     return exact_data
 
 def create_all_project_plots(output_folder):
