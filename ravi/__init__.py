@@ -351,10 +351,10 @@ def get_project_plot_data(pid):
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
     assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
-    projected_total = [0.01] * (p.end - p.start + 1)
+    projected_total = [0.0] * (p.end - p.start + 1)
     for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
         # make sure lines don't overlap for engineer with equal assignments
-        projected_fte = [(i-len(assignments)/2.0+0.5)/30.0] * (p.end - p.start + 1)
+        projected_fte = [0] * (p.end - p.start + 1)
         for a in assignments_grouped:
             ym_fte = 0
             for m in range(p.end - p.start):
