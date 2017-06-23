@@ -120,7 +120,7 @@ def get_engineer_plot():
     for i, a in enumerate(assignments):
         ym_fte_a = [a.fte if a.start <= ym < a.end else 0 for ym in range(start, end)]
         ym_fte_t = [ym_fte_t[ym-start] + (a.fte if a.start <= ym < a.end else 0) for ym in range(start, end)]
-        data.append({
+        data.insert(0, {
             'type': 'line',
             'name': a.pid,
             'x': x,
@@ -142,7 +142,7 @@ def get_engineer_plot():
                                                (exact_data.exact_id == exact_id) &
                                                (exact_data.ym == ym)].hours.sum()
                 written_fte.append(written_hours / 140.0)
-            data.append({
+            data.insert(0, {
                 'type': 'line',
                 'name': a.pid,
                 'x': x,
@@ -174,7 +174,6 @@ def get_engineer_plot():
                 written_fte = []
                 for ym in range(start, current_ym):
                     written_fte.append(float(exact_hours[exact_hours.ym == ym].hours.sum()) / 140.0)
-                print exact_code, written_fte
                 if project_count > 10:
                     color = 'black'
                 else:
@@ -284,7 +283,7 @@ def get_project_data():
     x_axis = [ym2date(ymi) for ymi in range(start, end)]
     plot_data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
-    assignments = db_session.query(Assignment).filter_by(pid=pid).all()
+    assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
     assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
     total_planned = 0
     for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
@@ -351,7 +350,7 @@ def get_project_plot_data(pid):
 
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    #assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
+    assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
     projected_total = [0.01] * (p.end - p.start + 1)
     for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
         # make sure lines don't overlap for engineer with equal assignments
@@ -364,7 +363,7 @@ def get_project_plot_data(pid):
                 ym_fte += a.fte if a.start <= ym < a.end else 0
                 projected_fte[m+1] += ym_fte / 12
                 projected_total[m+1] += ym_fte / 12
-        data.append({
+        data.insert(0, {
             'type': 'line',
             'mode': 'lines',
             'name': a.eid,
@@ -391,7 +390,7 @@ def get_project_plot_data(pid):
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
-            data.append({
+            data.insert(0, {
                 'type': 'line',
                 'mode': 'lines',
                 'name': a.eid,
