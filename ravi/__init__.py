@@ -129,16 +129,19 @@ def get_engineer_plot():
             'line': {'dash': 'dot', 'color': colors[i]}})
         if exact_data is not None:
             # Written hours
-            exact_code, = db_session.query(Project.exact_code).filter_by(pid=a.pid).one()
+            exact_code = db_session.query(Project.exact_code).filter_by(pid=a.pid).one()[0].split('#')
             written_fte = []
             for ym in range(start, current_ym):
-                try:
-                    written_hours = exact_data[(exact_data.exact_code == exact_code) &
+                if len(exact_code) == 1:
+                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                (exact_data.exact_id == exact_id) &
-                                               (exact_data.ym == ym)].hours.values[0]
-                    written_fte.append(written_hours / 140.0)
-                except IndexError:
-                    written_fte.append(0)
+                                               (exact_data.ym == ym)].hours.sum()
+                else:
+                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                               (exact_data.hour_code == exact_code[1]) &
+                                               (exact_data.exact_id == exact_id) &
+                                               (exact_data.ym == ym)].hours.sum()
+                written_fte.append(written_hours / 140.0)
             data.append({
                 'type': 'line',
                 'name': a.pid,
@@ -155,28 +158,35 @@ def get_engineer_plot():
     # Written hours on non-assigned projects
     if exact_data is not None:
         assigned_projects = [a.pid for a in assignments]
-        writing_projects = exact_data[exact_data.exact_id == exact_id].groupby('exact_code').count().index.values
-        writing_project_ids = db_session.query(Project).filter(Project.exact_code.in_(writing_projects)).all()
-        other_projects = [(p.pid, p.exact_code) for p in writing_project_ids if p.pid not in assigned_projects]
-        for i, (pid, exact_code) in enumerate(other_projects):
-            written_fte = []
-            for ym in range(p.start, p.end):
-                if ym < current_ym:
-                    try:
-                        written_hours = exact_data[(exact_data.exact_code == exact_code) &
-                                                   (exact_data.exact_id == exact_id) &
-                                                   (exact_data.ym == ym)].hours.values[0]
-                        written_fte.append(written_hours / 140.0)
-                    except IndexError:
-                        written_fte.append(0)
-            data.append({
-                'type': 'line',
-                'mode': 'lines',
-                'name': pid,
-                'x': x[:len(written_fte)],
-                'y': written_fte,
-                'showlegend': True, #show this legend only if there are hours from exact
-                'line': {'dash': 'dash', 'color': colors[i + len(assigned_projects)]}})
+        project_count = len(assigned_projects)
+        for pid, exact_code in db_session.query(Project.pid, Project.exact_code).\
+                filter(~Project.pid.in_(assigned_projects)).all():
+            exact_codes = exact_code.split('#')
+            if len(exact_codes) == 1:
+                exact_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
+                                         (exact_data.exact_id == exact_id)]
+            else:
+                exact_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
+                                         (exact_data.hour_code == exact_codes[1]) &
+                                         (exact_data.exact_id == exact_id)]
+            if exact_hours.hours.sum() > 0:
+                project_count += 1
+                written_fte = []
+                for ym in range(start, current_ym):
+                    written_fte.append(float(exact_hours[exact_hours.ym == ym].hours.sum()) / 140.0)
+                print exact_code, written_fte
+                if project_count > 10:
+                    color = 'black'
+                else:
+                    color = colors[project_count]
+                data.append({
+                    'type': 'line',
+                    'mode': 'lines',
+                    'name': pid,
+                    'x': x[:len(written_fte)],
+                    'y': written_fte,
+                    'showlegend': True, #show this legend only if there are hours from exact
+                    'line': {'dash': 'dash', 'color': color}})
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -433,19 +443,16 @@ def get_project_plot_data(pid):
             written_fte = [0]
             for ym in range(p.start, p.end):
                 if ym < current_ym:
-                    try:
-                        if len(exact_code) == 1:
-                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                       (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.values[0]
-                        else:
-                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                       (exact_data.hour_code == exact_code[1]) &
-                                                       (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.values[0]
-                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
-                    except IndexError:
-                        written_fte.append(written_fte[-1])
+                    if len(exact_code) == 1:
+                        written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                   (exact_data.exact_id == exact_id) &
+                                                   (exact_data.ym == ym)].hours.sum()
+                    else:
+                        written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                                   (exact_data.hour_code == exact_code[1]) &
+                                                   (exact_data.exact_id == exact_id) &
+                                                   (exact_data.ym == ym)].hours.sum()
+                    written_fte.append(written_fte[-1] + written_hours / 1680.0)
             colornr = i + len(assigned_engineers)
             if colornr > 10:
                 color = 'black'

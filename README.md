@@ -42,6 +42,7 @@ ravi database.db exported_hours_from_exact.csv output_folder
     * Medewerker ID
     * Datum
     * Aantal
+    * Uur- of kostensoort (Code)
 * Choose "Exporteren: Excel" in the top-right menu
 * In Excel: Remove the top 13 or so lines to keep only one header line and data
 * Save as CSV, using "," as field delimiter and no text delimiter
