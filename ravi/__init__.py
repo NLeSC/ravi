@@ -284,7 +284,9 @@ def get_project_data():
     plot_data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
+    #assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
+    # ToDo: this sorting messes up the grouping by engineer, are there other ways to sort to
+    # make the "gantcharts" nicer
     total_planned = 0
     for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
         ym_fte = [0] * (end - start)
@@ -350,7 +352,7 @@ def get_project_plot_data(pid):
 
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
+    #assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
     projected_total = [0.0] * (p.end - p.start + 1)
     for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
         # make sure lines don't overlap for engineer with equal assignments
