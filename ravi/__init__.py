@@ -383,12 +383,12 @@ def get_project_plot_data(pid):
                         if len(exact_code) == 1:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                        (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.values[0]
+                                                       (exact_data.ym == ym)].hours.sum()
                         else:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                        (exact_data.hour_code == exact_code[1]) &
                                                        (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.values[0]
+                                                       (exact_data.ym == ym)].hours.sum()
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
