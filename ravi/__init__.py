@@ -3,7 +3,7 @@ Resources Assignment and VIewing (RAVI) tool
 """
 
 from flask import Flask, Response, json, request, abort
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine, desc, collate
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func, desc
 from items import Base, Engineer, Project, Assignment, Usersetting
@@ -265,7 +265,7 @@ def get_end_date():
 @app.route('/get_projects', methods = ['GET'])
 def get_projects():
     data = []
-    for p in db_session.query(Project).order_by(Project.pid).all():
+    for p in db_session.query(Project).order_by(collate(Project.pid, 'NOCASE')).all():
         d = dict(p)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
