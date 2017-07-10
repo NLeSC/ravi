@@ -284,21 +284,23 @@ def get_project_data():
     plot_data = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    #assignments.sort(key = lambda a: (min (a.end, end) - max(a.start, start)), reverse=True)
-    # ToDo: this sorting messes up the grouping by engineer, are there other ways to sort to
-    # make the "gantcharts" nicer
     total_planned = 0
+    sort_values = []
     for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
         ym_fte = [0] * (end - start)
+        sort_value = 0
         for a in assignments_grouped:
             total_planned += (a.end - a.start) / 12.0 * a.fte
+            sort_value = max(sort_value, a.end - a.start)
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
+        sort_values.append(sort_value)
         plot_data.append({
             'type': 'bar',
             'name': eid,
             # 'x': x_axis,
             'y': ym_fte})
+    plot_data = [x for y, x in sorted(zip(sort_values, plot_data), reverse=True)]
     """
     data.append({
         'type': 'line',
@@ -345,34 +347,38 @@ def get_all_project_plots_data():
 
 def get_project_plot_data(pid):
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-    data = []
+    data_projected = []
+    data_written = []
     p = db_session.query(Project).filter_by(pid=pid).one()
-    x = [ym2date(ym) for ym in range(p.start, p.end + 1)]
+    x_axis = [ym2date(ym) for ym in range(p.start, p.end + 1)]
     exact_code = p.exact_code.split('#')
 
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    #assignments.sort(key = lambda a: (min (a.end, p.end) - max(a.start, p.start)), reverse=True)
     projected_total = [0.0] * (p.end - p.start + 1)
-    for i, (eid, assignments_grouped) in enumerate(groupby(assignments, lambda a: a.eid)):
+    sort_values = []
+    for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
         # make sure lines don't overlap for engineer with equal assignments
         projected_fte = [0] * (p.end - p.start + 1)
+        sort_value = 0
         for a in assignments_grouped:
             ym_fte = 0
+            sort_value = max(sort_value, a.end - a.start)
             for m in range(p.end - p.start):
                 ym = m + p.start
                 # Projected hours
                 ym_fte += a.fte if a.start <= ym < a.end else 0
                 projected_fte[m+1] += ym_fte / 12
                 projected_total[m+1] += ym_fte / 12
-        data.insert(0, {
+        sort_values.append(sort_value)
+        data_projected.append({
             'type': 'line',
             'mode': 'lines',
             'name': a.eid,
-            'x': x,
+            'x': x_axis,
             'y': projected_fte,
             'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
-            'line': {'dash': 'dot', 'color': colors[i]}})
+            'line': {'dash': 'dot'}})
         if exact_data is not None:
             # Written hours
             written_fte = [0]
@@ -392,21 +398,28 @@ def get_project_plot_data(pid):
                         written_fte.append(written_fte[-1] + written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
-            data.insert(0, {
+            data_written.append({
                 'type': 'line',
                 'mode': 'lines',
                 'name': a.eid,
-                'x': x[:len(written_fte)],
+                'x': x_axis[:len(written_fte)],
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
-                'line': {'color': colors[i]}})
+                'line': {}})
+    data_projected = [x for y, x in sorted(zip(sort_values, data_projected))]
+    data_written = [x for y, x in sorted(zip(sort_values, data_written))]
+    for i, x in enumerate(reversed(data_projected)):
+        x['line']['color'] = colors[i]
+    for i, x in enumerate(reversed(data_written)):
+        x['line']['color'] = colors[i]
+    data = data_projected + data_written
 
     # total projected hours
     data.append({
         'type': 'line',
         'mode': 'lines',
         'name': 'total',
-        'x': x,
+        'x': x_axis,
         'y': projected_total,
         'showlegend': (exact_data is None),
         'line': {'dash': 'dot', 'color': 'black'}})
@@ -425,7 +438,7 @@ def get_project_plot_data(pid):
             'type': 'line',
             'mode': 'lines',
             'name': 'total written',
-            'x': x,
+            'x': x_axis,
             'y': written_fte,
             'showlegend': True,
             'line': {'color': 'black'}})
@@ -463,7 +476,7 @@ def get_project_plot_data(pid):
                 'type': 'line',
                 'mode': 'lines',
                 'name': eid,
-                'x': x[:len(written_fte)],
+                'x': x_axis[:len(written_fte)],
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {'dash': 'dash', 'color': color}})
