@@ -429,8 +429,13 @@ def get_project_plot_data(pid):
     if exact_data is not None:
         for ym in range(p.start, current_ym):
             try:
-                written_hours = exact_data[(exact_data.exact_code == p.exact_code) & 
-                                           (exact_data.ym == ym)].hours.sum()
+                if len(exact_code) == 1:
+                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                               (exact_data.ym == ym)].hours.sum()
+                else:
+                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                               (exact_data.hour_code == exact_code[1]) &
+                                               (exact_data.ym == ym)].hours.sum()
                 written_fte.append(written_fte[-1] + written_hours / 1680.0)
             except IndexError:
                 written_fte.append(written_fte[-1])
