@@ -185,6 +185,7 @@ function addProject() {
                 }
             projects[pid] = new Project(project_data)
             projects[pid].plot()
+            plotProject()
             }
         }
     request_add_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
