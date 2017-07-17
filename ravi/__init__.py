@@ -394,21 +394,20 @@ def get_project_plot_data(pid):
             'line': {'dash': 'dot'}})
         if exact_data is not None:
             # Written hours
-            written_fte = [0]
+            written_fte = []
             exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
-            for ym in range(p.start, current_ym):
-                if ym < current_ym:
+            for ym in range(p.start, current_ym + 1):
                     try:
                         if len(exact_code) == 1:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                        (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.sum()
+                                                       (exact_data.ym < ym)].hours.sum()
                         else:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                        (exact_data.hour_code == exact_code[1]) &
                                                        (exact_data.exact_id == exact_id) &
-                                                       (exact_data.ym == ym)].hours.sum()
-                        written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                                                       (exact_data.ym < ym)].hours.sum()
+                        written_fte.append(written_hours / 1680.0)
                     except IndexError:
                         written_fte.append(written_fte[-1])
             data_written.append({
@@ -438,18 +437,18 @@ def get_project_plot_data(pid):
         'line': {'dash': 'dot', 'color': 'black'}})
 
     # Total written hours
-    written_fte = [0]
+    written_fte = []
     if exact_data is not None:
-        for ym in range(p.start, current_ym):
+        for ym in range(p.start, current_ym + 1):
             try:
                 if len(exact_code) == 1:
                     written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                               (exact_data.ym == ym)].hours.sum()
+                                               (exact_data.ym < ym)].hours.sum()
                 else:
                     written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                (exact_data.hour_code == exact_code[1]) &
-                                               (exact_data.ym == ym)].hours.sum()
-                written_fte.append(written_fte[-1] + written_hours / 1680.0)
+                                               (exact_data.ym < ym)].hours.sum()
+                written_fte.append(written_hours / 1680.0)
             except IndexError:
                 written_fte.append(written_fte[-1])
         data.append({
