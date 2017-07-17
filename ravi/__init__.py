@@ -372,17 +372,17 @@ def get_project_plot_data(pid):
     sort_values = []
     for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
         # make sure lines don't overlap for engineer with equal assignments
-        projected_fte = [0] * (p.end - p.start + 1)
+        projected_fte = [0.0] * (p.end - p.start + 1)
         sort_value = 0
         for a in assignments_grouped:
-            ym_fte = 0
+            ym_fte = max(0.0, (min(p.start, a.end) - a.start - 1) * a.fte)
             sort_value = max(sort_value, a.end - a.start)
-            for m in range(p.end - p.start):
+            for m in range(p.end - p.start + 1):
                 ym = m + p.start
                 # Projected hours
-                ym_fte += a.fte if a.start <= ym < a.end else 0
-                projected_fte[m+1] += ym_fte / 12
-                projected_total[m+1] += ym_fte / 12
+                ym_fte += a.fte if a.start < ym <= a.end else 0
+                projected_fte[m] += ym_fte / 12
+                projected_total[m] += ym_fte / 12
         sort_values.append(sort_value)
         data_projected.append({
             'type': 'line',
