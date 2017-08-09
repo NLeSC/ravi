@@ -208,15 +208,16 @@ function printProjects() {
     var print_window = window.open('', 'PRINT', 'height=600,width=1000')
 
     print_window.document.write('<html><head><title>' + document.title  + '</title>')
-    print_window.document.write('</head><body><h1>Project planning</h1><div style="height:100%">')
-    print_window.document.write(document.getElementById("projects").innerHTML)
-    print_window.document.write('<table><tr><td style="width: 100px"></td><td>')
-    print_window.document.write(document.getElementById("xLabels2").innerHTML)
-    print_window.document.write('</td></tr></table></div><script src="js/plotly-latest.min.js"></script></body></html>')
+    print_window.document.write('<style>tr {page-break-inside: avoid}</style>')
+    print_window.document.write('</head><body><h1>Project planning</h1><table>')
+    print_window.document.write('<tfoot><tr ><td style="width: 100px"></td><td>')
+    print_window.document.write(document.getElementById("xLabels2").innerHTML + '</td></tr></tfoot>')
+    print_window.document.write('<tbody>' + document.getElementById("project_table").innerHTML)
+    print_window.document.write('</tbody></table><script src="js/plotly-latest.min.js"></script></body></html>')
     print_window.document.close(); // necessary for IE >= 10
     print_window.focus(); // necessary for IE >= 10*/
-//    print_window.print();
-//    print_window.close();
+    print_window.print();
+    print_window.close();
 
     return true;
     }
