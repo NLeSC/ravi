@@ -40,7 +40,7 @@ function Project(project_data) {
             var layout = {
                 autosize: false,
                 width: 750,
-                height: 100,
+                height: 110,
                 margin: {l:20,r:50,b:20,t:10},
                 barmode: 'stack',
                 bargap: 0,

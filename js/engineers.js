@@ -38,7 +38,7 @@ function Engineer(engineer_data) {
             var data = JSON.parse(request.responseText);
             var layout = {
                 autosize: false,
-                height: 100,
+                height: 110,
                 margin: {l:20,r:0,b:20,t:10},
                 barmode: 'stack',
                 bargap: 0,
