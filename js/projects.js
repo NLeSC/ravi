@@ -45,7 +45,10 @@ function Project(project_data) {
                 barmode: 'stack',
                 bargap: 0,
                 showlegend: true,
-                legend: {x: -0.25, y:1},
+                legend: {
+                    x: -0.25,
+                    y: 1,
+                    traceorder: "normal"},
                 xaxis: {
                     autotick: false,
                     ticks: 'outside',

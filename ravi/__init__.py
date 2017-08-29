@@ -86,7 +86,7 @@ def get_engineer_data():
         ym_fte = [0] * (end - start)
         sort_value = 0
         for a in assignments_grouped:
-            sort_value = max(sort_value, a.end - a.start)
+            sort_value += (a.end - a.start) * a.fte
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         sort_values.append(sort_value)
@@ -125,7 +125,7 @@ def get_engineer_plot():
         sort_value = 0
         ym_fte_a = [0.0] * (end - start)
         for a in assignments_grouped:
-            sort_value = max(sort_value, a.end - a.start)
+            sort_value += (a.end - a.start) * a.fte
             for m in range(end - start):
                 ym = m + start
                 ym_fte_a[m] += (a.fte if a.start <= ym < a.end else 0)
@@ -159,11 +159,11 @@ def get_engineer_plot():
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
-    data_planned = [x for y, x in sorted(zip(sort_values, data_planned))]
-    data_written = [x for y, x in sorted(zip(sort_values, data_written))]
-    for i, x in enumerate(reversed(data_planned)):
+    data_planned = [x for y, x in sorted(zip(sort_values, data_planned), reverse=True)]
+    data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
+    for i, x in enumerate(data_planned):
         x['line']['color'] = colors[i]
-    for i, x in enumerate(reversed(data_written)):
+    for i, x in enumerate(data_written):
         x['line']['color'] = colors[i]
     data = data_planned + data_written
 
@@ -304,7 +304,7 @@ def get_project_data():
         sort_value = 0
         for a in assignments_grouped:
             total_planned += (a.end - a.start) / 12.0 * a.fte
-            sort_value = max(sort_value, a.end - a.start)
+            sort_value += (a.end - a.start) * a.fte
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         sort_values.append(sort_value)
@@ -376,7 +376,7 @@ def get_project_plot_data(pid):
         sort_value = 0
         for a in assignments_grouped:
             ym_fte = max(0.0, (min(p.start, a.end) - a.start - 1) * a.fte)
-            sort_value = max(sort_value, a.end - a.start)
+            sort_value += (a.end - a.start) * a.fte
             for m in range(p.end - p.start + 1):
                 ym = m + p.start
                 # Projected hours
@@ -418,11 +418,11 @@ def get_project_plot_data(pid):
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
-    data_projected = [x for y, x in sorted(zip(sort_values, data_projected))]
-    data_written = [x for y, x in sorted(zip(sort_values, data_written))]
-    for i, x in enumerate(reversed(data_projected)):
+    data_projected = [x for y, x in sorted(zip(sort_values, data_projected), reverse=True)]
+    data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
+    for i, x in enumerate(data_projected):
         x['line']['color'] = colors[i]
-    for i, x in enumerate(reversed(data_written)):
+    for i, x in enumerate(data_written):
         x['line']['color'] = colors[i]
     data = data_projected + data_written
 
