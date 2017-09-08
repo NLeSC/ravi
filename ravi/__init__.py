@@ -4,7 +4,7 @@ Resources Assignment and VIewing (RAVI) tool
 
 from flask import Flask, Response, json, request, abort
 from sqlalchemy import create_engine, desc, collate
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, exc
 from sqlalchemy.sql import func, desc
 from items import Base, Engineer, Project, Assignment, Usersetting
 import sys, csv, os
@@ -395,7 +395,10 @@ def get_project_plot_data(pid):
         if exact_data is not None:
             # Written hours
             written_fte = []
-            exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
+            try:
+                exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
+            except exc.NoResultFound: #This enables dummy assignments to non-existing engineers
+                continue
             for ym in range(p.start, current_ym + 1):
                     try:
                         if len(exact_code) == 1:
