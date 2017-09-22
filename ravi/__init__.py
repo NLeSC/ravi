@@ -213,7 +213,8 @@ def add_engineer():
                 'start': date2ym(engineer_data['start']),
                 'end': date2ym(engineer_data['end']),
                 'exact_id': engineer_data['exact_id'],
-                'comments': engineer_data['comments']
+                'comments': engineer_data['comments'],
+                'active': engineer_data['active']
                 }):
             engineer = Engineer()
             engineer.eid = unicode(engineer_data['eid'])
@@ -222,6 +223,7 @@ def add_engineer():
             engineer.start = date2ym(engineer_data['start'])
             engineer.end = date2ym(engineer_data['end'])
             engineer.comments = engineer_data['comments']
+            engineer.active = engineer_data['active']
             db_session.add(engineer)
     except Exception as err:
         abort(500, "Incorrect engineer input:\n\n" + str(err))
@@ -513,7 +515,8 @@ def add_project():
                 'end': date2ym(project_data['end']),
                 'exact_code': unicode(project_data['exact_code']),
                 'coordinator': unicode(project_data['coordinator']),
-                'comments': unicode(project_data['comments'])
+                'comments': unicode(project_data['comments']),
+                'active': project_data['active']
                 }):
             sys.stderr.write(str(project_data))
             project = Project()
@@ -524,6 +527,7 @@ def add_project():
             project.end = date2ym(project_data['end'])
             project.coordinator = unicode(project_data['coordinator'])
             project.comments = unicode(project_data['comments'])
+            project.active = project_data['active']
             db_session.add(project)
     except Exception as err:
         abort(500, "Incorrect project input:\n\n" + str(err))

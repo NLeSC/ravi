@@ -29,6 +29,7 @@ function Project(project_data) {
     this.fte = project_data.fte
     this.coordinator = project_data.coordinator
     this.comments = project_data.comments
+    this.active = project_data.active
     
     this.plot = function () {
         var projectPlot = document.getElementById("plot_" + this.pid)
@@ -139,6 +140,7 @@ function selectProject() {
         document.getElementById("project_coordinator").value = project.coordinator
         document.getElementById("project_exact").value = project.exact
         document.getElementById("project_comments").value = project.comments
+        document.getElementById("project_active").checked = project.active
         resetAssignmentForm()
         unhighlightProjects()
         this.style.backgroundColor = "lavender"
@@ -161,6 +163,19 @@ function unhighlightProjects() {
         }
     }
 
+function updateInactiveProjects() {
+    var tableRows = document.getElementById("project_table").getElementsByTagName("tr")
+    var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
+    for(r=0; r<tableRows.length; r++) {
+        if (projects[tableRows[r].id].active || showInactives) {
+            tableRows[r].style.display = "";
+            }
+        else {
+            tableRows[r].style.display = "none";
+            }
+        }
+    }
+
 function addProject() {
     var pid = document.getElementById("project_name").value
     var fte = document.getElementById("project_fte").value
@@ -169,6 +184,7 @@ function addProject() {
     var exact = document.getElementById("project_exact").value
     var coordinator = document.getElementById("project_coordinator").value
     var comments = document.getElementById("project_comments").value
+    var active = document.getElementById("project_active").checked
     var project_data = {
         "pid": pid,
         "fte": fte,
@@ -176,7 +192,8 @@ function addProject() {
         "end": end,
         "exact_code": exact,
         "coordinator": coordinator,
-        "comments": comments
+        "comments": comments,
+        "active": active
         }
     request_add_project = new XMLHttpRequest()
     request_add_project.open('POST', 'http://localhost:5000/add_project')
@@ -188,6 +205,7 @@ function addProject() {
             projects[pid] = new Project(project_data)
             projects[pid].plot()
             plotProject()
+            updateInactiveProjects()
             }
         }
     request_add_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -248,6 +266,7 @@ request_projects.open('GET', 'http://localhost:5000/get_projects');
 request_projects.onload = function() {
     var projectList = JSON.parse(request_projects.responseText);
     createProjectTable(projectList);
+    updateInactiveProjects();
     }
 request_projects.send();
 

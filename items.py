@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Unicode, Float, ForeignKey
+from sqlalchemy import Column, Integer, Unicode, Float, Boolean, ForeignKey
 # from sqlalchemy import Boolean, TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -17,6 +17,7 @@ class Engineer(Base):
     end = Column(Integer)
     coordinator = Column(Unicode, ForeignKey('engineers.eid'))
     comments = Column(Unicode)
+    active = Column(Boolean)
     
     def __iter__(self):
         for k,v in self.__dict__.items():
@@ -35,6 +36,7 @@ class Project(Base):
     end = Column(Integer)
     coordinator = Column(Unicode, ForeignKey('engineers.eid'))
     comments = Column(Unicode)
+    active = Column(Boolean)
     
     def __iter__(self):
         for k,v in self.__dict__.items():

@@ -28,6 +28,7 @@ function Engineer(engineer_data) {
     this.end = engineer_data.end
     this.fte = engineer_data.fte
     this.comments = engineer_data.comments
+    this.active = engineer_data.active
     
     this.plot = function () {
         var engineerPlot = document.getElementById("plot_" + this.eid)
@@ -119,6 +120,7 @@ function selectEngineer() {
         document.getElementById("engineer_end").value = engineer.end
         document.getElementById("engineer_exact").value = engineer.exact_id
         document.getElementById("engineer_comments").value = engineer.comments
+        document.getElementById("engineer_active").checked = engineer.active
         resetAssignmentForm()
         unhighlightEngineers()
         this.style.backgroundColor = "lavender"
@@ -140,6 +142,19 @@ function unhighlightEngineers() {
         }
     }
 
+function updateInactiveEngineers() {
+    var tableRows = document.getElementById("engineer_table").getElementsByTagName("tr")
+    var showInactives = document.getElementById('timerangeform').elements['inactive_engineers'].checked
+    for(r=0; r<tableRows.length; r++) {
+        if (engineers[tableRows[r].id].active || showInactives) {
+            tableRows[r].style.display = "block";
+            }
+        else {
+            tableRows[r].style.display = "none";
+            }
+        }
+    }
+
 function addEngineer() {
     var eid = document.getElementById("engineer_name").value
     var fte = document.getElementById("engineer_fte").value
@@ -147,13 +162,15 @@ function addEngineer() {
     var end = document.getElementById("engineer_end").value
     var exact = document.getElementById("engineer_exact").value
     var comments = document.getElementById("engineer_comments").value
+    var active = document.getElementById("engineer_active").checked
     var engineer_data = {
         "eid": eid,
         "fte": fte,
         "start": start,
         "end": end,
         "exact_id": exact,
-        "comments": comments
+        "comments": comments,
+        "active": active
         }
     request_add_engineer = new XMLHttpRequest()
     request_add_engineer.open('POST', 'http://localhost:5000/add_engineer')
@@ -164,6 +181,7 @@ function addEngineer() {
                 }
             engineers[eid] = new Engineer(engineer_data)
             engineers[eid].plot()
+            updateInactiveEngineers()
             }
         }
     request_add_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -206,6 +224,7 @@ request_engineers.open('GET', 'http://localhost:5000/get_engineers');
 request_engineers.onload = function() {
     var engineerList = JSON.parse(request_engineers.responseText);
     createEngineerTable(engineerList);
+    updateInactiveEngineers();
     }
 request_engineers.send();
 
