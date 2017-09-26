@@ -163,6 +163,19 @@ function unhighlightProjects() {
         }
     }
 
+function scrollToProject() {
+    var query = document.getElementById("project_name").value.toLowerCase()
+    if (query.length > 0) {
+        for(pid in projects) {
+            console.log(pid)
+            if (pid.toLowerCase().indexOf(document.getElementById("project_name").value.toLowerCase()) != -1) {
+                document.getElementById(pid).scrollIntoView();
+                break;
+                }
+            }
+        }
+    }
+
 function updateInactiveProjects() {
     var tableRows = document.getElementById("project_table").getElementsByTagName("tr")
     var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
