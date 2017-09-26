@@ -16,7 +16,7 @@ function addProjectTableRow(pid) {
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
     newrow.id = pid
-    cell1.innerHTML = '<div style="width:100px">' + pid + '</div>'
+    cell1.innerHTML = '<div style="width:135px">' + pid + '</div>'
     cell2.id = "plot_" + pid
     document.getElementById(pid).addEventListener("click", selectProject)
     }

@@ -16,7 +16,7 @@ function addEngineerTableRow(eid) {
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
     newrow.id = eid
-    cell1.innerHTML = '<div style="width:100px">' + eid + '</div>'
+    cell1.innerHTML = '<div style="width:135px">' + eid + '</div>'
     cell2.id = "plot_" + eid
     document.getElementById(eid).addEventListener("click", selectEngineer)
     }

@@ -10,22 +10,22 @@
         <div id="projects" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; margin-left: 50%">
             <table id="project_table"></table></div>
 </div>
-<div style="height: 85px; width: 100%; margin-top: 0%"><form id="timerangeform">
+<div style="height: 75px; width: 100%; margin-top: 0%"><form id="timerangeform">
         <div style="height:100%; width:50%; overflow: hidden; float: left">
             <table><tr>
-                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 100px;">
-                    Start:<br><input type="text" name="start_date" value="" style="width:80px"><br>
-                    <input type="checkbox" name="inactive_engineers" onchange="updateInactiveEngineers();">inactives<br>
-                    <input type="button" name="button" value="Update" onClick="updateTimeRange();">
+                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
+                    <input type="button" name="button" value="Start" onClick="updateTimeRange();">
+                    <input type="text" name="start_date" value="" style="width:65px"><br>
+                    <input type="checkbox" name="inactive_engineers" onchange="updateInactiveEngineers();">inactives
                     </div></td>
                 <td id="xLabels1" style="background-color: lightgray"></td></tr></table>
             </div>
         <div style="height:100%; width:50%; overflow: hidden; margin-left: 50%">
             <table><tr>
-                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 100px;">
-                    End:<br><input type="text" name="end_date" value="" style="width:80px">
-                    <input type="checkbox" name="inactive_projects" onchange="updateInactiveProjects();">inactives<br>
-                    <input type="button" name="button" value="Update" onClick="updateTimeRange();">
+                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
+                    <input type="button" name="button" value="End" onClick="updateTimeRange();">
+                    <input type="text" name="end_date" value="" style="width:65px"><br>
+                    <input type="checkbox" name="inactive_projects" onchange="updateInactiveProjects();">inactives
                     </div></td>
                 <td id="xLabels2" style="background-color: lightgray"></td></tr></table>
             </div>
