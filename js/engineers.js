@@ -160,7 +160,7 @@ function updateInactiveEngineers() {
     var showInactives = document.getElementById('timerangeform').elements['inactive_engineers'].checked
     for(r=0; r<tableRows.length; r++) {
         if (engineers[tableRows[r].id].active || showInactives) {
-            tableRows[r].style.display = "block";
+            tableRows[r].style.display = "";
             }
         else {
             tableRows[r].style.display = "none";
@@ -213,8 +213,7 @@ function delEngineer() {
         }
     }
 
-function printEngineers()
-{
+function printEngineers() {
     var print_window = window.open('', 'PRINT', 'height=600,width=1000')
 
     print_window.document.write('<html><head><title>' + document.title  + '</title>')
@@ -240,5 +239,6 @@ request_engineers.onload = function() {
     updateInactiveEngineers();
     }
 request_engineers.send();
+
 
 
