@@ -277,6 +277,43 @@ def get_end_date():
     end, = db_session.query(Usersetting.value).filter_by(setting = u'end_date').one()
     return end
 
+@app.route('/get_total_assignments_plot', methods = ['GET'])
+def get_total_assignments_plot():
+    start = date2ym(get_start_date())
+    end = date2ym(get_end_date())
+    x_axis = [ym2date(ym) for ym in range(start, end)]
+    assignments = db_session.query(Assignment).all()
+    engineers = db_session.query(Engineer).all()
+    engineer_list = [e.eid for e in engineers]
+    total_fte = []
+    total_assigned = []
+    for ym in range(start,end): # +1):
+        total_assigned.append(sum([a.fte for a in assignments if a.start <= ym <= a.end and a.eid in engineer_list]))
+        total_fte.append(sum([e.fte for e in engineers if e.start <= ym <= e.end]))
+    data = [
+        {
+            'type': 'bar',
+            'name': 'total assigned',
+            'x': x_axis,
+            'y': total_assigned
+            },
+        {
+            'type': 'line',
+            'name': 'total engineers (fte)',
+            #'x': [x-0.5 for x in range(end-start+1)],
+            'x': x_axis,
+            'y': total_fte,
+            #'showlegend': len(data) == 0,
+            'line': {
+                'dash': 'dot',
+                'width': 2,
+                'color': 'black'}
+            }]
+    resp = Response(json.dumps(data), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+
 @app.route('/get_projects', methods = ['GET'])
 def get_projects():
     data = []

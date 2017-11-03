@@ -104,5 +104,45 @@ function delAssignment(aid) {
     request_del_assignment.send('aid=' + aid)    
     }
 
+function plotTotalAssignments() {
+    var request = new XMLHttpRequest();
+    request.open('GET', 'http://localhost:5000/get_total_assignments_plot');
+    request.onload = function() {
+        var data = JSON.parse(request.responseText)
+        var plot_detailed = document.getElementById("plot_detailed")
+        var layout = {
+            autosize: true,
+            height: 270,
+            margin: {l:50,r:0,b:100,t:0},
+            showlegend: true,
+            xaxis: {
+                type: 'date',
+                autotick: true,
+                ticks: 'outside',
+                tickangle: 30,
+                nticks: 24
+                },
+            annotations: [{
+                xref: 'paper',
+                yref: 'paper',
+                x: 0.05,
+                xanchor: 'left',
+                y: 1,
+                yanchor: 'top',
+                font: {
+                    size: 20
+                    },
+                borderwidth: 0,
+                text: '<b>Total assignments</b>',
+                showarrow: false
+                }],
+            };
+
+        Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});
+        }
+    //request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+    request.send();
+    }
+
 updateAssignments()
 
