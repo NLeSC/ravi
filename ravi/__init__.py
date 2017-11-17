@@ -248,6 +248,20 @@ def del_engineer():
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+@app.route('/rename_engineer', methods = ['POST'])
+def rename_engineer():
+    eid = request.form['eid']
+    newid = request.form['newid']
+    e = db_session.query(Engineer).filter_by(eid=unicode(eid)).one()
+    db_session.delete(e)
+    e.eid = newid
+    db_session.add(e)
+    db_session.query(Assignment).filter_by(eid=eid).update({'eid': newid})
+    db_session.commit()
+    resp = Response(json.dumps('[]'), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
 
 @app.route('/get_xaxis_data', methods = ['GET'])
 def get_xlabels():
@@ -584,6 +598,20 @@ def del_project():
     db_session.delete(p)
     for a in db_session.query(Assignment).filter_by(pid=pid):
         db_session.delete(a)
+    db_session.commit()
+    resp = Response(json.dumps('[]'), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
+
+@app.route('/rename_project', methods = ['POST'])
+def rename_project():
+    pid = request.form['pid']
+    newid = request.form['newid']
+    p = db_session.query(Project).filter_by(pid=unicode(pid)).one()
+    db_session.delete(p)
+    p.pid = newid
+    db_session.add(p)
+    db_session.query(Assignment).filter_by(pid=pid).update({'pid': newid})
     db_session.commit()
     resp = Response(json.dumps('[]'), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'

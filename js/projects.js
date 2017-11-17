@@ -225,8 +225,22 @@ function addProject() {
     request_add_project.send('data=' + JSON.stringify(project_data))    
     }
 
+function renameProject() {
+    var pid = document.getElementById("project_name").value
+    if (pid) {
+        var newID = prompt("Change name of project \"" + pid + "\" into:", pid)
+        request_rename_project = new XMLHttpRequest()
+        request_rename_project.open('POST', 'http://localhost:5000/rename_project')
+        request_rename_project.onload = function() {
+            location.reload()
+            }
+        request_rename_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+        request_rename_project.send('pid=' + pid + '&newid=' + newID)
+        }
+    }
+
 function delProject() {
-    pid = document.getElementById("project_name").value
+    var pid = document.getElementById("project_name").value
     if (pid) {
         if (confirm("Do you want to remove project \"" + pid + "\" and all its assignments?") == true) {
             document.getElementById(pid).remove()

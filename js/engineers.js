@@ -201,6 +201,20 @@ function addEngineer() {
     request_add_engineer.send('data=' + JSON.stringify(engineer_data))    
     }
 
+function renameEngineer() {
+    var eid = document.getElementById("engineer_name").value
+    if (eid) {
+        var newID = prompt("Change name of engineer \"" + eid + "\" into:", eid)
+        request_rename_engineer = new XMLHttpRequest()
+        request_rename_engineer.open('POST', 'http://localhost:5000/rename_engineer')
+        request_rename_engineer.onload = function() {
+            location.reload()
+            }
+        request_rename_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+        request_rename_engineer.send('eid=' + eid + '&newid=' + newID)
+        }
+    }
+
 function delEngineer() {
     var eid = document.getElementById("engineer_name").value
     if (eid) {
