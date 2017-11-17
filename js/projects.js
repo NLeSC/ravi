@@ -227,13 +227,15 @@ function addProject() {
 
 function delProject() {
     pid = document.getElementById("project_name").value
-    if (confirm("Do you want to remove project " + pid + " and all its assignments?") == true) {
-        document.getElementById(pid).remove()
-        delete projects[pid]
-        request_del_project = new XMLHttpRequest()
-        request_del_project.open('POST', 'http://localhost:5000/del_project')
-        request_del_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request_del_project.send('pid=' + pid)    
+    if (pid) {
+        if (confirm("Do you want to remove project \"" + pid + "\" and all its assignments?") == true) {
+            document.getElementById(pid).remove()
+            delete projects[pid]
+            request_del_project = new XMLHttpRequest()
+            request_del_project.open('POST', 'http://localhost:5000/del_project')
+            request_del_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            request_del_project.send('pid=' + pid)
+            }
         }
     }
 
