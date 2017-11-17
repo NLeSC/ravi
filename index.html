@@ -33,57 +33,81 @@
 <div style="width: 100%; overflow: hidden; margin-top: 0%">
         <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
-            <table style="width:95%; table-layout:fixed"><tr>
-                <td>Engineer:</td>
-                <td>FTE:</td>
-                <td>Start date:</td>
-                <td>End date:</td>
-                <td>Exact ID:</td>
-                <td>Active:</td>
-                </tr>
-            <tr>
-                <td><input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()"></td>
-                <td><input style="width:100%" type="text" id="engineer_fte" name="fte" value=""></td>
-                <td><input style="width:100%" type="text" id="engineer_start" name="start" value=""></td>
-                <td><input style="width:100%" type="text" id="engineer_end" name="end" value=""></td>
-                <td><input style="width:100%" type="text" id="engineer_exact" name="exact" value=""></td>
-                <td><input style="width:100% align:left" type="checkbox" id="engineer_active" name="active"></td>
-                </tr></table>
-            <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
-            <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
-            <input type="button" name="button" value="Delete" onClick="delEngineer();">
-            <input type="button" name="button" value="Plot Engineer" onClick="plotEngineer();">
-            <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
-            <textarea id="engineer_comments" rows=2 style="vertical-align:top; width:50%">Notes ...</textarea>
+            <div style="width:65%; float: left">
+                <table style="width:100%; table-layout:fixed"><tr>
+                    <td>Engineer:</td>
+                    <td>FTE:</td>
+                    <td>Start date:</td>
+                    <td>End date:</td>
+                    <td>Exact ID:</td>
+                    </tr>
+                <tr>
+                    <td><input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()"></td>
+                    <td><input style="width:100%" type="text" id="engineer_fte" name="fte" value=""></td>
+                    <td><input style="width:100%" type="text" id="engineer_start" name="start" value=""></td>
+                    <td><input style="width:100%" type="text" id="engineer_end" name="end" value=""></td>
+                    <td><input style="width:100%" type="text" id="engineer_exact" name="exact" value=""></td>
+                    </tr></table>
+                <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
+                <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
+                <input type="button" name="button" value="Rename" onClick="renameEngineer();">
+                <input type="button" name="button" value="Delete" onClick="delEngineer();">
+                <input type="button" name="button" value="Plot Engineer" onClick="plotEngineer();">
+                <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
+                </div>
+            <div style="width:35%; margin-left: 65%">
+                <table style="width:100%; table-layout:fixed">
+                    <tr>
+                        <td>Notes:</td>
+                        <td>Active:
+                            <input style="width:100% align:left" type="checkbox" id="engineer_active" name="active">
+                            </td/>
+                        </tr>
+                    <tr><td colspan = 2><textarea id="engineer_comments" rows=3 style="vertical-align:top; width:90%; resize:none;">
+                        </textarea></td></tr></table>
+                </div>
             </form></div>
         <div style="width:50%; margin-left: 50%">
         <form id="projectform" name="projectform" action="" method="GET">
-            <table style="width:95%; table-layout:fixed"><tr>
-                <td>Project:</td>
-                <td>Person-years:</td>
-                <td>Start date:</td>
-                <td>End date:</td>
-                <td>Coordinator:</td>
-                <td>Exact Code:</td>
-                <td>Active:</td>
-                </tr>
-            <tr>
-                <td><input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()"></td>
-                <td><input style="width:100%" type="text" id="project_fte" name="fte" value=""></td>
-                <td><input style="width:100%" type="text" id="project_start" name="start" value=""></td>
-                <td><input style="width:100%" type="text" id="project_end" name="end" value=""></td>
-                <td><input style="width:100%" type="text" id="project_coordinator" name="coordinator" value=""></td>
-                <td><input style="width:100%" type="text" id="project_exact" name="exact" value=""></td>
-                <td><input style="width:100% align:left" type="checkbox" id="project_active" name="active"></td>
-                </tr></table>
-            <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
-            <input type="button" name="button" value="Add / Modify" onClick="addProject();">
-            <input type="button" name="button" value="Delete" onClick="delProject();">
-            <input type="button" name="button" value="Print Overview" onClick="printProjects();">
-            <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
-            <textarea id="project_comments" rows=2 style="vertical-align:top; width:50%">Notes ...</textarea>
+            <div style="width:65%; float: left">
+                <table style="width:100%; table-layout:fixed">
+                <col width=150>
+                <tr>
+                    <td>Project:</td>
+                    <td>Person-yrs:</td>
+                    <td>Start date:</td>
+                    <td>End date:</td>
+                    <td>Coordinator:</td>
+                    <td>Exact Code:</td>
+                    </tr>
+                <tr>
+                    <td><input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()"></td>
+                    <td><input style="width:100%" type="text" id="project_fte" name="fte" value=""></td>
+                    <td><input style="width:100%" type="text" id="project_start" name="start" value=""></td>
+                    <td><input style="width:100%" type="text" id="project_end" name="end" value=""></td>
+                    <td><input style="width:100%" type="text" id="project_coordinator" name="coordinator" value=""></td>
+                    <td><input style="width:100%" type="text" id="project_exact" name="exact" value=""></td>
+                    </tr></table>
+                <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
+                <input type="button" name="button" value="Add / Modify" onClick="addProject();">
+                <input type="button" name="button" value="Rename" onClick="renameProject();">
+                <input type="button" name="button" value="Delete" onClick="delProject();">
+                <input type="button" name="button" value="Print Overview" onClick="printProjects();">
+                <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
+                </div>
+            <div style="width:35%; margin-left: 65%">
+                <table style="width:100%; table-layout:fixed">
+                    <tr>
+                        <td>Notes:</td>
+                        <td>Active:
+                            <input style="width:100% align:left" type="checkbox" id="project_active" name="active">
+                            </td/>
+                        </tr>
+                    <tr><td colspan = 2><textarea id="project_comments" rows=3 style="vertical-align:top; width:90%; resize:none;">
+                        </textarea></td></tr></table>
+                </div>
             </form></div>
-</div>
+    </div>
 <div style="width: 100%; overflow: hidden; margin-top: 0%">
     <table><tr><td style="width:50%; vertical-align: top">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
