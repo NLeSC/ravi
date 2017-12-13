@@ -225,6 +225,7 @@ function delEngineer() {
             request_del_engineer.open('POST', 'http://localhost:5000/del_engineer')
             request_del_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             request_del_engineer.send('eid=' + eid)
+            clearEngineerSelection()
             }
         }
     }

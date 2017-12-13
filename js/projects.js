@@ -249,6 +249,7 @@ function delProject() {
             request_del_project.open('POST', 'http://localhost:5000/del_project')
             request_del_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             request_del_project.send('pid=' + pid)
+            clearProjectSelection()
             }
         }
     }
