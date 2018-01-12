@@ -12,6 +12,8 @@ import datetime
 from itertools import groupby
 import pandas as pd
 
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 colors = ['#1f77b4',
     '#ff7f0e',
     '#2ca02c',
@@ -43,6 +45,13 @@ def ym2date(ym):
     if ym:
         y, m = divmod(ym, 12)
         return "{:4d}-{:d}".format(y, m+1)
+    else:
+        return None
+
+def ym2fulldate(ym):
+    if ym:
+        y, m = divmod(ym, 12)
+        return "{:4d} {:s}".format(y, months[m])
     else:
         return None
 
@@ -119,7 +128,8 @@ def get_engineer_plot():
     data_planned = []
     data_written = []
     assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
-    x_axis = [ym2date(ym) for ym in range(start, end)]
+    x_axis = [ym2fulldate(ym) for ym in range(start, end + 1)]
+
     sort_values = []
     for pid, assignments_grouped in groupby(assignments, lambda a: a.pid):
         sort_value = 0
@@ -269,7 +279,7 @@ def get_xlabels():
     end = get_end_date()
     start_ym = date2ym(start)
     end_ym = date2ym(end)
-    x_axis = [ym2date(ymi) for ymi in range(start_ym, end_ym)]
+    x_axis = [ym2fulldate(ymi) for ymi in range(start_ym, end_ym)]
     y_axis = [1 for ymi in range(start_ym, end_ym)]
     data = {
         'start_month': start,
@@ -416,7 +426,7 @@ def get_project_plot_data(pid):
     data_projected = []
     data_written = []
     p = db_session.query(Project).filter_by(pid=pid).one()
-    x_axis = [ym2date(ym) for ym in range(p.start, p.end + 1)]
+    x_axis = [ym2fulldate(ym) for ym in range(p.start, p.end + 1)]
     exact_code = p.exact_code.split('#')
 
     # Assigned engineer hours

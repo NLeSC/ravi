@@ -49,6 +49,7 @@ function Engineer(engineer_data) {
                     y: 1,
                     traceorder: "normal"},
                 xaxis: {
+                    range: [-0.5, data[0].y.length - 0.5],
                     autotick: false,
                     ticks: 'outside',
                     showticklabels: false},
@@ -80,11 +81,11 @@ function plotEngineer() {
             margin: {l:50,r:0,b:100,t:0},
             showlegend: true,
             xaxis: {
-                type: 'date',
+                type: 'category',
                 autotick: true,
                 ticks: 'outside',
                 tickangle: 30,
-                nticks: 24
+                nticks: 25
                 },
             annotations: [{
                 xref: 'paper',

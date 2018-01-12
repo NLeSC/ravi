@@ -13,7 +13,7 @@ function plotxAxis(id, xAxisLabels) {
             showticklabels: false
             },
         xaxis: {
-            type: 'date',
+            type: 'category',
             autotick: true,
             ticks: 'outside',
             tickangle: 90,
