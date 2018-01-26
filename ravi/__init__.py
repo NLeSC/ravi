@@ -389,13 +389,16 @@ def get_project_data():
             'width': 2,
             'color': 'black'}})
     """
-    ratio = total_planned / p.fte
-    if 0.95 < ratio < 1.01:
-        color = 'green'
-    elif 0.8 < ratio < 1.05:
-        color = 'orange'
-    else:
+    if p.fte == 0:
         color = 'red'
+    else:
+        ratio = total_planned / p.fte
+        if 0.95 < ratio < 1.01:
+            color = 'green'
+        elif 0.8 < ratio < 1.05:
+            color = 'orange'
+        else:
+            color = 'red'
     data = {
         'planned': '<b>{:.2f}</b><br>{:.2f}'.format(total_planned, p.fte),
         'warn_color': warn_color[color],
