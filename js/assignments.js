@@ -114,6 +114,7 @@ function plotTotalAssignments() {
             autosize: true,
             height: 270,
             margin: {l:50,r:0,b:100,t:0},
+            barmode: 'stack',
             showlegend: true,
             xaxis: {
                 type: 'date',

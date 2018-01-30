@@ -308,11 +308,14 @@ def get_total_assignments_plot():
     x_axis = [ym2date(ym) for ym in range(start, end)]
     assignments = db_session.query(Assignment).all()
     engineers = db_session.query(Engineer).all()
-    engineer_list = [e.eid for e in engineers]
+    engineer_list = [e.eid for e in engineers if e.eid[:2] != '00']
+    dummy_list = [e.eid for e in engineers if e.eid[:2] == '00']
     total_fte = []
     total_assigned = []
-    for ym in range(start,end): # +1):
+    dummy_assigned = []
+    for ym in range(start,end):
         total_assigned.append(sum([a.fte for a in assignments if a.start <= ym <= a.end and a.eid in engineer_list]))
+        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym <= a.end and a.eid in dummy_list]))
         total_fte.append(sum([e.fte for e in engineers if e.start <= ym <= e.end]))
     data = [
         {
@@ -320,6 +323,12 @@ def get_total_assignments_plot():
             'name': 'total assigned',
             'x': x_axis,
             'y': total_assigned
+            },
+        {
+            'type': 'bar',
+            'name': 'dummy assigned',
+            'x': x_axis,
+            'y': dummy_assigned
             },
         {
             'type': 'line',
