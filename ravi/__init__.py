@@ -314,9 +314,9 @@ def get_total_assignments_plot():
     total_assigned = []
     dummy_assigned = []
     for ym in range(start,end):
-        total_assigned.append(sum([a.fte for a in assignments if a.start <= ym <= a.end and a.eid in engineer_list]))
-        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym <= a.end and a.eid in dummy_list]))
-        total_fte.append(sum([e.fte for e in engineers if e.start <= ym <= e.end]))
+        total_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in engineer_list]))
+        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list]))
+        total_fte.append(sum([e.fte for e in engineers if e.start <= ym < e.end]))
     data = [
         {
             'type': 'bar',
