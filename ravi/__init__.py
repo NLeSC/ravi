@@ -380,10 +380,12 @@ def get_project_data():
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         sort_values.append(sort_value)
+        name = eid
+        if eid[:2] == '00':
+            name = '<span style="color:red">' + eid + '</span>'
         plot_data.append({
             'type': 'bar',
-            'name': eid,
-            # 'x': x_axis,
+            'name': name,
             'y': ym_fte})
     plot_data = [x for y, x in sorted(zip(sort_values, plot_data), reverse=True)]
     """
