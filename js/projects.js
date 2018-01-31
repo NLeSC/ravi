@@ -18,7 +18,9 @@ function addProjectTableRow(pid) {
     newrow.id = pid
     cell1.innerHTML = '<div style="width:135px">' + pid + '</div>'
     cell2.id = "plot_" + pid
-    document.getElementById(pid).addEventListener("click", selectProject)
+    document.getElementById(pid).addEventListener("click", function() {
+        selectProject(pid)
+        })
     }
 
 function Project(project_data) {
@@ -97,9 +99,10 @@ function plotProject(popup=false) {
     }
 
 
-function selectProject() {
-    project = projects[this.id]
-    if (this.style.backgroundColor == "lavender") {
+function selectProject(pid) {
+    var project = projects[pid]
+    var row = document.getElementById(pid)
+    if (row.style.backgroundColor == "lavender") {
         clearProjectSelection()
         }
     else {
@@ -113,7 +116,7 @@ function selectProject() {
         document.getElementById("project_active").checked = project.active
         resetAssignmentForm()
         unhighlightProjects()
-        this.style.backgroundColor = "lavender"
+        row.style.backgroundColor = "lavender"
         plotProject()
         }
     updateAssignments()

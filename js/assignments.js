@@ -18,9 +18,9 @@ function fillAssignmentTable(assignments) {
         a = assignments[i]
         var newrow = assignmentTable.insertRow(i+2)
         var c1 = newrow.insertCell(0)
-        c1.innerHTML = a.eid
+        c1.innerHTML = '<input type="button" value="' + a.eid + '" onClick="selectEngineer(\'' + a.eid + '\');scrollToEngineer();">'
         var c2 = newrow.insertCell(1)
-        c2.innerHTML = a.pid
+        c2.innerHTML = '<input type="button" value="' + a.pid + '" onClick="selectProject(\'' + a.pid + '\');scrollToProject();">'
         var c3 = newrow.insertCell(2)
         c3.innerHTML = a.fte
         var c4 = newrow.insertCell(3)

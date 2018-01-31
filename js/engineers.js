@@ -18,7 +18,9 @@ function addEngineerTableRow(eid) {
     newrow.id = eid
     cell1.innerHTML = '<div style="width:135px">' + eid + '</div>'
     cell2.id = "plot_" + eid
-    document.getElementById(eid).addEventListener("click", selectEngineer)
+    document.getElementById(eid).addEventListener("click", function() {
+        selectEngineer(eid)
+        })
     }
 
 function Engineer(engineer_data) {
@@ -77,9 +79,10 @@ function plotEngineer(popup=false) {
     request.send('eid=' + eid + '&exact=' + exact_id);
     }
 
-function selectEngineer() {
-    var engineer = engineers[this.id]
-    if (this.style.backgroundColor == "lavender") {
+function selectEngineer(eid) {
+    var engineer = engineers[eid]
+    var row = document.getElementById(eid)
+    if (row.style.backgroundColor == "lavender") {
         clearEngineerSelection()
         }
     else {
@@ -92,7 +95,7 @@ function selectEngineer() {
         document.getElementById("engineer_active").checked = engineer.active
         resetAssignmentForm()
         unhighlightEngineers()
-        this.style.backgroundColor = "lavender"
+        row.style.backgroundColor = "lavender"
         plotEngineer()
         }
     updateAssignments()
