@@ -85,42 +85,12 @@ function Project(project_data) {
         }
     }
 
-function plotProject() {
+function plotProject(popup=false) {
     var pid = document.getElementById('projectform').elements['name'].value
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_project_plot');
     request.onload = function() {
-        var data = JSON.parse(request.responseText)
-        var plot_detailed = document.getElementById("plot_detailed")
-        var layout = {
-            autosize: true,
-            height: 270,
-            margin: {l:50,r:0,b:100,t:0},
-            showlegend: true,
-            xaxis: {
-                type: 'category',
-                autotick: true,
-                ticks: 'outside',
-                tickangle: 30,
-                nticks: 25
-                },
-            annotations: [{
-                xref: 'paper',
-                yref: 'paper',
-                x: 0.05,
-                xanchor: 'left',
-                y: 1,
-                yanchor: 'top',
-                font: {
-                    size: 20
-                    },
-                borderwidth: 0,
-                text: '<b>' + pid + '</b>',
-                showarrow: false
-                }],
-            };
-
-        Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});
+        plotDetails(JSON.parse(request.responseText), pid, 0.05, 'left', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request.send('pid=' + pid);

@@ -65,45 +65,13 @@ function Engineer(engineer_data) {
         }
     }
 
-function plotEngineer() {
+function plotEngineer(popup=false) {
     var eid = document.getElementById('engineerform').elements['name'].value
     var exact_id = document.getElementById('engineerform').elements['exact'].value
-    console.log(exact_id)
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_engineer_plot');
     request.onload = function() {
-        var data = JSON.parse(request.responseText)
-        console.log(data)
-        var plot_detailed = document.getElementById("plot_detailed")
-        var layout = {
-            autosize: true,
-            height: 270,
-            margin: {l:50,r:0,b:100,t:0},
-            showlegend: true,
-            xaxis: {
-                type: 'category',
-                autotick: true,
-                ticks: 'outside',
-                tickangle: 30,
-                nticks: 25
-                },
-            annotations: [{
-                xref: 'paper',
-                yref: 'paper',
-                x: 0.95,
-                xanchor: 'right',
-                y: 1,
-                yanchor: 'top',
-                font: {
-                    size: 20
-                    },
-                borderwidth: 0,
-                text: '<b>' + eid + '</b>',
-                showarrow: false
-                }],
-            };
-
-        Plotly.newPlot(plot_detailed, data, layout, {displayModeBar: false});
+        plotDetails(JSON.parse(request.responseText), eid, 0.95, 'right', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request.send('eid=' + eid + '&exact=' + exact_id);
@@ -125,6 +93,7 @@ function selectEngineer() {
         resetAssignmentForm()
         unhighlightEngineers()
         this.style.backgroundColor = "lavender"
+        plotEngineer()
         }
     updateAssignments()
     }
