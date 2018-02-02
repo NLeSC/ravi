@@ -333,10 +333,8 @@ def get_total_assignments_plot():
         {
             'type': 'line',
             'name': 'total engineers (fte)',
-            #'x': [x-0.5 for x in range(end-start+1)],
             'x': x_axis,
             'y': total_fte,
-            #'showlegend': len(data) == 0,
             'line': {
                 'dash': 'dot',
                 'width': 2,
@@ -355,7 +353,6 @@ def get_projects():
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
-    sys.stderr.write(str(data))
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -388,18 +385,6 @@ def get_project_data():
             'name': name,
             'y': ym_fte})
     plot_data = [x for y, x in sorted(zip(sort_values, plot_data), reverse=True)]
-    """
-    data.append({
-        'type': 'line',
-        'name': 'fte',
-        'x': [x-0.5 for x in range(end-start+1)],
-        'y': [p.fte if p.start <= ym <= p.end else 0 for ym in range(start,end+1)],
-        'showlegend': len(data) == 0,
-        'line': {
-            'dash': 'dot',
-            'width': 2,
-            'color': 'black'}})
-    """
     if p.fte == 0:
         color = 'red'
     else:
@@ -430,7 +415,6 @@ def get_project_plot():
 @app.route('/get_all_project_plots_data', methods = ['GET'])
 def get_all_project_plots_data():
     data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
-    sys.stderr.write(str(data))
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
@@ -448,7 +432,6 @@ def get_project_plot_data(pid):
     projected_total = [0.0] * (p.end - p.start + 1)
     sort_values = []
     for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
-        # make sure lines don't overlap for engineer with equal assignments
         projected_fte = [0.0] * (p.end - p.start + 1)
         sort_value = 0
         for a in assignments_grouped:
@@ -472,10 +455,7 @@ def get_project_plot_data(pid):
         if exact_data is not None:
             # Written hours
             written_fte = []
-            try:
-                exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
-            except exc.NoResultFound: #This enables dummy assignments to non-existing engineers
-                continue
+            exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
             for ym in range(p.start, current_ym + 1):
                     try:
                         if len(exact_code) == 1:
@@ -593,7 +573,6 @@ def add_project():
                 'comments': unicode(project_data['comments']),
                 'active': project_data['active']
                 }):
-            sys.stderr.write(str(project_data))
             project = Project()
             project.pid = unicode(project_data['pid'])
             project.exact_code = unicode(project_data['exact_code'])
