@@ -4,6 +4,7 @@ function plotDetails(data, title, x, xanchor, popup=false) {
         autosize: true,
         height: 270,
         margin: {l:50,r:0,b:100,t:0},
+        barmode: 'stack',
         showlegend: true,
         xaxis: {
             type: 'category',
@@ -37,9 +38,9 @@ function plotDetails(data, title, x, xanchor, popup=false) {
 function popupDetailedPlot(new_plot) {
     plot_image = new_plot.then(
         function(gd) {
-            Plotly.toImage(gd,{format:'jpeg',height:800,width:1200}).then(
+            Plotly.toImage(gd,{format:'jpeg',height:700,width:1200}).then(
                 function(image) {
-                    var print_window = window.open('', 'RaviDetailedPlot', 'height=820,width=1220')
+                    var print_window = window.open('', 'RaviDetailedPlot', 'height=720,width=1220')
                     print_window.document.write('<html><head><title>RAVI Plot</title>')
                     print_window.document.write('</head><body><div style="height:100%">')
                     print_window.document.write('<img src="')
