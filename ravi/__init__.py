@@ -310,35 +310,54 @@ def get_total_assignments_plot():
     engineers = db_session.query(Engineer).all()
     engineer_list = [e.eid for e in engineers if e.eid[:2] != '00']
     dummy_list = [e.eid for e in engineers if e.eid[:2] == '00']
+    engineer_ids = [e.exact_id for e in engineers if e.eid[:2] != '00']
+    projects = db_session.query(Project).all()
+    project_codes = [p.exact_code.split('#')[0] for p in projects if p.fte > 0]
     total_fte = []
+    total_written = []
     total_assigned = []
     dummy_assigned = []
     for ym in range(start,end):
         total_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in engineer_list]))
         dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list]))
         total_fte.append(sum([e.fte for e in engineers if e.start <= ym < e.end]))
+        total_written.append(float(exact_data[(exact_data.ym == ym) &
+                                              (exact_data.exact_id.isin(engineer_ids)) &
+                                              (exact_data.exact_code.isin(project_codes))].hours.sum()) / 140.0)
+        # To check for missing projects on which hours were writtten after july 2017
+        # print exact_data[(~exact_data.exact_code.isin(project_codes)) & (exact_data.ym > 24210)].exact_code.unique()
     data = [
         {
             'type': 'bar',
-            'name': 'total assigned',
+            'name': 'real assignments',
             'x': x_axis,
             'y': total_assigned
             },
         {
             'type': 'bar',
-            'name': 'dummy assigned',
+            'name': 'dummy assignments',
             'x': x_axis,
             'y': dummy_assigned
             },
         {
             'type': 'line',
-            'name': 'total engineers (fte)',
+            'name': 'total engineers',
             'x': x_axis,
             'y': total_fte,
             'line': {
                 'dash': 'dot',
                 'width': 2,
                 'color': 'black'}
+            },
+        {
+            'type': 'line',
+            'name': 'total written on projects',
+            'x': x_axis,
+            'y': total_written,
+            'line': {
+                #'dash': 'dot',
+                'width': 2,
+                'color': 'blue'}
             }]
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
