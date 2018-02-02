@@ -450,7 +450,7 @@ def get_project_plot_data(pid):
             'name': a.eid,
             'x': x_axis,
             'y': projected_fte,
-            'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
+            'showlegend': (exact_data is None or current_ym < p.start), #show this legend only if there are no hours from exact
             'line': {'dash': 'dot'}})
         if exact_data is not None:
             # Written hours
