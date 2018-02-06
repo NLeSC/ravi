@@ -23,9 +23,7 @@ colors = ['#1f77b4',
     '#e377c2',
     '#7f7f7f',
     '#bcbd22',
-    '#17becf',
-    "#1f77b4",
-    "#ff7f0e"]
+    '#17becf']
 
 warn_color = {
     'red': '#990000',
@@ -135,7 +133,7 @@ def get_engineer_plot():
         sort_value = 0
         ym_fte_a = [0.0] * (end - start)
         for a in assignments_grouped:
-            sort_value += (a.end - a.start) * a.fte
+            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
             for m in range(end - start):
                 ym = m + start
                 ym_fte_a[m] += (a.fte if a.start <= ym < a.end else 0)
@@ -172,9 +170,9 @@ def get_engineer_plot():
     data_planned = [x for y, x in sorted(zip(sort_values, data_planned), reverse=True)]
     data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
     for i, x in enumerate(data_planned):
-        x['line']['color'] = colors[i]
+        x['line']['color'] = (colors * (1+int(i/10)))[i]
     for i, x in enumerate(data_written):
-        x['line']['color'] = colors[i]
+        x['line']['color'] = (colors * (1+int(i/10)))[i]
     data = data_planned + data_written
 
     # Written hours on non-assigned projects
@@ -500,9 +498,9 @@ def get_project_plot_data(pid):
     data_projected = [x for y, x in sorted(zip(sort_values, data_projected), reverse=True)]
     data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
     for i, x in enumerate(data_projected):
-        x['line']['color'] = colors[i]
+        x['line']['color'] = (colors * (1+int(i/10)))[i]
     for i, x in enumerate(data_written):
-        x['line']['color'] = colors[i]
+        x['line']['color'] = (colors * (1+int(i/10)))[i]
     data = data_projected + data_written
 
     # total projected hours
