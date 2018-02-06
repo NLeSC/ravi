@@ -95,7 +95,7 @@ def get_engineer_data():
         ym_fte = [0] * (end - start)
         sort_value = 0
         for a in assignments_grouped:
-            sort_value += (a.end - a.start) * a.fte
+            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         sort_values.append(sort_value)
