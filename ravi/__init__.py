@@ -178,7 +178,7 @@ def get_engineer_plot():
     # Written hours on non-assigned projects
     if exact_data is not None:
         assigned_projects = [a.pid for a in assignments]
-        project_count = len(assigned_projects)
+        pc = len(assigned_projects)
         for pid, exact_code in db_session.query(Project.pid, Project.exact_code).\
                 filter(~Project.pid.in_(assigned_projects)).all():
             exact_codes = exact_code.split('#')
@@ -190,14 +190,11 @@ def get_engineer_plot():
                                          (exact_data.hour_code == exact_codes[1]) &
                                          (exact_data.exact_id == exact_id)]
             if exact_hours.hours.sum() > 0:
-                project_count += 1
                 written_fte = []
                 for ym in range(start, current_ym):
                     written_fte.append(float(exact_hours[exact_hours.ym == ym].hours.sum()) / 140.0)
-                if project_count > 10:
-                    color = 'black'
-                else:
-                    color = colors[project_count]
+                color = (colors * (1+int(pc/10)))[pc]
+                pc += 1
                 data.append({
                     'type': 'line',
                     'mode': 'lines',
@@ -561,11 +558,8 @@ def get_project_plot_data(pid):
                                                    (exact_data.exact_id == exact_id) &
                                                    (exact_data.ym == ym)].hours.sum()
                     written_fte.append(written_fte[-1] + written_hours / 1680.0)
-            colornr = i + len(assigned_engineers)
-            if colornr > 10:
-                color = 'black'
-            else:
-                color = colors[colornr]
+            ec = i + len(assigned_engineers)
+            color = (colors * (1+int(ec/10)))[ec]
             data.append({
                 'type': 'line',
                 'mode': 'lines',
