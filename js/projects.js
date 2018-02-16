@@ -138,10 +138,11 @@ function unhighlightProjects() {
 
 function scrollToProject() {
     var query = document.getElementById("project_name").value.toLowerCase()
+    var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
     if (query.length > 0) {
         for(pid in projects) {
-            console.log(pid)
-            if (pid.toLowerCase().indexOf(document.getElementById("project_name").value.toLowerCase()) != -1) {
+            if ((projects[pid].active || showInactives) &&
+                    pid.toLowerCase().indexOf(document.getElementById("project_name").value.toLowerCase()) != -1) {
                 document.getElementById(pid).scrollIntoView();
                 break;
                 }
