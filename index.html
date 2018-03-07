@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
 </head>
 <body>
-<div style="height: 60%; width: 100%">
+<div style="height: 55%; width: 100%">
         <div id="engineers" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; float: left">
             <table id="engineer_table"></table></div>
         <div id="projects" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; margin-left: 50%">
@@ -113,12 +113,13 @@
                 </div>
             </form></div>
     </div>
-<div style="width: 100%; overflow: hidden; margin-top: 0%">
-    <table><tr><td style="width:50%; vertical-align: top">
+<div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
+    <div style="height:100%; width:50%; float: left">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
         Assignments:
         <input type=button value="Plot Total"onClick="plotTotalAssignments();"><br>
-            <table style="width:100%" id="assignment_table"><tr>
+            <div style="height:15%; width:100%">
+            <table style="width:98%; table-layout:fixed"><tr>
                 <td>Engineer:</td>
                 <td>Project:</td>
                 <td>FTE:</td>
@@ -133,9 +134,12 @@
                 <td><input style="width:100%" type="text" id="assignment_start" name="start" value=""></td>
                 <td><input style="width:100%" type="text" id="assignment_end" name="end" value=""></td>
                 <td><input type="button" name="button" value="Add" onClick="addAssignment();"></td>
-                </tr></table>
+                </tr></table></div>
             </form>
-        </td><td style="vertical-align: top" id="plot_detailed"></td></tr></table>
+        <div style="height:85%; width:100%; overflow-y:auto; overflow-x:hidden">
+            <table style="width:100%; table-layout:fixed" id="assignment_table"></table></div>
+        </div>
+    <div style="width:50%; margin-left: 50%" id="plot_detailed"></div>
 </div>
 <script src="js/plotly-latest.min.js"></script>
 <script src="js/engineers.js"></script>

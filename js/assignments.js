@@ -16,7 +16,7 @@ function fillAssignmentTable(assignments) {
     var assignmentTable = document.getElementById('assignment_table')
     for(i=0; i<assignments.length; i++){
         a = assignments[i]
-        var newrow = assignmentTable.insertRow(i+2)
+        var newrow = assignmentTable.insertRow(i)
         var c1 = newrow.insertCell(0)
         c1.innerHTML = '<input type="button" value="' + a.eid + '" onClick="selectEngineer(\'' + a.eid + '\');scrollToEngineer();">'
         var c2 = newrow.insertCell(1)
@@ -35,7 +35,7 @@ function fillAssignmentTable(assignments) {
 function clearAssignmentTable() {
     var assignmentTable = document.getElementById('assignment_table')
     table_length = assignment_table.rows.length
-    for(i=table_length-1; i>1; i--) {
+    for(i=table_length-1; i>0; i--) {
         assignmentTable.deleteRow(i)
         }
     }
