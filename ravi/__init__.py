@@ -490,7 +490,7 @@ def get_project_plot_data(pid):
                 'name': a.eid,
                 'x': x_axis[:len(written_fte)],
                 'y': written_fte,
-                'showlegend': True, #show this legend only if there are hours from exact
+                'showlegend': (current_ym >= p.start), #show this legend only if there are hours from exact
                 'line': {}})
     data_projected = [x for y, x in sorted(zip(sort_values, data_projected), reverse=True)]
     data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
