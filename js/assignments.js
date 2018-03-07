@@ -35,7 +35,7 @@ function fillAssignmentTable(assignments) {
 function clearAssignmentTable() {
     var assignmentTable = document.getElementById('assignment_table')
     table_length = assignment_table.rows.length
-    for(i=table_length-1; i>0; i--) {
+    for(i=table_length-1; i>=0; i--) {
         assignmentTable.deleteRow(i)
         }
     }
