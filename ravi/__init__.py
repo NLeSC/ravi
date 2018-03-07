@@ -737,7 +737,7 @@ def create_all_project_plots(output_folder):
     except OSError as error:
         sys.stderr.write(str(error))
     plt.figure(1)
-    projects = db_session.query(Project.pid, Project.coordinator).all()
+    projects = db_session.query(Project.pid, Project.coordinator).filter(Project.active == True).all()
     for pid, coordinator in projects:
         folder = output_folder+'/'+coordinator
         try:
