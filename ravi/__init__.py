@@ -60,6 +60,10 @@ def date2ym(date):
     else:
         return None
 
+def flask_response(data):
+    resp = Response(json.dumps(data), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 @app.errorhandler(500)
 def custom500(error):
@@ -76,9 +80,7 @@ def get_engineers():
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_engineer_data', methods = ['POST'])
 def get_engineer_data():
@@ -112,9 +114,7 @@ def get_engineer_data():
             'dash': 'dot',
             'width': 2,
             'color': 'black'}})
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_engineer_plot', methods = ['POST'])
 def get_engineer_plot():
@@ -204,9 +204,7 @@ def get_engineer_plot():
                     'showlegend': True, #show this legend only if there are hours from exact
                     'line': {'dash': 'dash', 'color': color}})
 
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 
 @app.route('/add_engineer', methods = ['POST'])
@@ -237,9 +235,7 @@ def add_engineer():
     except Exception as err:
         db_session.rollback()
         abort(500, "Adding engineer failed:\n\n" + str(err))
-    resp = Response(json.dumps('["success"]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(["success"])
 
 @app.route('/del_engineer', methods = ['POST'])
 def del_engineer():
@@ -249,9 +245,7 @@ def del_engineer():
     for a in db_session.query(Assignment).filter_by(eid=eid):
         db_session.delete(a)
     db_session.commit()
-    resp = Response(json.dumps('[]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response([])
 
 @app.route('/rename_engineer', methods = ['POST'])
 def rename_engineer():
@@ -263,10 +257,7 @@ def rename_engineer():
     db_session.add(e)
     db_session.query(Assignment).filter_by(eid=eid).update({'eid': newid})
     db_session.commit()
-    resp = Response(json.dumps('[]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
-
+    return flask_response([])
 
 @app.route('/get_xaxis_data', methods = ['GET'])
 def get_xlabels():
@@ -284,9 +275,7 @@ def get_xlabels():
             'name': 'months',
             'x': x_axis,
             'y': y_axis}]}
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 def get_start_date():
     start, = db_session.query(Usersetting.value).filter_by(setting = u'start_date').one()
@@ -354,9 +343,7 @@ def get_total_assignments_plot():
                 'width': 2,
                 'color': 'blue'}
             }]
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 
 @app.route('/get_projects', methods = ['GET'])
@@ -367,9 +354,7 @@ def get_projects():
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_project_data', methods = ['POST'])
 def get_project_data():
@@ -414,24 +399,18 @@ def get_project_data():
         'warn_color': warn_color[color],
         'plot': plot_data
         }
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_project_plot', methods = ['POST'])
 def get_project_plot():
     pid = request.form['pid']
     data = get_project_plot_data(pid)
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_all_project_plots_data', methods = ['GET'])
 def get_all_project_plots_data():
     data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 def get_project_plot_data(pid):
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
@@ -601,9 +580,7 @@ def add_project():
     except Exception as err:
         db_session.rollback()
         abort(500, "Adding project failed:\n\n" + str(err))
-    resp = Response(json.dumps('["success"]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(["success"])
 
 @app.route('/del_project', methods = ['POST'])
 def del_project():
@@ -613,9 +590,7 @@ def del_project():
     for a in db_session.query(Assignment).filter_by(pid=pid):
         db_session.delete(a)
     db_session.commit()
-    resp = Response(json.dumps('[]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response([])
 
 @app.route('/rename_project', methods = ['POST'])
 def rename_project():
@@ -627,9 +602,7 @@ def rename_project():
     db_session.add(p)
     db_session.query(Assignment).filter_by(pid=pid).update({'pid': newid})
     db_session.commit()
-    resp = Response(json.dumps('[]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response([])
 
 @app.route('/get_assignments', methods = ['POST'])
 def get_assignments():
@@ -646,9 +619,7 @@ def get_assignments():
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
   
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
@@ -668,9 +639,7 @@ def add_assignment():
     except Exception as err:
         db_session.rollback()
         abort(500, "Adding assignment failed:\n\n" + str(err))
-    resp = Response(json.dumps('["success"]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(["success"])
 
 @app.route('/del_assignment', methods = ['POST'])
 def del_assignment():
@@ -681,16 +650,12 @@ def del_assignment():
     data['end'] = ym2date(data['end'])
     db_session.delete(a)
     db_session.commit()
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/get_user_settings', methods = ['GET'])
 def get_user_settings():
     data = [dict(s) for s in db_session.query(Usersetting).all()]
-    resp = Response(json.dumps(data), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response(data)
 
 @app.route('/set_user_setting', methods = ['POST'])
 def set_user_settings():
@@ -704,9 +669,7 @@ def set_user_settings():
         newsetting.value = value
         db_session.add(newsetting)
     db_session.commit()
-    resp = Response(json.dumps('[]'), mimetype='application/json')
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+    return flask_response([])
 
 def read_exact_data(filename):
     global exact_data
