@@ -71,6 +71,26 @@ def custom500(error):
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+def enumerate_assignment_groups(groups, start, end):
+    data = []
+    sort_values = []
+    for name, assignments_grouped in groups:
+        ym_fte = [0] * (end - start)
+        sort_value = 0
+        pre_assigned = 0
+        for a in assignments_grouped:
+            pre_assigned += max(0.0, (min(start, a.end) - a.start)) * a.fte / 12
+            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
+            for i in range(end - start):
+                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
+        sort_values.append(sort_value)
+        if name[:3] == '00_':
+            name = '<span style="color:red">' + name + '</span>'
+        data.append({
+            'name': name,
+            'y': ym_fte,
+            'pre_assigned': pre_assigned})
+    return [x for y, x in sorted(zip(sort_values, data), reverse=True)]
 
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
@@ -87,23 +107,11 @@ def get_engineer_data():
     eid = request.form['eid']
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
-    data = []
-    e = db_session.query(Engineer).filter_by(eid=eid).one()
     assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
-    sort_values = []
-    for pid, assignments_grouped in groupby(assignments, lambda a: a.pid):
-        ym_fte = [0] * (end - start)
-        sort_value = 0
-        for a in assignments_grouped:
-            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
-            for i in range(end - start):
-                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
-        sort_values.append(sort_value)
-        data.append({
-            'type': 'bar',
-            'name': pid,
-            'y': ym_fte})
-    data = [x for y, x in sorted(zip(sort_values, data), reverse=True)]
+    data = enumerate_assignment_groups(groupby(assignments, lambda a: a.pid), start, end)
+    for series in data:
+        series['type'] = 'bar'
+    e = db_session.query(Engineer).filter_by(eid=eid).one()
     data.append({
         'type': 'line',
         'name': 'fte',
@@ -123,31 +131,20 @@ def get_engineer_plot():
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-    data_planned = []
-    data_written = []
     assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
     x_axis = [ym2fulldate(ym) for ym in range(start, end + 1)]
+    data_written = []
+    data_planned = enumerate_assignment_groups(groupby(assignments, lambda a: a.pid), start, end)
+    for series in data_planned:
+        series['type'] = 'line'
+        series['x'] = x_axis
+        series['showlegend'] = (exact_data is None), #show this legend only if there are no hours from exact
+        series['line'] = {'dash': 'dot'}
 
-    sort_values = []
-    for pid, assignments_grouped in groupby(assignments, lambda a: a.pid):
-        sort_value = 0
-        ym_fte_a = [0.0] * (end - start)
-        for a in assignments_grouped:
-            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
-            for m in range(end - start):
-                ym = m + start
-                ym_fte_a[m] += (a.fte if a.start <= ym < a.end else 0)
-        sort_values.append(sort_value)
-        data_planned.append({
-            'type': 'line',
-            'name': a.pid,
-            'x': x_axis,
-            'y': ym_fte_a,
-            'showlegend': (exact_data is None), #show this legend only if there are no hours from exact
-            'line': {'dash': 'dot'}})
+        pid = series['name']
         if exact_data is not None:
             # Written hours
-            exact_code = db_session.query(Project.exact_code).filter_by(pid=a.pid).one()[0].split('#')
+            exact_code = db_session.query(Project.exact_code).filter_by(pid=pid).one()[0].split('#')
             written_fte = []
             for ym in range(start, current_ym):
                 if len(exact_code) == 1:
@@ -162,13 +159,11 @@ def get_engineer_plot():
                 written_fte.append(written_hours / 140.0)
             data_written.append({
                 'type': 'line',
-                'name': a.pid,
+                'name': pid,
                 'x': x_axis,
                 'y': written_fte,
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
-    data_planned = [x for y, x in sorted(zip(sort_values, data_planned), reverse=True)]
-    data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
     for i, x in enumerate(data_planned):
         x['line']['color'] = (colors * (1+int(i/10)))[i]
     for i, x in enumerate(data_written):
@@ -362,28 +357,13 @@ def get_project_data():
     start = date2ym(get_start_date())
     end = date2ym(get_end_date())
     x_axis = [ym2date(ymi) for ymi in range(start, end)]
-    plot_data = []
-    p = db_session.query(Project).filter_by(pid=pid).one()
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    total_planned = 0
-    sort_values = []
-    for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
-        ym_fte = [0] * (end - start)
-        sort_value = 0
-        for a in assignments_grouped:
-            total_planned += (a.end - a.start) / 12.0 * a.fte
-            sort_value += (a.end - a.start) * a.fte
-            for i in range(end - start):
-                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
-        sort_values.append(sort_value)
-        name = eid
-        if eid[:2] == '00':
-            name = '<span style="color:red">' + eid + '</span>'
-        plot_data.append({
-            'type': 'bar',
-            'name': name,
-            'y': ym_fte})
-    plot_data = [x for y, x in sorted(zip(sort_values, plot_data), reverse=True)]
+    plot_data = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
+    for series in plot_data:
+        series['type'] = 'bar'
+
+    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+    p = db_session.query(Project).filter_by(pid=pid).one()
     if p.fte == 0:
         color = 'red'
     else:
@@ -414,7 +394,6 @@ def get_all_project_plots_data():
 
 def get_project_plot_data(pid):
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-    data_projected = []
     data_written = []
     p = db_session.query(Project).filter_by(pid=pid).one()
     x_axis = [ym2fulldate(ym) for ym in range(p.start, p.end + 1)]
@@ -423,42 +402,35 @@ def get_project_plot_data(pid):
     # Assigned engineer hours
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
     projected_total = [0.0] * (p.end - p.start + 1)
-    sort_values = []
-    for eid, assignments_grouped in groupby(assignments, lambda a: a.eid):
-        projected_fte = [0.0] * (p.end - p.start + 1)
-        sort_value = 0
-        for a in assignments_grouped:
-            ym_fte = max(0.0, (min(p.start, a.end) - a.start - 1) * a.fte)
-            sort_value += (a.end - a.start) * a.fte
-            for m in range(p.end - p.start + 1):
-                ym = m + p.start
-                # Projected hours
-                ym_fte += a.fte if a.start < ym <= a.end else 0
-                projected_fte[m] += ym_fte / 12
-                projected_total[m] += ym_fte / 12
-        sort_values.append(sort_value)
-        data_projected.append({
-            'type': 'line',
-            'mode': 'lines',
-            'name': a.eid,
-            'x': x_axis,
-            'y': projected_fte,
-            'showlegend': (exact_data is None or current_ym < p.start), #show this legend only if there are no hours from exact
-            'line': {'dash': 'dot'}})
+
+    data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), p.start, p.end)
+    for series in data_projected:
+        # accumulate the data
+        series['y'] = [series['pre_assigned'] + sum(series['y'][:i])/12 for i in range(p.end - p.start +1)]
+        projected_total = [projected_total[i] + series['y'][i] for i in range(p.end - p.start +1)]
+        series['type'] = 'line'
+        series['mode'] = 'lines'
+        series['x'] = x_axis
+        series['showlegend'] = (exact_data is None or current_ym < p.start), #show this legend only if there are no hours from exact
+        series['line'] = {'dash': 'dot'}
+
         if exact_data is not None:
+            eid = series['name']
             # Written hours
             written_fte = []
-            exact_id, = db_session.query(Engineer.exact_id).filter_by(eid=eid).one()
+            exact_id = db_session.query(Engineer.exact_id).filter_by(eid=eid).first()
+            if exact_id == None:
+                continue
             for ym in range(p.start, current_ym + 1):
                     try:
                         if len(exact_code) == 1:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.exact_id == exact_id[0]) &
                                                        (exact_data.ym < ym)].hours.sum()
                         else:
                             written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                                        (exact_data.hour_code == exact_code[1]) &
-                                                       (exact_data.exact_id == exact_id) &
+                                                       (exact_data.exact_id == exact_id[0]) &
                                                        (exact_data.ym < ym)].hours.sum()
                         written_fte.append(written_hours / 1680.0)
                     except IndexError:
@@ -466,13 +438,11 @@ def get_project_plot_data(pid):
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
-                'name': a.eid,
+                'name': eid,
                 'x': x_axis[:len(written_fte)],
                 'y': written_fte,
                 'showlegend': (current_ym >= p.start), #show this legend only if there are hours from exact
                 'line': {}})
-    data_projected = [x for y, x in sorted(zip(sort_values, data_projected), reverse=True)]
-    data_written = [x for y, x in sorted(zip(sort_values, data_written), reverse=True)]
     for i, x in enumerate(data_projected):
         x['line']['color'] = (colors * (1+int(i/10)))[i]
     for i, x in enumerate(data_written):
