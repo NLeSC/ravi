@@ -124,6 +124,15 @@ def get_engineer_data():
             'color': 'black'}})
     return flask_response(data)
 
+def list_written_fte(written_hours, start, end):
+    written_fte = []
+    for ym in range(start, end):
+        try:
+            written_fte.append(written_hours[exact_data.ym == ym].hours.sum() / 140.0)
+        except IndexError:
+            written_fte.append(written_fte[-1])
+    return written_fte
+
 @app.route('/get_engineer_plot', methods = ['POST'])
 def get_engineer_plot():
     eid = request.form['eid']
@@ -138,30 +147,22 @@ def get_engineer_plot():
     for series in data_planned:
         series['type'] = 'line'
         series['x'] = x_axis
-        series['showlegend'] = (exact_data is None), #show this legend only if there are no hours from exact
+        series['showlegend'] = (exact_data is None) #show this legend only if there are no hours from exact
         series['line'] = {'dash': 'dot'}
 
         pid = series['name']
         if exact_data is not None:
             # Written hours
             exact_code = db_session.query(Project.exact_code).filter_by(pid=pid).one()[0].split('#')
-            written_fte = []
-            for ym in range(start, current_ym):
-                if len(exact_code) == 1:
-                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                               (exact_data.exact_id == exact_id) &
-                                               (exact_data.ym == ym)].hours.sum()
-                else:
-                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                               (exact_data.hour_code == exact_code[1]) &
-                                               (exact_data.exact_id == exact_id) &
-                                               (exact_data.ym == ym)].hours.sum()
-                written_fte.append(written_hours / 140.0)
+            select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                      (exact_data.exact_id == exact_id)]
+            if len(exact_code) > 1:
+                select_hours = select_hours[exact_data.hour_code == exact_code[1]]
             data_written.append({
                 'type': 'line',
                 'name': pid,
                 'x': x_axis,
-                'y': written_fte,
+                'y': list_written_fte(select_hours, start, current_ym),
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
     for i, x in enumerate(data_planned):
@@ -177,25 +178,20 @@ def get_engineer_plot():
         for pid, exact_code in db_session.query(Project.pid, Project.exact_code).\
                 filter(~Project.pid.in_(assigned_projects)).all():
             exact_codes = exact_code.split('#')
-            if len(exact_codes) == 1:
-                exact_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
-                                         (exact_data.exact_id == exact_id)]
-            else:
-                exact_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
-                                         (exact_data.hour_code == exact_codes[1]) &
-                                         (exact_data.exact_id == exact_id)]
-            if exact_hours.hours.sum() > 0:
+            select_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
+                                      (exact_data.exact_id == exact_id)]
+            if len(exact_codes) > 1:
+                select_hours = select_hours[(exact_data.hour_code == exact_codes[1])]
+            if select_hours.hours.sum() > 0:
                 written_fte = []
-                for ym in range(start, current_ym):
-                    written_fte.append(float(exact_hours[exact_hours.ym == ym].hours.sum()) / 140.0)
                 color = (colors * (1+int(pc/10)))[pc]
                 pc += 1
                 data.append({
                     'type': 'line',
                     'mode': 'lines',
                     'name': pid,
-                    'x': x_axis[:len(written_fte)],
-                    'y': written_fte,
+                    'x': x_axis,
+                    'y': list_written_fte(select_hours, start, current_ym),
                     'showlegend': True, #show this legend only if there are hours from exact
                     'line': {'dash': 'dash', 'color': color}})
 
@@ -392,6 +388,15 @@ def get_all_project_plots_data():
     data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
     return flask_response(data)
 
+def accumulate_written_fte(written_hours, start, end):
+    written_fte = []
+    for ym in range(start, end):
+        try:
+            written_fte.append(written_hours[exact_data.ym < ym].hours.sum() / 1680.0)
+        except IndexError:
+            written_fte.append(written_fte[-1])
+    return written_fte
+
 def get_project_plot_data(pid):
     current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
     data_written = []
@@ -411,36 +416,26 @@ def get_project_plot_data(pid):
         series['type'] = 'line'
         series['mode'] = 'lines'
         series['x'] = x_axis
-        series['showlegend'] = (exact_data is None or current_ym < p.start), #show this legend only if there are no hours from exact
+        series['showlegend'] = (exact_data is None or current_ym < p.start) #show this legend only if there are no hours from exact
         series['line'] = {'dash': 'dot'}
 
         if exact_data is not None:
             eid = series['name']
             # Written hours
-            written_fte = []
             exact_id = db_session.query(Engineer.exact_id).filter_by(eid=eid).first()
             if exact_id == None:
                 continue
-            for ym in range(p.start, current_ym + 1):
-                    try:
-                        if len(exact_code) == 1:
-                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                       (exact_data.exact_id == exact_id[0]) &
-                                                       (exact_data.ym < ym)].hours.sum()
-                        else:
-                            written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                       (exact_data.hour_code == exact_code[1]) &
-                                                       (exact_data.exact_id == exact_id[0]) &
-                                                       (exact_data.ym < ym)].hours.sum()
-                        written_fte.append(written_hours / 1680.0)
-                    except IndexError:
-                        written_fte.append(written_fte[-1])
+            select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                      (exact_data.exact_id == exact_id[0])]
+            if len(exact_code) > 1:
+                select_hours = select_hours[exact_data.hour_code == exact_code[1]]
+
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
                 'name': eid,
-                'x': x_axis[:len(written_fte)],
-                'y': written_fte,
+                'x': x_axis,
+                'y': accumulate_written_fte(select_hours, p.start, current_ym + 1),
                 'showlegend': (current_ym >= p.start), #show this legend only if there are hours from exact
                 'line': {}})
     for i, x in enumerate(data_projected):
@@ -460,26 +455,16 @@ def get_project_plot_data(pid):
         'line': {'dash': 'dot', 'color': 'black'}})
 
     # Total written hours
-    written_fte = []
     if exact_data is not None:
-        for ym in range(p.start, current_ym + 1):
-            try:
-                if len(exact_code) == 1:
-                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                               (exact_data.ym < ym)].hours.sum()
-                else:
-                    written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                               (exact_data.hour_code == exact_code[1]) &
-                                               (exact_data.ym < ym)].hours.sum()
-                written_fte.append(written_hours / 1680.0)
-            except IndexError:
-                written_fte.append(written_fte[-1])
+        select_hours = exact_data[exact_data.exact_code == exact_code[0]]
+        if len(exact_code) > 1:
+            select_hours = select_hours[exact_data.hour_code == exact_code[1]]
         data.append({
             'type': 'line',
             'mode': 'lines',
             'name': 'total written',
             'x': x_axis,
-            'y': written_fte,
+            'y': accumulate_written_fte(select_hours, p.start, current_ym + 1),
             'showlegend': True,
             'line': {'color': 'black'}})
 
@@ -494,27 +479,19 @@ def get_project_plot_data(pid):
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
         other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
         for i, (eid, exact_id) in enumerate(other_engineers):
-            written_fte = [0]
-            for ym in range(p.start, p.end):
-                if ym < current_ym:
-                    if len(exact_code) == 1:
-                        written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                   (exact_data.exact_id == exact_id) &
-                                                   (exact_data.ym == ym)].hours.sum()
-                    else:
-                        written_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                                   (exact_data.hour_code == exact_code[1]) &
-                                                   (exact_data.exact_id == exact_id) &
-                                                   (exact_data.ym == ym)].hours.sum()
-                    written_fte.append(written_fte[-1] + written_hours / 1680.0)
+            select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
+                                      (exact_data.exact_id == exact_id)]
+            if len(exact_code) > 1:
+                select_hours = select_hours[exact_data.hour_code == exact_code[1]]
             ec = i + len(assigned_engineers)
             color = (colors * (1+int(ec/10)))[ec]
+
             data.append({
                 'type': 'line',
                 'mode': 'lines',
                 'name': eid,
-                'x': x_axis[:len(written_fte)],
-                'y': written_fte,
+                'x': x_axis,
+                'y': accumulate_written_fte(select_hours, p.start, current_ym + 1),
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {'dash': 'dash', 'color': color}})
 
