@@ -646,9 +646,12 @@ def create_all_project_plots(output_folder):
         os.makedirs(output_folder)
     except OSError as error:
         sys.stderr.write(str(error))
-    plt.figure(1)
     projects = db_session.query(Project.pid, Project.coordinator).filter(Project.active == True).all()
     for pid, coordinator in projects:
+        assignments_text = 'Planning\n------------------------------------------------'
+        for a in db_session.query(Assignment).filter_by(pid = pid).order_by(Assignment.eid, Assignment.start).all():
+            assignments_text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid, a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
+        plt.figure(1, figsize=(10,15))
         folder = output_folder+'/'+coordinator
         try:
             os.makedirs(folder)
@@ -665,8 +668,9 @@ def create_all_project_plots(output_folder):
             plt.plot(trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
         plt.title('Project: '+pid)
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
-        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.6)
         plt.legend(loc='upper left')
+        plt.figtext(0.1, 0.5, assignments_text, verticalalignment='top', family='monospace')
         plt.savefig(folder+'/'+pid+'.pdf')
         plt.close()
 
