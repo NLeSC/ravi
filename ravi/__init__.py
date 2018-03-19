@@ -560,6 +560,7 @@ def get_assignments():
         query = query.filter_by(eid=eid)
     if pid != "":
         query = query.filter_by(pid=pid)
+    query = query.order_by(Assignment.pid, Assignment.eid, Assignment.start)
     data = []
     for a in query.all():
         d = dict(a)
