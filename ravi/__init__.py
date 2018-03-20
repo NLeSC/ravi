@@ -647,18 +647,22 @@ def create_all_project_plots(output_folder):
         os.makedirs(output_folder)
     except OSError as error:
         sys.stderr.write(str(error))
-    projects = db_session.query(Project.pid, Project.coordinator).filter(Project.active == True).all()
-    for pid, coordinator in projects:
-        assignments_text = 'Planning\n------------------------------------------------'
-        for a in db_session.query(Assignment).filter_by(pid = pid).order_by(Assignment.eid, Assignment.start).all():
-            assignments_text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid, a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
+    projects = db_session.query(Project).filter(Project.active == True).all()
+    for p in projects:
+        assignments = db_session.query(Assignment).filter_by(pid = p.pid).order_by(Assignment.eid, Assignment.start).all()
+        total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+        text = 'Person-years budgetted: {:.2f}\nPerson-years planned:   {:.2f}\n'.format(p.fte, total_planned)
+        text += 'Time-stamp:             {}\n\n'.format(datetime.datetime.now())
+        text += 'Planning\n------------------------------------------------'
+        for a in assignments:
+            text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid, a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
         plt.figure(1, figsize=(10,15))
-        folder = output_folder+'/'+coordinator
+        folder = output_folder+'/'+p.coordinator
         try:
             os.makedirs(folder)
         except:
             pass
-        data = get_project_plot_data(pid)
+        data = get_project_plot_data(p.pid)
         for trace in data:
             style = '-'
             if 'dash' in trace['line']:
@@ -667,12 +671,12 @@ def create_all_project_plots(output_folder):
                 elif trace['line']['dash'] == 'dot':
                     style = ':'
             plt.plot(trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
-        plt.title('Project: '+pid)
+        plt.title('Project: '+p.pid)
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
         plt.subplots_adjust(bottom=0.6)
         plt.legend(loc='upper left')
-        plt.figtext(0.1, 0.5, assignments_text, verticalalignment='top', family='monospace')
-        plt.savefig(folder+'/'+pid+'.pdf')
+        plt.figtext(0.1, 0.5, text, verticalalignment='top', family='monospace')
+        plt.savefig(folder+'/'+p.pid+'.pdf')
         plt.close()
 
 
