@@ -84,8 +84,6 @@ def enumerate_assignment_groups(groups, start, end):
             for i in range(end - start):
                 ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
         sort_values.append(sort_value)
-        if name[:3] == '00_':
-            name = '<span style="color:red">' + name + '</span>'
         data.append({
             'name': name,
             'y': ym_fte,
@@ -357,6 +355,8 @@ def get_project_data():
     plot_data = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
     for series in plot_data:
         series['type'] = 'bar'
+        if series['name'][:3] == '00_':
+            series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 
     total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
     p = db_session.query(Project).filter_by(pid=pid).one()
@@ -410,15 +410,6 @@ def get_project_plot_data(pid):
 
     data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), p.start, p.end)
     for series in data_projected:
-        # accumulate the data
-        series['y'] = [series['pre_assigned'] + sum(series['y'][:i])/12 for i in range(p.end - p.start +1)]
-        projected_total = [projected_total[i] + series['y'][i] for i in range(p.end - p.start +1)]
-        series['type'] = 'line'
-        series['mode'] = 'lines'
-        series['x'] = x_axis
-        series['showlegend'] = (exact_data is None or current_ym < p.start) #show this legend only if there are no hours from exact
-        series['line'] = {'dash': 'dot'}
-
         if exact_data is not None:
             eid = series['name']
             # Written hours
@@ -430,19 +421,29 @@ def get_project_plot_data(pid):
             if len(exact_code) > 1:
                 select_hours = select_hours[exact_data.hour_code == exact_code[1]]
 
+            written_fte = accumulate_written_fte(select_hours, p.start, current_ym + 1)
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
                 'name': eid,
                 'x': x_axis,
-                'y': accumulate_written_fte(select_hours, p.start, current_ym + 1),
-                'showlegend': (current_ym >= p.start), #show this legend only if there are hours from exact
+                'y': written_fte,
+                'showlegend': bool(sum(written_fte) > 0), #show this legend only if there are hours from exact
                 'line': {}})
+        # accumulate the data
+        series['y'] = [series['pre_assigned'] + sum(series['y'][:i])/12 for i in range(p.end - p.start +1)]
+        projected_total = [projected_total[i] + series['y'][i] for i in range(p.end - p.start +1)]
+        series['type'] = 'line'
+        series['mode'] = 'lines'
+        series['x'] = x_axis
+        series['showlegend'] = (exact_data is None or bool(sum(written_fte) == 0)) #show this legend only if there are no hours from exact
+        series['line'] = {'dash': 'dot'}
+
     for i, x in enumerate(data_projected):
         x['line']['color'] = (colors * (1+int(i/10)))[i]
     for i, x in enumerate(data_written):
         x['line']['color'] = (colors * (1+int(i/10)))[i]
-    data = data_projected + data_written
+    data = data_written + data_projected
 
     # total projected hours
     data.append({
