@@ -108,7 +108,7 @@ def get_engineer_data():
     stack(data)
     for i, series in enumerate(data):
         series['fill'] = 'tonexty'
-        series['fillcolor'] = colors[i]
+        series['fillcolor'] = colors[i%10]
         series['mode'] = 'none'
     e = db_session.query(Engineer).filter_by(eid=eid).one()
     data.append({
@@ -164,9 +164,9 @@ def get_engineer_plot():
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
     for i, x in enumerate(data_planned):
-        x['line']['color'] = (colors * (1+int(i/10)))[i]
+        x['line']['color'] = colors[i%10]
     for i, x in enumerate(data_written):
-        x['line']['color'] = (colors * (1+int(i/10)))[i]
+        x['line']['color'] = colors[i%10]
     data = data_planned + data_written
 
     # Written hours on non-assigned projects
@@ -182,7 +182,7 @@ def get_engineer_plot():
                 select_hours = select_hours[(exact_data.hour_code == exact_codes[1])]
             if select_hours.hours.sum() > 0:
                 written_fte = []
-                color = (colors * (1+int(pc/10)))[pc]
+                color = colors[pc%10]
                 pc += 1
                 data.append({
                     'type': 'line',
@@ -356,7 +356,7 @@ def get_project_data():
     stack(plot_data)
     for i, series in enumerate(plot_data):
         series['fill'] = 'tonexty'
-        series['fillcolor'] = colors[i]
+        series['fillcolor'] = colors[i%10]
         series['mode'] = 'none'
         if series['name'][:3] == '00_':
             series['name'] = '<span style="color:red">' + series['name'] + '</span>'
@@ -442,9 +442,9 @@ def get_project_plot_data(pid):
         series['line'] = {'dash': 'dot'}
 
     for i, x in enumerate(data_projected):
-        x['line']['color'] = (colors * (1+int(i/10)))[i]
+        x['line']['color'] = colors[i%10]
     for i, x in enumerate(data_written):
-        x['line']['color'] = (colors * (1+int(i/10)))[i]
+        x['line']['color'] = colors[i%10]
     data = data_written + data_projected
 
     # total projected hours
@@ -487,7 +487,7 @@ def get_project_plot_data(pid):
             if len(exact_code) > 1:
                 select_hours = select_hours[exact_data.hour_code == exact_code[1]]
             ec = i + len(assigned_engineers)
-            color = (colors * (1+int(ec/10)))[ec]
+            color = colors[ec%10]
 
             data.append({
                 'type': 'line',
