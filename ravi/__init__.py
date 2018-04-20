@@ -83,6 +83,11 @@ def enumerate_assignment_groups(groups, start, end):
             'pre_assigned': pre_assigned})
     return [x for y, x in sorted(zip(sort_values, data), reverse=True)]
 
+def stack(data):
+	for i in range(1, len(data)):
+		for j in range(min(len(data[i]['y']), len(data[i-1]['y']))):
+			data[i]['y'][j] += data[i-1]['y'][j]
+
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
     data = []
@@ -100,14 +105,16 @@ def get_engineer_data():
     end = date2ym(get_end_date())
     assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
     data = enumerate_assignment_groups(groupby(assignments, lambda a: a.pid), start, end)
-    for series in data:
-        series['type'] = 'bar'
+    stack(data)
+    for i, series in enumerate(data):
+        series['fill'] = 'tonexty'
+        series['fillcolor'] = colors[i]
+        series['mode'] = 'none'
     e = db_session.query(Engineer).filter_by(eid=eid).one()
     data.append({
         'type': 'line',
         'name': 'fte',
-        'x': [x-0.5 for x in range(end-start+1)],
-        'y': [e.fte if e.start <= ym <= e.end else 0 for ym in range(start,end+1)],
+        'y': [e.fte if e.start <= ym < e.end else 0 for ym in range(start,end+1)],
         'showlegend': len(data) == 0,
         'line': {
             'dash': 'dot',
@@ -346,8 +353,11 @@ def get_project_data():
     x_axis = [ym2date(ymi) for ymi in range(start, end)]
     assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
     plot_data = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
-    for series in plot_data:
-        series['type'] = 'bar'
+    stack(plot_data)
+    for i, series in enumerate(plot_data):
+        series['fill'] = 'tonexty'
+        series['fillcolor'] = colors[i]
+        series['mode'] = 'none'
         if series['name'][:3] == '00_':
             series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 

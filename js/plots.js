@@ -3,8 +3,6 @@ function plotPlanning(data, DOMelement) {
         autosize: false,
         height: 110,
         margin: {l:20,r:0,b:20,t:10},
-        barmode: 'stack',
-        bargap: 0,
         showlegend: true,
         legend: {
             x: -0.25,
