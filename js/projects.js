@@ -16,7 +16,8 @@ function addProjectTableRow(pid) {
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
     newrow.id = pid
-    cell1.innerHTML = '<div style="width:135px">' + pid + '</div>'
+    cell1.innerHTML = '<div style="width:135px">' + pid + '</div>' +
+                      '<div id="planned_' + pid + '"></div>' 
     cell2.id = "plot_" + pid
     document.getElementById(pid).addEventListener("click", function() {
         selectProject(pid)
@@ -38,50 +39,13 @@ function Project(project_data) {
         var request = new XMLHttpRequest();
 
         request.open('POST', 'http://localhost:5000/get_project_data');
-        request.onload = function() {
-            var data = JSON.parse(request.responseText);
-            var layout = {
-                autosize: false,
-                width: 750,
-                height: 110,
-                margin: {l:20,r:50,b:20,t:10},
-                barmode: 'stack',
-                bargap: 0,
-                showlegend: true,
-                legend: {
-                    x: -0.25,
-                    y: 1,
-                    traceorder: "normal"},
-                xaxis: {
-                    autotick: false,
-                    ticks: 'outside',
-                    showticklabels: false,
-                    nticks: 24,
-                    fixedrange: true},
-                yaxis: {
-                    range: [0, this.fte+0.1],
-                    fixedrange: true},
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                annotations: [{
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 1,
-                    xanchor: 'left',
-                    y: 1,
-                    yanchor: 'top',
-                    font: {
-                        size: 18,
-                        color: data.warn_color
-                        },
-                    borderwidth: 0,
-                    text: data.planned,
-                    showarrow: false
-                    }],
+        request.onload = (function(pid) {
+            return function() {
+                var data = JSON.parse(request.responseText);
+                plotPlanning(data.plot, projectPlot)
+                document.getElementById("planned_" + pid).innerHTML = data.planned
                 };
-
-            Plotly.newPlot(projectPlot, data.plot, layout, {displayModeBar: false});
-            }
+            })(this.pid);
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
         request.send('pid='+this.pid);
         }

@@ -13,7 +13,6 @@ from itertools import groupby
 import pandas as pd
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
 colors = ['#1f77b4',
     '#ff7f0e',
     '#2ca02c',
@@ -24,20 +23,14 @@ colors = ['#1f77b4',
     '#7f7f7f',
     '#bcbd22',
     '#17becf']
-
-warn_color = {
-    'red': '#990000',
-    'orange': '#999900',
-    'green': '#009900'}
+min_date = '0000-01'
+max_date = '9999-12'
 
 exact_data = None
 
 
 app = Flask(__name__)
 
-
-min_date = '0000-01'
-max_date = '9999-12'
 
 def ym2date(ym):
     if ym:
@@ -371,8 +364,7 @@ def get_project_data():
         else:
             color = 'red'
     data = {
-        'planned': '<b>{:.2f}</b><br>{:.2f}'.format(total_planned, p.fte),
-        'warn_color': warn_color[color],
+        'planned': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color, total_planned, p.fte),
         'plot': plot_data
         }
     return flask_response(data)
