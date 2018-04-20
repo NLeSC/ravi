@@ -27,7 +27,8 @@ min_date = '0000-01'
 max_date = '9999-12'
 
 exact_data = None
-current_ym = datetime.date.today().year * 12 + datetime.date.today().month
+current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
+int_hist = True
 
 
 app = Flask(__name__)
@@ -391,7 +392,7 @@ def get_all_project_plots_data():
 
 def accumulate_written_fte(written_hours, start, end):
     written_fte = []
-    for ym in range(start, end):
+    for ym in range(start, end + 1):
         try:
             written_fte.append(written_hours[exact_data.ym < ym].hours.sum() / 1680.0)
         except IndexError:
@@ -417,11 +418,10 @@ def get_project_plot_data(pid):
         # Make sure the x-axis covers all written hours on the project
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
+        total_written_fte = accumulate_written_fte(project_hours, start, current_ym)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
-
-    # Assigned engineer hours
-    projected_total = [0.0] * (end - start)
+    projected_total = [total_written_fte[-1]] * (end - current_ym) if int_hist else [0.0] * (end - start)
 
     data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
     for series in data_projected:
@@ -442,11 +442,17 @@ def get_project_plot_data(pid):
                 'showlegend': bool(sum(written_fte) > 0), #show this legend only if there are hours from exact
                 'line': {}})
         # accumulate the data
-        series['y'] = [sum(series['y'][:i])/12 for i in range(end - start)]
-        projected_total = [projected_total[i] + series['y'][i] for i in range(end - start)]
+        if int_hist:
+            offset = current_ym-start
+            projected_total = [projected_total[i] + sum(series['y'][offset:i+offset])/12 for i in range(end - current_ym)]
+            series['y'] = [written_fte[-1] + sum(series['y'][offset:i+offset])/12 for i in range(end - current_ym)]
+            series['x'] = x_axis[offset:]
+        else:
+            series['y'] = [sum(series['y'][:i])/12 for i in range(end - start)]
+            projected_total = [projected_total[i] + series['y'][i] for i in range(end - start)]
+            series['x'] = x_axis
         series['type'] = 'line'
         series['mode'] = 'lines'
-        series['x'] = x_axis
         series['showlegend'] = (exact_data is None or bool(sum(written_fte) == 0)) #show this legend only if there are no hours from exact
         series['line'] = {'dash': 'dot'}
 
@@ -457,26 +463,24 @@ def get_project_plot_data(pid):
     data = data_written + data_projected
 
     # total projected hours
+    xax = x_axis[current_ym-start:] if int_hist else x_axis
     data.append({
         'type': 'line',
         'mode': 'lines',
         'name': 'total',
-        'x': x_axis,
+        'x': xax,
         'y': projected_total,
         'showlegend': (exact_data is None),
         'line': {'dash': 'dot', 'color': 'black'}})
 
     # Total written hours
     if exact_data is not None:
-        select_hours = exact_data[exact_data.exact_code == exact_code[0]]
-        if len(exact_code) > 1:
-            select_hours = select_hours[exact_data.hour_code == exact_code[1]]
         data.append({
             'type': 'line',
             'mode': 'lines',
             'name': 'total written',
             'x': x_axis,
-            'y': accumulate_written_fte(select_hours, start, current_ym),
+            'y': total_written_fte,
             'showlegend': True,
             'line': {'color': 'black'}})
 
