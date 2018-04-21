@@ -423,6 +423,15 @@ def get_project_plot_data(pid):
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
     projected_total = [total_written_fte[-1]] * (end - current_ym) if int_hist else [0.0] * (end - start)
 
+    data = [{
+        'x': x_axis,
+        'y': [p.fte] * (end - start),
+        'fill': 'tozeroy',
+        'fillcolor': '#eeeeee',
+        'mode': 'none',
+        'showlegend': False,
+        'line': {}
+        }]
     data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
     for series in data_projected:
         if exact_data is not None:
@@ -460,7 +469,7 @@ def get_project_plot_data(pid):
         x['line']['color'] = colors[i%10]
     for i, x in enumerate(data_written):
         x['line']['color'] = colors[i%10]
-    data = data_written + data_projected
+    data += data_written + data_projected
 
     # total projected hours
     xax = x_axis[current_ym-start:] if int_hist else x_axis
@@ -668,6 +677,7 @@ def create_all_project_plots(output_folder):
         assignments = db_session.query(Assignment).filter_by(pid = p.pid).order_by(Assignment.eid, Assignment.start).all()
         total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
         text = 'Person-years budgetted: {:.2f}\nPerson-years planned:   {:.2f}\n'.format(p.fte, total_planned)
+        text += 'Start date:             {}\nEnd date:               {}\n'.format(ym2fulldate(p.start), ym2fulldate(p.end))
         text += 'Time-stamp:             {}\n\n'.format(datetime.datetime.now())
         text += 'Planning\n------------------------------------------------'
         for a in assignments:
@@ -680,14 +690,22 @@ def create_all_project_plots(output_folder):
             pass
         data = get_project_plot_data(p.pid)
         for trace in data:
-            style = '-'
-            if 'dash' in trace['line']:
-                if trace['line']['dash'] == 'dash':
-                    style = '--'
-                elif trace['line']['dash'] == 'dot':
-                    style = ':'
-            plt.plot(trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
+            if 'fill' in trace:
+                plt.fill_between(range(len(trace['y'])),0,trace['y'], facecolor=trace['fillcolor'])
+            else:
+                xaxis = range(len(trace['y']))
+                style = '-'
+                if 'dash' in trace['line']:
+                    if trace['line']['dash'] == 'dash':
+                        style = '--'
+                    elif trace['line']['dash'] == 'dot':
+                        style = ':'
+                        xaxis = range(len(data[0]['y'])-len(trace['y']), len(data[0]['y']))
+                plt.plot(xaxis, trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
+        for spine in plt.gca().spines.values():
+            spine.set_visible(False)
         plt.title('Project: '+p.pid)
+        plt.ylabel('Person-years')
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
         plt.subplots_adjust(bottom=0.6)
         plt.legend(loc='upper left')
