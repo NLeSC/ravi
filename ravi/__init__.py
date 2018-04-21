@@ -421,7 +421,9 @@ def get_project_plot_data(pid):
         total_written_fte = accumulate_written_fte(project_hours, start, min(current_ym, end) + 1)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
-    projected_total = [total_written_fte[-1]] * (end - current_ym) if int_hist else [0.0] * (end - start)
+    combine_written_planned = exact_data is not None and int_hist and len(total_written_fte) > 0
+    # Determine the offset for the projected hours
+    projected_total = [total_written_fte[-1]] * (end - current_ym) if combine_written_planned else [0.0] * (end - start)
 
     data = [{
         'x': x_axis,
@@ -451,7 +453,7 @@ def get_project_plot_data(pid):
                 'showlegend': bool(sum(written_fte) > 0), #show this legend only if there are hours from exact
                 'line': {}})
         # accumulate the data
-        if int_hist:
+        if combine_written_planned:
             offset = current_ym-start
             projected_total = [projected_total[i] + sum(series['y'][offset:i+offset])/12 for i in range(end - current_ym)]
             series['y'] = [written_fte[-1] + sum(series['y'][offset:i+offset])/12 for i in range(end - current_ym)]
@@ -472,7 +474,7 @@ def get_project_plot_data(pid):
     data += data_written + data_projected
 
     # total projected hours
-    xax = x_axis[current_ym-start:] if int_hist else x_axis
+    xax = x_axis[current_ym-start:] if combine_written_planned else x_axis
     data.append({
         'type': 'line',
         'mode': 'lines',
