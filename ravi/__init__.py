@@ -392,7 +392,7 @@ def get_all_project_plots_data():
 
 def accumulate_written_fte(written_hours, start, end):
     written_fte = []
-    for ym in range(start, end + 1):
+    for ym in range(start, end):
         try:
             written_fte.append(written_hours[exact_data.ym < ym].hours.sum() / 1680.0)
         except IndexError:
@@ -418,7 +418,7 @@ def get_project_plot_data(pid):
         # Make sure the x-axis covers all written hours on the project
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
-        total_written_fte = accumulate_written_fte(project_hours, start, current_ym)
+        total_written_fte = accumulate_written_fte(project_hours, start, min(current_ym, end) + 1)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
     projected_total = [total_written_fte[-1]] * (end - current_ym) if int_hist else [0.0] * (end - start)
@@ -441,7 +441,7 @@ def get_project_plot_data(pid):
             if exact_id == None:
                 continue
 
-            written_fte = accumulate_written_fte(project_hours[(exact_data.exact_id == exact_id[0])], start, current_ym)
+            written_fte = accumulate_written_fte(project_hours[(exact_data.exact_id == exact_id[0])], start, min(current_ym+1, end))
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
@@ -516,7 +516,7 @@ def get_project_plot_data(pid):
                 'mode': 'lines',
                 'name': eid,
                 'x': x_axis,
-                'y': accumulate_written_fte(select_hours, start, current_ym),
+                'y': accumulate_written_fte(select_hours, start, min(current_ym+1, end)),
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {'dash': 'dash', 'color': color}})
 
