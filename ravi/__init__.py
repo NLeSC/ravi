@@ -28,7 +28,7 @@ max_date = '9999-12'
 
 exact_data = None
 current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-int_hist = True
+int_hist = False
 
 
 app = Flask(__name__)
