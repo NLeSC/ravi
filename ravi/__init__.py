@@ -364,6 +364,12 @@ def get_project_data():
 
     total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
     p = db_session.query(Project).filter_by(pid=pid).one()
+    if exact_data is not None and int_hist and p.start is not None:
+        project_hours = get_project_hours(p.exact_code)
+        total_written_fte = accumulate_written_fte(project_hours, p.start, current_ym + 1)
+        if len(total_written_fte) > 0:
+            rest_planned = sum([a.fte * (max(a.end, current_ym) - max(a.start, current_ym)) / 12 for a in assignments])
+            total_planned = total_written_fte[-1] + rest_planned
     if p.fte == 0:
         color = 'red'
     else:
@@ -391,6 +397,14 @@ def get_all_project_plots_data():
     data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
     return flask_response(data)
 
+def get_project_hours(exact_code):
+    ec = exact_code.split('#')
+    # Select all hours written on the project
+    project_hours = exact_data[(exact_data.exact_code == ec[0])]
+    if len(ec) > 1:
+        project_hours = project_hours[project_hours.hour_code == ec[1]]
+    return project_hours
+
 def accumulate_written_fte(written_hours, start, end):
     written_fte = []
     for ym in range(start, end):
@@ -411,11 +425,7 @@ def get_project_plot_data(pid):
     start = min([p.start] + [a.start for a in assignments])
     end = max([p.end] + [a.end for a in assignments])
     if exact_data is not None:
-        exact_code = p.exact_code.split('#')
-        # Select all hours written on the project
-        project_hours = exact_data[(exact_data.exact_code == exact_code[0])]
-        if len(exact_code) > 1:
-            project_hours = project_hours[project_hours.hour_code == exact_code[1]]
+        project_hours = get_project_hours(p.exact_code)
         # Make sure the x-axis covers all written hours on the project
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
@@ -499,18 +509,11 @@ def get_project_plot_data(pid):
     # Written hours by non-assigned engineers
     if exact_data is not None:
         assigned_engineers = [eid for eid, a in groupby(assignments, lambda a: a.eid)]
-        if len(exact_code) == 1:
-            writing_engineers = exact_data[exact_data.exact_code == exact_code[0]].groupby('exact_id').count().index.values
-        else:
-            writing_engineers = exact_data[(exact_data.exact_code == exact_code[0]) & (exact_data.hour_code == exact_code[1])].\
-                groupby('exact_id').count().index.values
+        writing_engineers = project_hours.groupby('exact_id').count().index.values
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
         other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
         for i, (eid, exact_id) in enumerate(other_engineers):
-            select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                      (exact_data.exact_id == exact_id)]
-            if len(exact_code) > 1:
-                select_hours = select_hours[exact_data.hour_code == exact_code[1]]
+            select_hours = project_hours[(exact_data.exact_id == exact_id)]
             ec = i + len(assigned_engineers)
             color = colors[ec%10]
 
