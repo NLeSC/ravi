@@ -8,6 +8,7 @@ function createProjectTable(projectList) {
         p.plot()
         projects[p_data.pid] = p
         }
+    togglePlanningHistory(); // Make sure to show the right totals
     }
 
 function addProjectTableRow(pid) {
@@ -17,11 +18,31 @@ function addProjectTableRow(pid) {
     var cell2 = newrow.insertCell(1)
     newrow.id = pid
     cell1.innerHTML = '<div style="width:135px">' + pid + '</div>' +
-                      '<div id="planned_' + pid + '"></div>' 
+              '<div id="planned_' + pid + '"></div>' + // This will be displayed with Planning history checked
+              '<div id="prognosis_' + pid + '"></div>' // This will be displayed with Planning history unchecked
     cell2.id = "plot_" + pid
     document.getElementById(pid).addEventListener("click", function() {
         selectProject(pid)
         })
+    }
+
+function togglePlanningHistory() {
+    var history = document.getElementById('timerangeform').elements['planning_history'].checked;
+    for (pid in projects) {
+        planned_id = document.getElementById("planned_" + pid);
+        prognosis_id = document.getElementById("prognosis_" + pid);
+        if (history) { // Show total of planned person-years only
+            planned_id.style.display = "";
+            prognosis_id.style.display = "none";
+            }
+        else { // Show combined result of written and planned person-years
+            planned_id.style.display = "none";
+            prognosis_id.style.display = "";
+            }
+        }
+    if (document.getElementById("project_name").value != "") {
+        plotProject(); // Update the project plot
+        }
     }
 
 function Project(project_data) {
@@ -44,6 +65,7 @@ function Project(project_data) {
                 var data = JSON.parse(request.responseText);
                 plotPlanning(data.plot, projectPlot)
                 document.getElementById("planned_" + pid).innerHTML = data.planned
+                document.getElementById("prognosis_" + pid).innerHTML = data.prognosis
                 };
             })(this.pid);
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -53,13 +75,14 @@ function Project(project_data) {
 
 function plotProject(popup=false) {
     var pid = document.getElementById('projectform').elements['name'].value
+    var history = document.getElementById('timerangeform').elements['planning_history'].checked;
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_project_plot');
     request.onload = function() {
         plotDetails(JSON.parse(request.responseText), pid, 0.05, 'left', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request.send('pid=' + pid);
+    request.send('pid=' + pid + '&history=' + history);
     }
 
 

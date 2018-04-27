@@ -28,7 +28,6 @@ max_date = '9999-12'
 
 exact_data = None
 current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
-int_hist = True
 
 
 app = Flask(__name__)
@@ -346,6 +345,17 @@ def get_projects():
         data.append(d)
     return flask_response(data)
 
+def get_color(planned, allocated):
+    if allocated == 0:
+        return 'red'
+    else:
+        ratio = planned / allocated
+        if 0.95 < ratio < 1.01:
+            return 'green'
+        if 0.8 < ratio < 1.05:
+            return 'orange'
+        return 'red'
+
 @app.route('/get_project_data', methods = ['POST'])
 def get_project_data():
     pid = request.form['pid']
@@ -362,26 +372,21 @@ def get_project_data():
         if series['name'][:3] == '00_':
             series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 
-    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
     p = db_session.query(Project).filter_by(pid=pid).one()
-    if exact_data is not None and int_hist and p.start is not None:
+    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+    color_planned = get_color(total_planned, p.fte)
+    total_prognosis = total_planned
+    color_prognosis = color_planned
+    if exact_data is not None and p.start is not None:
         project_hours = get_project_hours(p.exact_code)
         total_written_fte = accumulate_written_fte(project_hours, p.start, current_ym + 1)
         if len(total_written_fte) > 0:
             rest_planned = sum([a.fte * (max(a.end, current_ym) - max(a.start, current_ym)) / 12 for a in assignments])
-            total_planned = total_written_fte[-1] + rest_planned
-    if p.fte == 0:
-        color = 'red'
-    else:
-        ratio = total_planned / p.fte
-        if 0.95 < ratio < 1.01:
-            color = 'green'
-        elif 0.8 < ratio < 1.05:
-            color = 'orange'
-        else:
-            color = 'red'
+            total_prognosis = total_written_fte[-1] + rest_planned
+            color_prognosis = get_color(total_prognosis, p.fte)
     data = {
-        'planned': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color, total_planned, p.fte),
+        'planned': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color_planned, total_planned, p.fte),
+        'prognosis': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color_prognosis, total_prognosis, p.fte),
         'plot': plot_data
         }
     return flask_response(data)
@@ -389,7 +394,8 @@ def get_project_data():
 @app.route('/get_project_plot', methods = ['POST'])
 def get_project_plot():
     pid = request.form['pid']
-    data = get_project_plot_data(pid)
+    history = request.form['history']
+    data = get_project_plot_data(pid, history=="true")
     return flask_response(data)
 
 @app.route('/get_all_project_plots_data', methods = ['GET'])
@@ -414,7 +420,7 @@ def accumulate_written_fte(written_hours, start, end):
             written_fte.append(written_fte[-1])
     return written_fte
 
-def get_project_plot_data(pid):
+def get_project_plot_data(pid, history=False):
     """
     Returns data needed for a detailed plot of planned and written hours for a project
     """
@@ -432,7 +438,7 @@ def get_project_plot_data(pid):
         total_written_fte = accumulate_written_fte(project_hours, start, min(current_ym, end) + 1)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
-    combine_written_planned = exact_data is not None and int_hist and len(total_written_fte) > 0
+    combine_written_planned = exact_data is not None and not history and len(total_written_fte) > 0
     # Determine the offset for the projected hours
     projected_total = [total_written_fte[-1]] * (end - current_ym) if combine_written_planned else [0.0] * (end - start)
 
