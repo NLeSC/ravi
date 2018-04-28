@@ -28,7 +28,9 @@ function fillAssignmentTable(assignments) {
         var c5 = newrow.insertCell(4)
         c5.innerHTML = a.end
         var c6 = newrow.insertCell(5)
-        c6.innerHTML = '<input type="button" name="button" value="Change" onClick="delAssignment('+a.aid+');">'
+        c6.innerHTML = '<span title="This deletes the assignment, allowing to make changes and to add it back to the list.">' +
+                       '<input type="button" name="button" value="Change" onClick="delAssignment('+a.aid+');">' +
+                       '</span>'
         }
     }
 

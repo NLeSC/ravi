@@ -14,18 +14,26 @@
         <div style="height:100%; width:50%; overflow: hidden; float: left">
             <table><tr>
                 <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
-                    <input type="button" name="button" value="Start" onClick="updateTimeRange();">
-                    <input type="text" name="start_date" value="" style="width:65px"><br>
-                    <input type="checkbox" name="inactive_engineers" onchange="updateInactiveEngineers();">inactives
+                    <span title="When checked, inactive engineers will be included in the table above.">
+                        <input type="checkbox" name="inactive_engineers" onchange="updateInactiveEngineers();">Inactives
+                        </span><br>
+                    <span title="Here, you can change the time range displayed on the right.">
+                        <input type="text" name="start_date" value="" style="width:60px"> -
+                        <input type="text" name="end_date" value="" style="width:60px"><br>
+                        <input type="button" name="button" value="Update range" onClick="updateTimeRange();">
+                        </span>
                     </div></td>
                 <td id="xLabels1" style="background-color: lightgray"></td></tr></table>
             </div>
         <div style="height:100%; width:50%; overflow: hidden; margin-left: 50%">
             <table><tr>
                 <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
-                    <input type="button" name="button" value="End" onClick="updateTimeRange();">
-                    <input type="text" name="end_date" value="" style="width:65px"><br>
-                    <input type="checkbox" name="inactive_projects" onchange="updateInactiveProjects();">inactives
+                    <span title="When checked, inactive projects will be included in the table above.">
+                        <input type="checkbox" name="inactive_projects" onchange="updateInactiveProjects();">Inactives
+                        </span><br>
+                    <span title="When checked, totals in the table above will be based on the assigned person-years only. (Otherwise, on the combination of written so-far and remaining assigned person-years.) Also the detailed project plots below will show separate lines for planned and written hours.">
+                        <input type="checkbox" name="planning_history" onchange="togglePlanningHistory();">Planning history
+                        </span>
                     </div></td>
                 <td id="xLabels2" style="background-color: lightgray"></td></tr></table>
             </div>
@@ -42,30 +50,52 @@
                     <td>Exact ID:</td>
                     </tr>
                 <tr>
-                    <td><input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()"></td>
-                    <td><input style="width:100%" type="text" id="engineer_fte" name="fte" value=""></td>
-                    <td><input style="width:100%" type="text" id="engineer_start" name="start" value=""></td>
-                    <td><input style="width:100%" type="text" id="engineer_end" name="end" value=""></td>
-                    <td><input style="width:100%" type="text" id="engineer_exact" name="exact" value=""></td>
+                    <td><span title="Enter unique name, e.g. first name + first letter of last name.">
+                        <input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()">
+                        </span></td>
+                    <td><span title="1 FTE corresponds to 38 hours/week and 1680 hours/year.">
+                        <input style="width:100%" type="text" id="engineer_fte" name="fte" value="">
+                        </span></td>
+                    <td><span title="Enter start of contract as yyyy-mm.">
+                        <input style="width:100%" type="text" id="engineer_start" name="start" value="">
+                        </span></td>
+                    <td><span title="Enter end of contract as yyyy-mm.">
+                        <input style="width:100%" type="text" id="engineer_end" name="end" value="">
+                        </span></td>
+                    <td><span title="Enter employee ID from Exact.">
+                        <input style="width:100%" type="text" id="engineer_exact" name="exact" value="">
+                        </span></td>
                     </tr></table>
-                <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
-                <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
-                <input type="button" name="button" value="Rename" onClick="renameEngineer();">
-                <input type="button" name="button" value="Delete" onClick="delEngineer();">
-                <input type="button" name="button" value="Pop-out Plot" onClick="plotEngineer(popup=true);">
-                <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
+                <span title="Click to deselect engineer.">
+                    <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
+                    </span>
+                <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new engineer name, a new engineer will be generated. To change the name of an existing engineer press 'Rename'.">
+                    <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
+                    </span>
+                <span title="Rename the currently selected engineer.">
+                    <input type="button" name="button" value="Rename" onClick="renameEngineer();">
+                    </span>
+                <span title="Delete the currently selected engineer.">
+                    <input type="button" name="button" value="Delete" onClick="delEngineer();">
+                    </span>
+                <span title="Show large detailed plot with written and planned hours by engineer.">
+                    <input type="button" name="button" value="Pop-out Plot" onClick="plotEngineer(popup=true);">
+                    </span>
+                <span title="Export the table above to file or printer.">
+                    <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
+                    </span>
                 </div>
             <div style="width:35%; margin-left: 65%">
                 <table style="width:100%; table-layout:fixed">
                     <tr>
                         <td>Notes:</td>
-                        <td>Active:
+                        <td><span title="Inactive engineers will be hidden from table above, by default.">Active:
                             <input style="width:100% align:left" type="checkbox" id="engineer_active" name="active" checked>
-                            </td/>
+                            </span></td/>
                         </tr>
-                    <tr><td colspan = 2>
+                    <tr><td colspan = 2><span title="Free text area">
                         <textarea id="engineer_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
-                        </td></tr>
+                        </span></td></tr>
                     </table>
                 </div>
             </form></div>
@@ -83,32 +113,58 @@
                     <td>Exact Code:</td>
                     </tr>
                 <tr>
-                    <td><input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()"></td>
-                    <td><input style="width:100%" type="text" id="project_fte" name="fte" value=""></td>
-                    <td><input style="width:100%" type="text" id="project_start" name="start" value=""></td>
-                    <td><input style="width:100%" type="text" id="project_end" name="end" value=""></td>
-                    <td><input style="width:100%" type="text" id="project_coordinator" name="coordinator" value=""></td>
-                    <td><input style="width:100%" type="text" id="project_exact" name="exact" value=""></td>
+                    <td><span title="Enter a unique project name.">
+                        <input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()">
+                        </span></td>
+                    <td><span title="Enter person-years available for the project. One person-year = 1680 hours.">
+                        <input style="width:100%" type="text" id="project_fte" name="fte" value="">
+                        </span></td>
+                    <td><span title="Enter start of project as yyyy-mm.">
+                        <input style="width:100%" type="text" id="project_start" name="start" value="">
+                        </span></td>
+                    <td><span title="Enter end of project as yyyy-mm.">
+                        <input style="width:100%" type="text" id="project_end" name="end" value="">
+                        </span></td>
+                    <td><span title="Enter coordinator of the project.">
+                        <input style="width:100%" type="text" id="project_coordinator" name="coordinator" value="">
+                        </span></td>
+                    <td><span title="Enter project code from Exact.">
+                        <input style="width:100%" type="text" id="project_exact" name="exact" value="">
+                        </span></td>
                     </tr></table>
-                <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
-                <input type="button" name="button" value="Add / Modify" onClick="addProject();">
-                <input type="button" name="button" value="Rename" onClick="renameProject();">
-                <input type="button" name="button" value="Delete" onClick="delProject();">
-                <input type="button" name="button" value="Pop-out Plot" onClick="plotProject(popup=true);">
-                <input type="button" name="button" value="Print Overview" onClick="printProjects();">
-                <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
+                <span title="Click to deselect project.">
+                    <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
+                    </span>
+                <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new project name, a new project will be generated. To change the name of an existing project press 'Rename'.">
+                    <input type="button" name="button" value="Add / Modify" onClick="addProject();">
+                    </span>
+                <span title="Rename the currently selected project.">
+                    <input type="button" name="button" value="Rename" onClick="renameProject();">
+                    </span>
+                <span title="Delete the currently selected project.">
+                    <input type="button" name="button" value="Delete" onClick="delProject();">
+                    </span>
+                <span title="Show large detailed plot with written and planned hours on project.">
+                    <input type="button" name="button" value="Pop-out Plot" onClick="plotProject(popup=true);">
+                    </span>
+                <span title="Export the table above to file or printer.">
+                    <input type="button" name="button" value="Print Overview" onClick="printProjects();">
+                    </span>
+                <span title="Prepare a 5% assignment of the project coordinator.">
+                    <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
+                    </span>
                 </div>
             <div style="width:35%; margin-left: 65%">
                 <table style="width:100%; table-layout:fixed">
                     <tr>
                         <td>Notes:</td>
-                        <td>Active:
+                        <td><span title="Inactive projects will be hidden from table above, by default.">Active:
                             <input style="width:100% align:left" type="checkbox" id="project_active" name="active" checked>
-                            </td/>
+                            </span></td/>
                         </tr>
-                    <tr><td colspan = 2>
+                    <tr><td colspan = 2><span title="Free text area">
                         <textarea id="project_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
-                        </td></tr>
+                        </span></td></tr>
                     </table>
                 </div>
             </form></div>
@@ -116,8 +172,10 @@
 <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
     <div style="height:100%; width:50%; float: left">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
-        Assignments:
-        <input type=button value="Plot Total"onClick="plotTotalAssignments();"><br>
+            Assignments:
+            <span title="Show a plot of the total engineer FTEs and assignments over time.">
+                <input type=button value="Plot Total"onClick="plotTotalAssignments();">
+                </span><br>
             <div style="height:15%; width:100%">
             <table style="width:98%; table-layout:fixed"><tr>
                 <td>Engineer:</td>
@@ -133,7 +191,9 @@
                 <td><input style="width:100%" type="text" id="assignment_fte" name="fte" value=""></td>
                 <td><input style="width:100%" type="text" id="assignment_start" name="start" value=""></td>
                 <td><input style="width:100%" type="text" id="assignment_end" name="end" value=""></td>
-                <td><input type="button" name="button" value="Add" onClick="addAssignment();"></td>
+                <td><span title="Add the assignment to the list.">
+                    <input type="button" name="button" value="Add" onClick="addAssignment();">
+                    </span></td>
                 </tr></table></div>
             </form>
         <div style="height:85%; width:100%; overflow-y:scroll; overflow-x:hidden">
