@@ -345,6 +345,18 @@ def get_projects():
         data.append(d)
     return flask_response(data)
 
+def get_totals(project):
+    assignments = db_session.query(Assignment).filter_by(pid=project.pid)
+    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+    total_combined = total_planned
+    if exact_data is not None and project.start is not None:
+        project_hours = get_project_hours(project.exact_code)
+        total_written_fte = accumulate_written_fte(project_hours, project.start, current_ym + 1)
+        if len(total_written_fte) > 0:
+            rest_planned = sum([a.fte * (max(a.end, current_ym) - max(a.start, current_ym)) / 12 for a in assignments])
+            total_combined = total_written_fte[-1] + rest_planned
+    return total_planned, total_combined
+
 def get_color(planned, allocated):
     if allocated == 0:
         return 'red'
@@ -373,22 +385,14 @@ def get_project_data():
             series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 
     p = db_session.query(Project).filter_by(pid=pid).one()
-    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+    total_planned, total_combined = get_totals(p)
     color_planned = get_color(total_planned, p.fte)
-    total_prognosis = total_planned
-    color_prognosis = color_planned
-    if exact_data is not None and p.start is not None:
-        project_hours = get_project_hours(p.exact_code)
-        total_written_fte = accumulate_written_fte(project_hours, p.start, current_ym + 1)
-        if len(total_written_fte) > 0:
-            rest_planned = sum([a.fte * (max(a.end, current_ym) - max(a.start, current_ym)) / 12 for a in assignments])
-            total_prognosis = total_written_fte[-1] + rest_planned
-            color_prognosis = get_color(total_prognosis, p.fte)
+    color_combined = get_color(total_combined, p.fte)
     data = {
         'planned': '''<span title='{1:.2f} Out of {2:.2f} person years are assigned in total to project "{3}".'>
                       <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_planned, total_planned, p.fte, p.pid),
-        'prognosis': '''<span title='{1:.2f} Out of {2:.2f} person years are written so far, plus still assigned, to project "{3}".'>
-                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_prognosis, total_prognosis, p.fte, p.pid),
+        'combined': '''<span title='{1:.2f} Out of {2:.2f} person years are written so far, plus still assigned, to project "{3}".'>
+                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_combined, total_combined, p.fte, p.pid),
         'plot': plot_data
         }
     return flask_response(data)
@@ -688,12 +692,12 @@ def create_all_project_plots(output_folder):
         sys.stderr.write(str(error))
     projects = db_session.query(Project).filter(Project.active == True).all()
     for p in projects:
-        assignments = db_session.query(Assignment).filter_by(pid = p.pid).order_by(Assignment.eid, Assignment.start).all()
-        total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
-        text = 'Person-years budgetted: {:.2f}\nPerson-years planned:   {:.2f}\n'.format(p.fte, total_planned)
+        total_planned, total_combined = get_totals(p)
+        text = 'Person-years budgetted: {:.2f}\nWritten + planned:      {:.2f}\n'.format(p.fte, total_combined)
         text += 'Start date:             {}\nEnd date:               {}\n'.format(ym2fulldate(p.start), ym2fulldate(p.end))
         text += 'Time-stamp:             {}\n\n'.format(datetime.datetime.now())
         text += 'Planning\n------------------------------------------------'
+        assignments = db_session.query(Assignment).filter_by(pid = p.pid).order_by(Assignment.eid, Assignment.start).all()
         for a in assignments:
             text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid, a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
         plt.figure(1, figsize=(10,15))
