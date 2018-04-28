@@ -385,8 +385,10 @@ def get_project_data():
             total_prognosis = total_written_fte[-1] + rest_planned
             color_prognosis = get_color(total_prognosis, p.fte)
     data = {
-        'planned': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color_planned, total_planned, p.fte),
-        'prognosis': '<font color="{}">{:.2f} / {:.2f}</font>'.format(color_prognosis, total_prognosis, p.fte),
+        'planned': '''<span title='{1:.2f} Out of {2:.2f} person years are assigned in total to project "{3}".'>
+                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_planned, total_planned, p.fte, p.pid),
+        'prognosis': '''<span title='{1:.2f} Out of {2:.2f} person years are written so far, plus still assigned, to project "{3}".'>
+                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_prognosis, total_prognosis, p.fte, p.pid),
         'plot': plot_data
         }
     return flask_response(data)
