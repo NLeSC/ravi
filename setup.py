@@ -11,8 +11,9 @@ setup(
     classifiers=["Natural Language :: English",
                  "Operating System :: OS Independent",
                  "Programming Language :: Python :: 2.7",
+                 "Programming Language :: Python :: 3.6",
                  ],
     packages=['ravi'],
-    install_requires=['flask', 'sqlalchemy'],
+    install_requires=['future', 'flask', 'sqlalchemy'],
     entry_points={'console_scripts': ['ravi = ravi:main']}
 )

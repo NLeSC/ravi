@@ -6,11 +6,12 @@ from flask import Flask, Response, json, request, abort
 from sqlalchemy import create_engine, desc, collate
 from sqlalchemy.orm import sessionmaker, exc
 from sqlalchemy.sql import func, desc
-from items import Base, Engineer, Project, Assignment, Usersetting
+from .items import Base, Engineer, Project, Assignment, Usersetting
 import sys, csv, os
 import datetime
 from itertools import groupby
 import pandas as pd
+from builtins import str
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 colors = ['#1f77b4',
@@ -79,7 +80,7 @@ def enumerate_assignment_groups(groups, start, end):
         data.append({
             'name': name,
             'y': ym_fte})
-    return [x for y, x in sorted(zip(sort_values, data), reverse=True)]
+    return [x for y, x in sorted(zip(sort_values, data), key=lambda tup:tup[0], reverse=True)]
 
 def stack(data):
 	for i in range(1, len(data)):
@@ -112,7 +113,7 @@ def get_engineer_data():
     data.append({
         'type': 'line',
         'name': 'fte',
-        'y': [e.fte if e.start <= ym < e.end else 0 for ym in range(start,end+1)],
+        'y': [e.fte if e.start and e.end and e.start <= ym < e.end else 0 for ym in range(start,end+1)],
         'showlegend': len(data) == 0,
         'line': {
             'dash': 'dot',
@@ -201,7 +202,7 @@ def add_engineer():
     try:
         engineer_data = json.loads(request.form['data'])
         if 0 == db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
-                'fte': unicode(engineer_data['fte']),
+                'fte': str(engineer_data['fte']),
                 'start': date2ym(engineer_data['start']),
                 'end': date2ym(engineer_data['end']),
                 'exact_id': engineer_data['exact_id'],
@@ -209,7 +210,7 @@ def add_engineer():
                 'active': engineer_data['active']
                 }):
             engineer = Engineer()
-            engineer.eid = unicode(engineer_data['eid'])
+            engineer.eid = str(engineer_data['eid'])
             engineer.exact_id = engineer_data['exact_id']
             engineer.fte = engineer_data['fte']
             engineer.start = date2ym(engineer_data['start'])
@@ -240,7 +241,7 @@ def del_engineer():
 def rename_engineer():
     eid = request.form['eid']
     newid = request.form['newid']
-    e = db_session.query(Engineer).filter_by(eid=unicode(eid)).one()
+    e = db_session.query(Engineer).filter_by(eid=str(eid)).one()
     db_session.delete(e)
     e.eid = newid
     db_session.add(e)
@@ -548,19 +549,19 @@ def add_project():
                 'fte': float(project_data['fte']),
                 'start': date2ym(project_data['start']),
                 'end': date2ym(project_data['end']),
-                'exact_code': unicode(project_data['exact_code']),
-                'coordinator': unicode(project_data['coordinator']),
-                'comments': unicode(project_data['comments']),
+                'exact_code': str(project_data['exact_code']),
+                'coordinator': str(project_data['coordinator']),
+                'comments': str(project_data['comments']),
                 'active': project_data['active']
                 }):
             project = Project()
-            project.pid = unicode(project_data['pid'])
-            project.exact_code = unicode(project_data['exact_code'])
+            project.pid = str(project_data['pid'])
+            project.exact_code = str(project_data['exact_code'])
             project.fte = float(project_data['fte'])
             project.start = date2ym(project_data['start'])
             project.end = date2ym(project_data['end'])
-            project.coordinator = unicode(project_data['coordinator'])
-            project.comments = unicode(project_data['comments'])
+            project.coordinator = str(project_data['coordinator'])
+            project.comments = str(project_data['comments'])
             project.active = project_data['active']
             db_session.add(project)
     except Exception as err:
@@ -575,7 +576,7 @@ def add_project():
 @app.route('/del_project', methods = ['POST'])
 def del_project():
     pid = request.form['pid']
-    p = db_session.query(Project).filter_by(pid=unicode(pid)).one()
+    p = db_session.query(Project).filter_by(pid=str(pid)).one()
     db_session.delete(p)
     for a in db_session.query(Assignment).filter_by(pid=pid):
         db_session.delete(a)
@@ -586,7 +587,7 @@ def del_project():
 def rename_project():
     pid = request.form['pid']
     newid = request.form['newid']
-    p = db_session.query(Project).filter_by(pid=unicode(pid)).one()
+    p = db_session.query(Project).filter_by(pid=str(pid)).one()
     db_session.delete(p)
     p.pid = newid
     db_session.add(p)
@@ -617,8 +618,8 @@ def add_assignment():
     try:
         assignment_data = json.loads(request.form['data'])
         assignment = Assignment()
-        assignment.eid = unicode(assignment_data['eid'])
-        assignment.pid = unicode(assignment_data['pid'])
+        assignment.eid = str(assignment_data['eid'])
+        assignment.pid = str(assignment_data['pid'])
         assignment.fte = assignment_data['fte']
         assignment.start = date2ym(assignment_data['start'])
         assignment.end = date2ym(assignment_data['end'])
@@ -672,7 +673,7 @@ def read_exact_data(filename):
             try:
                 day, month, year = line['Datum'].split('-')
                 ym = date2ym("-".join([year,month]))
-                t = (unicode(line['Projectcode']), unicode(line['Uur- of kostensoort (Code)']), unicode(line['Medewerker ID']), ym)
+                t = (str(line['Projectcode']), str(line['Uur- of kostensoort (Code)']), str(line['Medewerker ID']), ym)
                 if t in hours:
                     hours[t] += int(float(line['Aantal']))
                 else:
@@ -736,7 +737,7 @@ def main():
     db_name = sys.argv[1]
     if len(sys.argv) > 2:
         read_exact_data(sys.argv[2])
-    engine = create_engine('sqlite:///' + db_name, echo=False)
+    engine = create_engine('sqlite:///' + db_name + '?check_same_thread=False', echo=False)
     session = sessionmaker()
     session.configure(bind=engine)
     global db_session
