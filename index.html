@@ -186,11 +186,21 @@
                 <td>Action:</td>
                 </tr>
             <tr>
-                <td><input style="width:100%" type="text" id="assignment_eid" name="eid" value=""></td>
-                <td><input style="width:100%" type="text" id="assignment_pid" name="pid" value=""></td>
-                <td><input style="width:100%" type="text" id="assignment_fte" name="fte" value=""></td>
-                <td><input style="width:100%" type="text" id="assignment_start" name="start" value=""></td>
-                <td><input style="width:100%" type="text" id="assignment_end" name="end" value=""></td>
+                <td><span title="You can fill this field by selecting one of the engineers in the top left table.">
+                    <input style="width:100%" type="text" id="assignment_eid" name="eid" value="">
+                    </span></td>
+                <td><span title="You can fill this field by selecting one of the projects in the top right table.">
+                    <input style="width:100%" type="text" id="assignment_pid" name="pid" value="">
+                    </span></td>
+                <td><spant title="Enter the extent of the assignment in FTE, e.g. 0.2 FTE is approximately 1 day a week.">
+                    <input style="width:100%" type="text" id="assignment_fte" name="fte" value="">
+                    </span></td>
+                <td><span title="Enter start of assignment as yyyy-mm.">
+                    <input style="width:100%" type="text" id="assignment_start" name="start" value="">
+                    </span></td>
+                <td><span title="Enter end of assignment as yyyy-mm.">
+                    <input style="width:100%" type="text" id="assignment_end" name="end" value="">
+                    </span></td>
                 <td><span title="Add the assignment to the list.">
                     <input type="button" name="button" value="Add" onClick="addAssignment();">
                     </span></td>
