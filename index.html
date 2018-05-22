@@ -171,12 +171,12 @@
     </div>
 <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
     <div style="height:100%; width:50%; float: left">
+        <div style="height:30%; width:100%">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
             Assignments:
             <span title="Show a plot of the total engineer FTEs and assignments over time.">
                 <input type=button value="Plot Total"onClick="plotTotalAssignments();">
                 </span><br>
-            <div style="height:15%; width:100%">
             <table style="width:98%; table-layout:fixed"><tr>
                 <td>Engineer:</td>
                 <td>Project:</td>
@@ -204,9 +204,9 @@
                 <td><span title="Add the assignment to the list.">
                     <input type="button" name="button" value="Add" onClick="addAssignment();">
                     </span></td>
-                </tr></table></div>
-            </form>
-        <div style="height:85%; width:100%; overflow-y:scroll; overflow-x:hidden">
+                </tr></table>
+            </form></div>
+        <div style="height:70%; width:100%; overflow-y:scroll; overflow-x:hidden">
             <table style="width:100%; table-layout:fixed" id="assignment_table"></table></div>
         </div>
     <div style="width:50%; margin-left: 50%" id="plot_detailed"></div>
