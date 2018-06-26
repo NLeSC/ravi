@@ -9,8 +9,8 @@
 
 # Installation
 First install miniconda
+and clone the ravi repository (click the `Clone` button on the top right)
 ```
-git clone https://ridderlars@bitbucket.org/ridderlars/ravi.git
 cd ravi
 wget -P js https://cdn.plot.ly/plotly-latest.min.js
 conda create -n ravi
