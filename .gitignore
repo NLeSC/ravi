@@ -1,2 +1,7 @@
 *.pyc
 __pycache__
+database.db
+exported_hours_from_exact.csv
+ProProjects.csv
+import_projects.py
+TODO.txt
