@@ -47,6 +47,16 @@ ravi database.db exported_hours_from_exact.csv output_folder
 * In Excel: Remove the top 13 or so lines to keep only one header line and data
 * Save as CSV, using "," as field delimiter and no text delimiter
 
+# Develop
+
+Install automated code checkers for python:
+```
+conda install -c conda-forge prospector 
+```
+To use them, type:
+```
+prospector ravi
+```
 
 # Contact #
 * l.ridder@esciencecenter.nl
