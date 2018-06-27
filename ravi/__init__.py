@@ -83,9 +83,9 @@ def enumerate_assignment_groups(groups, start, end):
     return [x for y, x in sorted(zip(sort_values, data), key=lambda tup:tup[0], reverse=True)]
 
 def stack(data):
-	for i in range(1, len(data)):
-		for j in range(min(len(data[i]['y']), len(data[i-1]['y']))):
-			data[i]['y'][j] += data[i-1]['y'][j]
+    for i in range(1, len(data)):
+        for j in range(min(len(data[i]['y']), len(data[i-1]['y']))):
+            data[i]['y'][j] += data[i-1]['y'][j]
 
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
