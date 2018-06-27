@@ -6,16 +6,21 @@ This is the server side code of the tool. It uses:
  * flask to serve and interact with a website
 """
 
-from flask import Flask, Response, json, request, abort
-from sqlalchemy import create_engine, desc, collate
-from sqlalchemy.orm import sessionmaker, exc
-from sqlalchemy.sql import func, desc
-from .items import Base, Engineer, Project, Assignment, Usersetting
-import sys, csv, os
+import sys
+import csv
+import os
 import datetime
+
 from itertools import groupby
-import pandas as pd
 from builtins import str
+
+from flask import Flask, Response, json, request, abort
+from sqlalchemy import create_engine, collate
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import desc
+import pandas as pd
+
+from .items import Base, Engineer, Project, Assignment, Usersetting
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 colors = ['#1f77b4',
