@@ -47,18 +47,6 @@ ravi database.db exported_hours_from_exact.csv output_folder
 * In Excel: Remove the top 13 or so lines to keep only one header line and data
 * Save as CSV, using "," as field delimiter and no text delimiter
 
-# Rendering changes in database.db in git
-Checkout this blog: https://ongardie.net/blog/sqlite-in-git/
-
-In .git/info/attributes add:  
-`database.db diff=sqlite3`
-
-Then in .git/config add:  
-```
-[diff "sqlite3"]
-	textconv = sh -c 'sqlite3 "$0" .dump'
-```
-
 
 # Contact #
 * l.ridder@esciencecenter.nl
