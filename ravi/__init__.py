@@ -1,5 +1,9 @@
 """
-Resources Assignment and VIewing (RAVI) tool
+Resources Assignment and VIewing (RAVI) tool.
+
+This is the server side code of the tool. It uses:
+ * sqlalchemy to connect to a SQLite data
+ * flask to serve and interact with a website
 """
 
 from flask import Flask, Response, json, request, abort
