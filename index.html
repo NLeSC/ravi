@@ -177,9 +177,11 @@
   // automatically select the assignments on the other timeline
   engineersTimeline.on('select', function (properties) {
     projectsTimeline.setSelection(properties.items);
+    projectsTimeline.focus(properties.items);
   });
   projectsTimeline.on('select', function (properties) {
     engineersTimeline.setSelection(properties.items);
+    engineersTimeline.focus(properties.items);
   });
 
 
