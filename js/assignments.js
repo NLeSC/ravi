@@ -75,8 +75,8 @@ function sendAssignmentToServer(currentEA, currentPA) {
   req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
   req.send('data=' + JSON.stringify({
     aid: currentEA.id,
-    eid: currentPA.group,
-    pid: currentEA.group,
+    eid: currentEA.group,
+    pid: currentPA.group,
     fte: parseFloat(currentEA.content), // BUGFIX: TODO: get this value in a better way
     start: currentEA.start,
     end: currentEA.end
