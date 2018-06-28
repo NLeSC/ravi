@@ -14,66 +14,67 @@ import datetime
 from itertools import groupby
 from builtins import str
 
-from flask import Flask, Response, json, request, abort
+from flask import Flask, Response, json, request, abort, g
 from sqlalchemy import create_engine, collate
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import desc
 import pandas as pd
 
 from .items import Base, Engineer, Project, Assignment, Usersetting
 
-months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-colors = ['#1f77b4',
-    '#ff7f0e',
-    '#2ca02c',
-    '#d62728',
-    '#9467bd',
-    '#8c564b',
-    '#e377c2',
-    '#7f7f7f',
-    '#bcbd22',
-    '#17becf']
-min_date = '0000-01'
-max_date = '9999-12'
+MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',
+          'Nov', 'Dec']
+
+COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+          '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 exact_data = None
 current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
 
 
 app = Flask(__name__)
-
+db_session = None
 
 def ym2date(ym):
+    """Convert date time integer to formatted string."""
     if ym:
         y, m = divmod(ym, 12)
-        return "{:4d}-{:d}".format(y, m+1)
     else:
-        return None
+        y, m = 0, 0
+    return "{:4d}-{:d}".format(y, m + 1)
+
 
 def ym2fulldate(ym):
+    """Convert date time integer to formatted string with months names."""
     if ym:
         y, m = divmod(ym, 12)
-        return "{:4d} {:s}".format(y, months[m])
     else:
-        return None
+        y, m = 0, 0
+    return "{:4d} {:s}".format(y, MONTHS[m])
+
 
 def date2ym(date):
+    """Convert date time string as YYYY-MM to integer."""
     if date:
         d = date.split('-')
-        return 12 * int(d[0]) + int(d[1]) - 1
     else:
-        return None
+        d = [0, 0]
+    return 12 * int(d[0]) + int(d[1]) - 1
+
 
 def flask_response(data):
+    """Create http response."""
     resp = Response(json.dumps(data), mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
+
 @app.errorhandler(500)
 def custom500(error):
+    """Custom error handler for the flask webserver, that prints the error."""
     resp = Response(json.dumps({'error': error.description}), 500, mimetype='application/json')
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
+
 
 def enumerate_assignment_groups(groups, start, end):
     data = []
@@ -91,10 +92,12 @@ def enumerate_assignment_groups(groups, start, end):
             'y': ym_fte})
     return [x for y, x in sorted(zip(sort_values, data), key=lambda tup:tup[0], reverse=True)]
 
+
 def stack(data):
     for i in range(1, len(data)):
         for j in range(min(len(data[i]['y']), len(data[i-1]['y']))):
             data[i]['y'][j] += data[i-1]['y'][j]
+
 
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
@@ -106,6 +109,7 @@ def get_engineers():
         data.append(d)
     return flask_response(data)
 
+
 @app.route('/get_engineer_data', methods = ['POST'])
 def get_engineer_data():
     eid = request.form['eid']
@@ -116,7 +120,7 @@ def get_engineer_data():
     stack(data)
     for i, series in enumerate(data):
         series['fill'] = 'tonexty'
-        series['fillcolor'] = colors[i%10]
+        series['fillcolor'] = COLORS[i%10]
         series['mode'] = 'none'
     e = db_session.query(Engineer).filter_by(eid=eid).one()
     data.append({
@@ -130,6 +134,7 @@ def get_engineer_data():
             'color': 'black'}})
     return flask_response(data)
 
+
 def list_written_fte(written_hours, start, end):
     written_fte = []
     for ym in range(start, end):
@@ -138,6 +143,7 @@ def list_written_fte(written_hours, start, end):
         except IndexError:
             written_fte.append(written_fte[-1])
     return written_fte
+
 
 @app.route('/get_engineer_plot', methods = ['POST'])
 def get_engineer_plot():
@@ -174,9 +180,9 @@ def get_engineer_plot():
                 'showlegend': True, #show this legend only if there are hours from exact
                 'line': {}})
     for i, x in enumerate(data_planned):
-        x['line']['color'] = colors[i%10]
+        x['line']['color'] = COLORS[i%10]
     for i, x in enumerate(data_written):
-        x['line']['color'] = colors[i%10]
+        x['line']['color'] = COLORS[i%10]
     data = data_planned + data_written
 
     # Written hours on non-assigned projects
@@ -192,7 +198,7 @@ def get_engineer_plot():
                 select_hours = select_hours[(exact_data.hour_code == exact_codes[1])]
             if select_hours.hours.sum() > 0:
                 written_fte = []
-                color = colors[pc%10]
+                color = COLORS[pc%10]
                 pc += 1
                 data.append({
                     'type': 'line',
@@ -236,6 +242,7 @@ def add_engineer():
         abort(500, "Adding engineer failed:\n\n" + str(err))
     return flask_response(["success"])
 
+
 @app.route('/del_engineer', methods = ['POST'])
 def del_engineer():
     eid = request.form['eid']
@@ -245,6 +252,7 @@ def del_engineer():
         db_session.delete(a)
     db_session.commit()
     return flask_response([])
+
 
 @app.route('/rename_engineer', methods = ['POST'])
 def rename_engineer():
@@ -257,6 +265,7 @@ def rename_engineer():
     db_session.query(Assignment).filter_by(eid=eid).update({'eid': newid})
     db_session.commit()
     return flask_response([])
+
 
 @app.route('/get_xaxis_data', methods = ['GET'])
 def get_xlabels():
@@ -276,9 +285,11 @@ def get_xlabels():
             'y': y_axis}]}
     return flask_response(data)
 
+
 def get_start_date():
     start, = db_session.query(Usersetting.value).filter_by(setting = u'start_date').one()
     return start
+
 
 def get_end_date():
     end, = db_session.query(Usersetting.value).filter_by(setting = u'end_date').one()
@@ -355,6 +366,7 @@ def get_projects():
         data.append(d)
     return flask_response(data)
 
+
 def get_totals(project):
     assignments = db_session.query(Assignment).filter_by(pid=project.pid)
     total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
@@ -367,6 +379,7 @@ def get_totals(project):
             total_combined = total_written_fte[-1] + rest_planned
     return total_planned, total_combined
 
+
 def get_color(planned, allocated):
     if allocated == 0:
         return 'red'
@@ -377,6 +390,7 @@ def get_color(planned, allocated):
         if 0.8 < ratio < 1.05:
             return 'orange'
         return 'red'
+
 
 @app.route('/get_project_data', methods = ['POST'])
 def get_project_data():
@@ -389,7 +403,7 @@ def get_project_data():
     stack(plot_data)
     for i, series in enumerate(plot_data):
         series['fill'] = 'tonexty'
-        series['fillcolor'] = colors[i%10]
+        series['fillcolor'] = COLORS[i%10]
         series['mode'] = 'none'
         if series['name'][:3] == '00_':
             series['name'] = '<span style="color:red">' + series['name'] + '</span>'
@@ -407,6 +421,7 @@ def get_project_data():
         }
     return flask_response(data)
 
+
 @app.route('/get_project_plot', methods = ['POST'])
 def get_project_plot():
     pid = request.form['pid']
@@ -414,10 +429,12 @@ def get_project_plot():
     data = get_project_plot_data(pid, history=="true")
     return flask_response(data)
 
+
 @app.route('/get_all_project_plots_data', methods = ['GET'])
 def get_all_project_plots_data():
     data = {pid: get_project_plot_data(pid) for pid, in db_session.query(Project.pid).all()}
     return flask_response(data)
+
 
 def get_project_hours(exact_code):
     ec = exact_code.split('#')
@@ -427,6 +444,7 @@ def get_project_hours(exact_code):
         project_hours = project_hours[project_hours.hour_code == ec[1]]
     return project_hours
 
+
 def accumulate_written_fte(written_hours, start, end):
     written_fte = []
     for ym in range(start, end):
@@ -435,6 +453,7 @@ def accumulate_written_fte(written_hours, start, end):
         except IndexError:
             written_fte.append(written_fte[-1])
     return written_fte
+
 
 def get_project_plot_data(pid, history=False):
     """
@@ -501,9 +520,9 @@ def get_project_plot_data(pid, history=False):
         series['line'] = {'dash': 'dot'}
 
     for i, x in enumerate(data_projected):
-        x['line']['color'] = colors[i%10]
+        x['line']['color'] = COLORS[i%10]
     for i, x in enumerate(data_written):
-        x['line']['color'] = colors[i%10]
+        x['line']['color'] = COLORS[i%10]
     data += data_written + data_projected
 
     # total projected hours
@@ -537,7 +556,7 @@ def get_project_plot_data(pid, history=False):
         for i, (eid, exact_id) in enumerate(other_engineers):
             select_hours = project_hours[(exact_data.exact_id == exact_id)]
             ec = i + len(assigned_engineers)
-            color = colors[ec%10]
+            color = COLORS[ec%10]
 
             data.append({
                 'type': 'line',
@@ -549,6 +568,7 @@ def get_project_plot_data(pid, history=False):
                 'line': {'dash': 'dash', 'color': color}})
 
     return data
+
 
 @app.route('/add_project', methods = ['POST'])
 def add_project():
@@ -582,6 +602,7 @@ def add_project():
         abort(500, "Adding project failed:\n\n" + str(err))
     return flask_response(["success"])
 
+
 @app.route('/del_project', methods = ['POST'])
 def del_project():
     pid = request.form['pid']
@@ -591,6 +612,7 @@ def del_project():
         db_session.delete(a)
     db_session.commit()
     return flask_response([])
+
 
 @app.route('/rename_project', methods = ['POST'])
 def rename_project():
@@ -603,6 +625,7 @@ def rename_project():
     db_session.query(Assignment).filter_by(pid=pid).update({'pid': newid})
     db_session.commit()
     return flask_response([])
+
 
 @app.route('/get_assignments', methods = ['POST'])
 def get_assignments():
@@ -622,6 +645,7 @@ def get_assignments():
         data.append(d)
     return flask_response(data)
   
+
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
     try:
@@ -642,6 +666,7 @@ def add_assignment():
         abort(500, "Adding assignment failed:\n\n" + str(err))
     return flask_response(["success"])
 
+
 @app.route('/del_assignment', methods = ['POST'])
 def del_assignment():
     aid = request.form['aid']
@@ -653,10 +678,12 @@ def del_assignment():
     db_session.commit()
     return flask_response(data)
 
+
 @app.route('/get_user_settings', methods = ['GET'])
 def get_user_settings():
     data = [dict(s) for s in db_session.query(Usersetting).all()]
     return flask_response(data)
+
 
 @app.route('/set_user_setting', methods = ['POST'])
 def set_user_settings():
@@ -671,6 +698,7 @@ def set_user_settings():
         db_session.add(newsetting)
     db_session.commit()
     return flask_response([])
+
 
 def read_exact_data(filename):
     global exact_data
@@ -687,35 +715,35 @@ def read_exact_data(filename):
                     hours[t] += int(float(line['Aantal']))
                 else:
                     hours[t] = int(float(line['Aantal']))
-            except:
-                sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
+            except ValueError:
+                sys.stderr.write("Exact file could not be read at line " + str(ln + 1) + "\n")
     data = [list(k) + [v] for k,v in hours.items()]
-    exact_data = pd.DataFrame(data, columns=['exact_code', 'hour_code', 'exact_id', 'ym', 'hours'])
+    exact_data = pd.DataFrame(data,
+                 columns=['exact_code', 'hour_code', 'exact_id', 'ym', 'hours'])
     return exact_data
 
+
 def create_all_project_plots(output_folder):
+    """Create plots for all projects."""
     import matplotlib.pyplot as plt
-    import matplotlib.patheffects as path_effects
     try:
         os.makedirs(output_folder)
     except OSError as error:
         sys.stderr.write(str(error))
-    projects = db_session.query(Project).filter(Project.active == True).all()
+    projects = db_session.query(Project).filter(Project.active).all()
     for p in projects:
-        total_planned, total_combined = get_totals(p)
+        _, total_combined = get_totals(p)
         text = 'Person-years budgetted: {:.2f}\nWritten + planned:      {:.2f}\n'.format(p.fte, total_combined)
         text += 'Start date:             {}\nEnd date:               {}\n'.format(ym2fulldate(p.start), ym2fulldate(p.end))
         text += 'Time-stamp:             {}\n\n'.format(datetime.datetime.now())
         text += 'Planning\n------------------------------------------------'
-        assignments = db_session.query(Assignment).filter_by(pid = p.pid).order_by(Assignment.eid, Assignment.start).all()
+        assignments = db_session.query(Assignment).filter_by(pid=p.pid).order_by(Assignment.eid, Assignment.start).all()
         for a in assignments:
-            text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid, a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
-        plt.figure(1, figsize=(10,15))
-        folder = output_folder+'/'+p.coordinator
-        try:
-            os.makedirs(folder)
-        except:
-            pass
+            text += '\n{:15s} {:.1f} fte      {:s} - {:s}'.format(a.eid,
+                    a.fte, ym2fulldate(a.start), ym2fulldate(a.end))
+        plt.figure(1, figsize=(10, 15))
+        folder = output_folder + '/' + p.coordinator
+        os.makedirs(folder) # TODO: verbose crash?
         data = get_project_plot_data(p.pid)
         for trace in data:
             if 'fill' in trace:
@@ -728,40 +756,47 @@ def create_all_project_plots(output_folder):
                         style = '--'
                     elif trace['line']['dash'] == 'dot':
                         style = ':'
-                        xaxis = range(len(data[0]['y'])-len(trace['y']), len(data[0]['y']))
-                plt.plot(xaxis, trace['y'], style, color=trace['line']['color'], label=trace['name'] if trace['showlegend'] else None)
+                        xaxis = range(len(data[0]['y']) - len(trace['y']),
+                                      len(data[0]['y']))
+                plt.plot(xaxis, trace['y'], style,
+                         color=trace['line']['color'],
+                         label=trace['name'] if trace['showlegend'] else None)
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
-        plt.title('Project: '+p.pid)
+        plt.title('Project: ' + p.pid)
         plt.ylabel('Person-years')
         plt.xticks(range(len(data[0]['x'])), data[0]['x'], rotation=-90)
         plt.subplots_adjust(bottom=0.6)
         plt.legend(loc='upper left')
-        plt.figtext(0.1, 0.5, text, verticalalignment='top', family='monospace')
-        plt.savefig(folder+'/'+p.pid+'.pdf')
+        plt.figtext(0.1, 0.5, text, verticalalignment='top',
+                    family='monospace')
+        plt.savefig(folder + '/' + p.pid + '.pdf')
         plt.close()
 
 
 def main():
+    """Run the flask app."""
+    global db_session
     db_name = sys.argv[1]
     if len(sys.argv) > 2:
         read_exact_data(sys.argv[2])
-    engine = create_engine('sqlite:///' + db_name + '?check_same_thread=False', echo=False)
+    engine = create_engine('sqlite:///' + db_name + '?check_same_thread=False',
+             echo=False)
     session = sessionmaker()
     session.configure(bind=engine)
-    global db_session
     db_session = session()
     Base.metadata.create_all(engine)
     if len(db_session.query(Usersetting).all()) < 2:
-        start_date = Usersetting(setting = u'start_date', value = u'2015-01')
-        end_date = Usersetting(setting = u'end_date', value = u'2019-01')
+        start_date = Usersetting(setting=u'start_date', value=u'2015-01')
+        end_date = Usersetting(setting=u'end_date', value=u'2019-01')
         db_session.add(start_date)
         db_session.add(end_date)
     db_session.commit()
     if len(sys.argv) == 4:
         create_all_project_plots(sys.argv[3])
         exit()
-    app.run(debug = True)
+    app.run(debug=True)
+
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
