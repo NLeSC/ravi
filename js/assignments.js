@@ -51,6 +51,12 @@ function initializeAssignments (assignments) {
       content: assignment.fte + ' FTE: ' + assignment.eid
     });
   });
+
+  // remove dummy assignment (issue with empty plots)
+  engineerGroups.remove(1);
+  projectGroups.remove(1);
+  engineerAssignments.remove(1);
+  projectAssignments.remove(1);
 }
 
 function updateAssignments() {

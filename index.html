@@ -101,11 +101,12 @@
   var projectAssignments = new vis.DataSet(datasetOptions);
   var projectGroups = new vis.DataSet(datasetOptions);
 
-  engineerAssignments.add([ {id: 1, content: 'Project 1', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
-  engineerGroups.add([{id: 1, content: 'EngineerA'}]);
+  // Do some dummy assignments to prevent issues with empty plots
+  engineerAssignments.add([ {id: 1, content: 'Dummy', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
+  engineerGroups.add([{id: 1, content: 'Dummy'}]);
 
-  projectAssignments.add([ {id: 1, content: 'Engineer A', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
-  projectGroups.add([{id: 1, content: 'Project 1'}]);
+  projectAssignments.add([ {id: 1, content: 'Dummy', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
+  projectGroups.add([{id: 1, content: 'Dummy'}]);
 
   // Configuration for the Timeline
   var timelineOptions = {
@@ -126,8 +127,8 @@
     $('#inputProjectsTimelineEngineer').val(assignment.group);
 
     // enter the FTE in the input field
-    console.log(assignment);
-    // $('#inputProjectsTimelineFTE').val(item.fte);
+    // BUGFIX: get proper way to get FTE instead of parsing the label
+    $('#inputProjectsTimelineFTE').val(parseFloat(assignment.content));
 
     $('#projectAssignmentModal').modal();
   }
@@ -144,6 +145,11 @@
 
     // pre-select the right project in the dropdown
     $('#inputEngineersTimelineProject').val(assignment.group);
+
+    // enter the FTE in the input field
+    // BUGFIX: get proper way to get FTE instead of parsing the label
+    $('#inputEngineersTimelineFTE').val(parseFloat(assignment.content));
+
     $('#engineerAssignmentModal').modal();
   }
   engineersTimeline.on('doubleClick', configureEngineerAssignment);
