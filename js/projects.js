@@ -1,3 +1,34 @@
+/**
+ * Add projects to the project timeline
+ * Add projects to the engineer assignment popup
+ *
+ * An project is an object with the following properties:
+ * Project {
+ * }
+ *
+ * arguments:
+ *    projects: Array[project]
+ *
+ * uses the following global variables:
+ *    projectGroups
+ */
+function initializeProjects(projects) {
+  projects.forEach(function(project) {
+    projectGroups.update({
+      id: project.pid,
+      content: project.pid
+    });
+  });
+
+  // add to the modal pop up on the engineer timeline
+  inputBox = $('#inputEngineersTimelineProject');
+  projectGroups.forEach(function(project) {
+    $('<option />', {
+      value: project.id,
+      text: project.content
+    }).appendTo(inputBox);
+  });
+}
 var projects = {}
 
 function createProjectTable(projectList) {
@@ -256,6 +287,7 @@ var request_projects = new XMLHttpRequest();
 request_projects.open('GET', 'http://localhost:5000/get_projects');
 request_projects.onload = function() {
     var projectList = JSON.parse(request_projects.responseText);
+    initializeProjects(projectList);
     createProjectTable(projectList);
     updateInactiveProjects();
     }

@@ -1,4 +1,43 @@
-var engineers = {}
+/**
+ * Add engineers to the engineer timeline
+ * Add engineers to the project assignment popup
+ *
+ * An engineer is an object with the following properties:
+ * Engineer {
+ *   active
+ *   comments
+ *   coordinator
+ *   eid
+ *   end
+ *   start
+ *   exact_id
+ *   fte
+ * }
+ *
+ * arguments:
+ *    engineers: Array[engineer]
+ *
+ * uses the following global variables:
+ *    engineerGroups
+ */
+function initializeEngineers (engineers) {
+  engineers.forEach(function(engineer) {
+    engineerGroups.update({
+      id: engineer.eid,
+      content: engineer.eid
+    });
+  });
+
+  // TODO: remove old options
+  // add to the modal pop up on the project timeline
+  inputBox = $('#inputProjectsTimelineEngineer');
+  engineerGroups.forEach(function(engineer) {
+    $('<option />', {
+      value: engineer.id,
+      text: engineer.content
+    }).appendTo(inputBox);
+  });
+}
 
 function createEngineerTable(engineerList) {
     for(i=0; i<engineerList.length; i++) {
@@ -203,10 +242,8 @@ var request_engineers = new XMLHttpRequest();
 request_engineers.open('GET', 'http://localhost:5000/get_engineers');
 request_engineers.onload = function() {
     var engineerList = JSON.parse(request_engineers.responseText);
+    initializeEngineers(engineerList);
     createEngineerTable(engineerList);
     updateInactiveEngineers();
     }
 request_engineers.send();
-
-
-

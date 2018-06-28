@@ -12,12 +12,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<!-- Modal for assignments on project timeline-->
+<div class="modal fade" id="projectAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="projectAssignmentLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <h5 class="modal-title" id="projectAssignmentLabel">Update assignment</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -26,64 +26,38 @@
 
         <div class="input-group mb-3">
           <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Engineer</label>
+            <label class="input-group-text" for="inputProjectsTimelineEngineer">Engineer</label>
           </div>
-          <select class="custom-select" id="inputGroupSelect01">
-            <option selected>Choose...</option>
-            <option value="01">One</option>
-            <option value="02">Two</option>
-            <option value="03">Three</option>
-            <option value="04">Three</option>
-            <option value="05">Three</option>
-            <option value="06">Three</option>
-            <option value="07">Three</option>
-            <option value="08">Three</option>
-            <option value="09">Three</option>
-            <option value="11">One</option>
-            <option value="12">Two</option>
-            <option value="13">Three</option>
-            <option value="14">Three</option>
-            <option value="15">Three</option>
-            <option value="16">Three</option>
-            <option value="17">Three</option>
-            <option value="18">Three</option>
-            <option value="19">Three</option>
-            <option value="21">One</option>
-            <option value="22">Two</option>
-            <option value="23">Three</option>
-            <option value="24">Three</option>
-            <option value="25">Three</option>
-            <option value="26">Three</option>
-            <option value="27">Three</option>
-            <option value="28">Three</option>
-            <option value="29">Three</option>
-            <option value="31">One</option>
-            <option value="32">Two</option>
-            <option value="33">Three</option>
-            <option value="34">Three</option>
-            <option value="35">Three</option>
-            <option value="36">Three</option>
-            <option value="37">Three</option>
-            <option value="38">Three</option>
-            <option value="39">Three</option>
-            <option value="41">One</option>
-            <option value="42">Two</option>
-            <option value="43">Three</option>
-            <option value="44">Three</option>
-            <option value="45">Three</option>
-            <option value="46">Three</option>
-            <option value="47">Three</option>
-            <option value="48">Three</option>
-            <option value="49">Three</option>
-            <option value="51">One</option>
-            <option value="52">Two</option>
-            <option value="53">Three</option>
-            <option value="54">Three</option>
-            <option value="55">Three</option>
-            <option value="56">Three</option>
-            <option value="57">Three</option>
-            <option value="58">Three</option>
-            <option value="59">Three</option>
+          <select class="custom-select" id="inputProjectsTimelineEngineer">
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for assignments on engineer timeline-->
+<div class="modal fade" id="engineerAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="engineerAssignmentLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="engineerAssignmentLabel">Update assignment</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="inputEngineersTimelineEngineer">Project</label>
+          </div>
+          <select class="custom-select" id="inputEngineersTimelineProject">
           </select>
         </div>
       </div>
@@ -129,14 +103,33 @@
   };
 
   // Create a Timeline
-  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
-
   configureProjectAssignment = function (properties) {
-    $('#exampleModal').modal();
-  }
+    // pre-select the right engineer in the dropdown
+    var item = engineerAssignments.get(properties.item);
+    if (! item) {
+      return;
+    }
 
+    $('#inputProjectsTimelineEngineer').val(item.group);
+    $('#projectAssignmentModal').modal();
+  }
   projectsTimeline.on('doubleClick', configureProjectAssignment);
+
+
+  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
+  configureEngineerAssignment = function (properties) {
+    // pre-select the right project in the dropdown
+    var item = projectAssignments.get(properties.item);
+    if (! item) {
+      return;
+    }
+
+    $('#inputEngineersTimelineProject').val(item.group);
+    $('#engineerAssignmentModal').modal();
+  }
+  engineersTimeline.on('doubleClick', configureEngineerAssignment);
+
 
 </script>
 

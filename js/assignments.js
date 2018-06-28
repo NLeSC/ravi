@@ -1,25 +1,27 @@
+/**
+ * Add assignments to the projects and engineers timelines
+ *
+ * An assignment is an object with the following properties:
+ * Assignment {
+ *   aid
+ *   eid
+ *   pid
+ *   fte
+ *   start
+ *   end
+ * }
+ *
+ * arguments:
+ *    assignments: Array[assignment]
+ *
+ * uses the following global variables:
+ *    engineerAssignments, projectAssignments
+ */
 function initializeAssignments (assignments) {
-
-/*
-  engineerAssignments.add([
-    {id: 1, content: 'Project 1', start: '2013-04-20', end: '2013-04-19', group: 1},
-    {id: 2, content: 'Another P', start: '2013-04-14', end: '2013-04-19', group: 1},
-    {id: 3, content: 'Big Proje', start: '2013-04-18', end: '2013-04-19', group: 1},
-    {id: 4, content: 'Pathfinde', start: '2013-04-16', end: '2013-04-19', group: 2},
-    {id: 5, content: 'eStep 018', start: '2013-04-25', end: '2013-04-19', group: 2},
-    {id: 6, content: 'item 6   ', start: '2013-04-27', end: '2013-04-19', group: 2}
-  ]);
-
-  engineerGroups.add([
-    {id: 1, content: 'EngineerA'},
-    {id: 2, content: 'EngineerB'}
-  ])
-*/
-
-
-
   // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
+    // this is slightly redundant:
+    // it makes sure that the engineer and project actually exist on the plot
     engineerGroups.update({
       id : assignment.eid,
       content: assignment.eid
@@ -28,15 +30,6 @@ function initializeAssignments (assignments) {
       id : assignment.pid,
       content: assignment.pid
     });
-
-    // assignment: {
-    // aid
-    // eid
-    // pid
-    // fte
-    // start
-    // end
-    // }
 
     // sanitize data
     var start = assignment.start || '2015-01';
