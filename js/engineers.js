@@ -40,7 +40,7 @@ function initializeEngineers (engineers) {
 }
 
 /**
- * Request the project loads from the server
+ * Request the engineer loads from the server
  */
 function get_engineer_load () {
   var request = new XMLHttpRequest();
