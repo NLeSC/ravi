@@ -47,7 +47,7 @@ function initializeAssignments (assignments) {
       group: assignment.eid,
       start: start,
       end: end,
-      content: assignment.pid
+      content: assignment.fte + ' FTE: ' + assignment.pid
     });
 
     projectAssignments.update({
@@ -55,7 +55,7 @@ function initializeAssignments (assignments) {
       group: assignment.pid,
       start: start,
       end: end,
-      content: assignment.eid
+      content: assignment.fte + ' FTE: ' + assignment.eid
     });
   });
 }

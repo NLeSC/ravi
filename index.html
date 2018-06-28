@@ -1,15 +1,108 @@
 <html>
 <head>
     <title>RAVI</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="js/vis-timeline-graph2d.min.css">
     <meta charset="utf-8"/>
 </head>
 <body>
+
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Engineer</label>
+          </div>
+          <select class="custom-select" id="inputGroupSelect01">
+            <option selected>Choose...</option>
+            <option value="01">One</option>
+            <option value="02">Two</option>
+            <option value="03">Three</option>
+            <option value="04">Three</option>
+            <option value="05">Three</option>
+            <option value="06">Three</option>
+            <option value="07">Three</option>
+            <option value="08">Three</option>
+            <option value="09">Three</option>
+            <option value="11">One</option>
+            <option value="12">Two</option>
+            <option value="13">Three</option>
+            <option value="14">Three</option>
+            <option value="15">Three</option>
+            <option value="16">Three</option>
+            <option value="17">Three</option>
+            <option value="18">Three</option>
+            <option value="19">Three</option>
+            <option value="21">One</option>
+            <option value="22">Two</option>
+            <option value="23">Three</option>
+            <option value="24">Three</option>
+            <option value="25">Three</option>
+            <option value="26">Three</option>
+            <option value="27">Three</option>
+            <option value="28">Three</option>
+            <option value="29">Three</option>
+            <option value="31">One</option>
+            <option value="32">Two</option>
+            <option value="33">Three</option>
+            <option value="34">Three</option>
+            <option value="35">Three</option>
+            <option value="36">Three</option>
+            <option value="37">Three</option>
+            <option value="38">Three</option>
+            <option value="39">Three</option>
+            <option value="41">One</option>
+            <option value="42">Two</option>
+            <option value="43">Three</option>
+            <option value="44">Three</option>
+            <option value="45">Three</option>
+            <option value="46">Three</option>
+            <option value="47">Three</option>
+            <option value="48">Three</option>
+            <option value="49">Three</option>
+            <option value="51">One</option>
+            <option value="52">Two</option>
+            <option value="53">Three</option>
+            <option value="54">Three</option>
+            <option value="55">Three</option>
+            <option value="56">Three</option>
+            <option value="57">Three</option>
+            <option value="58">Three</option>
+            <option value="59">Three</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <script src="js/vis-timeline-graph2d.min.js"></script>
 
 <div style="height: 55%; width: 100%" id="visjs-outer-container">
-  <div style="height: 55%; width: 45%; float: left" id="visjs-engineers-container"> </div>
-  <div style="height: 55%; width: 45%; float: right" id="visjs-projects-container"> </div>
+  <div style="height: 55%; width: 48%; float: left" id="visjs-engineers-container"> </div>
+  <div style="height: 55%; width: 48%; float: right" id="visjs-projects-container"> </div>
 </div>
 
 <script type="text/javascript">
@@ -30,12 +123,21 @@
   projectGroups.add([{id: 1, content: 'Project 1'}]);
 
   // Configuration for the Timeline
-  var timelineOptions = {};
+  var timelineOptions = {
+    height: '400px',
+    verticalScroll: true
+  };
 
   // Create a Timeline
   var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
- 
+
+  configureProjectAssignment = function (properties) {
+    $('#exampleModal').modal();
+  }
+
+  projectsTimeline.on('doubleClick', configureProjectAssignment);
+
 </script>
 
 <div style="height: 55%; width: 100%">
