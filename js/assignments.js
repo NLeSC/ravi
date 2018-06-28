@@ -59,6 +59,28 @@ function initializeAssignments (assignments) {
   projectAssignments.remove(1);
 }
 
+/**
+ * Create a full assignment object from the current Engineer and Project Assignment,
+ * and send it to the server
+ *
+ * arguments:
+ *    currentEA the engineer assignment
+ *    currentPA the project assignment
+ */
+function sendAssignmentToServer(currentEA, currentPA) {
+  req = new XMLHttpRequest()
+  req.open('POST', 'http://localhost:5000/update_assignment')
+  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+  req.send('data=' + JSON.stringify({
+    aid: currentEA.id,
+    eid: currentPA.group,
+    pid: currentEA.group,
+    fte: parseFloat(currentEA.content), // BUGFIX: TODO: get this value in a better way
+    start: currentEA.start,
+    end: currentEA.end
+  }));
+}
+
 function updateAssignments() {
     clearAssignmentTable()
     var eid = document.getElementById("assignment_eid").value

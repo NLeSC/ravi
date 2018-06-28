@@ -40,7 +40,7 @@
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -75,7 +75,7 @@
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -101,6 +101,11 @@
   var projectAssignments = new vis.DataSet(datasetOptions);
   var projectGroups = new vis.DataSet(datasetOptions);
 
+  // current (selected) assignments; they should point to the same assignment,
+  // but on the two different views
+  var currentPA;
+  var currentEA;
+
   // Do some dummy assignments to prevent issues with empty plots
   engineerAssignments.add([ {id: 1, content: 'Dummy', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
   engineerGroups.add([{id: 1, content: 'Dummy'}]);
@@ -117,43 +122,69 @@
   // Create a Timeline
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
   configureProjectAssignment = function (properties) {
-    var assignment = engineerAssignments.get(properties.item);
-    if (! assignment) {
+    currentPA = projectAssignments.get(properties.item);
+    currentEA = engineerAssignments.get(properties.item);
+    if (! currentPA) {
       // double clicked somehwere else (not on an assignment)
       return;
     }
 
     // pre-select the right engineer in the dropdown
-    $('#inputProjectsTimelineEngineer').val(assignment.group);
+    $('#inputProjectsTimelineEngineer').val(currentEA.group);
 
     // enter the FTE in the input field
     // BUGFIX: get proper way to get FTE instead of parsing the label
-    $('#inputProjectsTimelineFTE').val(parseFloat(assignment.content));
+    $('#inputProjectsTimelineFTE').val(parseFloat(currentPA.content));
 
     $('#projectAssignmentModal').modal();
   }
   projectsTimeline.on('doubleClick', configureProjectAssignment);
 
+  // update the current assignment with values from the modal dialog
+  var updateProjectAssignment = function () {
+    currentEA.group = $('#inputProjectsTimelineEngineer').val();
+    currentPA.content = $('#inputProjectsTimelineFTE').val() + ' FTE: ' +  $('#inputProjectsTimelineEngineer').val();
+
+    console.log(currentEA, currentPA);
+    engineerAssignments.update(currentEA);  
+    projectAssignments.update(currentPA);  
+    sendAssignmentToServer(currentEA, currentPA);
+  };
 
   var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
   configureEngineerAssignment = function (properties) {
-    var assignment = projectAssignments.get(properties.item);
-    if (! assignment) {
+    currentPA = projectAssignments.get(properties.item);
+    currentEA = engineerAssignments.get(properties.item);
+    if (! currentEA) {
       // double clicked somehwere else (not on an assignment)
       return;
     }
 
     // pre-select the right project in the dropdown
-    $('#inputEngineersTimelineProject').val(assignment.group);
+    $('#inputEngineersTimelineProject').val(currentPA.group);
 
     // enter the FTE in the input field
     // BUGFIX: get proper way to get FTE instead of parsing the label
-    $('#inputEngineersTimelineFTE').val(parseFloat(assignment.content));
+    $('#inputEngineersTimelineFTE').val(parseFloat(currentEA.content));
 
     $('#engineerAssignmentModal').modal();
   }
   engineersTimeline.on('doubleClick', configureEngineerAssignment);
 
+  // update the current assignment with values from the modal dialog
+  var updateEngineerAssignment = function () {
+    currentEA.content = $('#inputEngineersTimelineFTE').val() + ' FTE: ' +  $('#inputEngineersTimelineProject').val();
+    currentPA.group = $('#inputEngineersTimelineProject').val();
+
+    console.log(currentEA, currentPA);
+    engineerAssignments.update(currentEA);
+    projectAssignments.update(currentPA);
+    sendAssignmentToServer(currentEA, currentPA);
+  };
+
+  // Modal dialog setup
+  $('#inputProjectsTimelineApply').on('click', updateProjectAssignment);
+  $('#inputEngineersTimelineApply').on('click', updateEngineerAssignment);
 
 </script>
 
