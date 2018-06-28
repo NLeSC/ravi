@@ -1,9 +1,43 @@
 <html>
 <head>
     <title>RAVI</title>
+    <link rel="stylesheet" href="js/vis-timeline-graph2d.min.css">
     <meta charset="utf-8"/>
 </head>
 <body>
+<script src="js/vis-timeline-graph2d.min.js"></script>
+
+<div style="height: 55%; width: 100%" id="visjs-outer-container">
+  <div style="height: 55%; width: 100%" id="visjs-engineer-container"> </div>
+  <div style="height: 55%; width: 100%" id="visjs-project-container"> </div>
+</div>
+
+<script type="text/javascript">
+  // DOM element where the Timeline will be attached
+  var container = document.getElementById('visjs-engineer-container');
+
+  // Create a DataSet (allows two way data-binding)
+  var items = [
+    {id: 1, content: 'Project 1', start: '2013-04-20', end: '2013-04-19', group: 1},
+    {id: 2, content: 'Another P', start: '2013-04-14', end: '2013-04-19', group: 1},
+    {id: 3, content: 'Big Proje', start: '2013-04-18', end: '2013-04-19', group: 1},
+    {id: 4, content: 'Pathfinde', start: '2013-04-16', end: '2013-04-19', group: 2},
+    {id: 5, content: 'eStep 018', start: '2013-04-25', end: '2013-04-19', group: 2},
+    {id: 6, content: 'item 6   ', start: '2013-04-27', end: '2013-04-19', group: 2}
+  ];
+
+  var groups = [
+    {id: 1, content: 'EngineerA'},
+    {id: 2, content: 'EngineerB'}
+  ]
+
+  // Configuration for the Timeline
+  var options = {};
+
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, groups, options);
+</script>
+
 <div style="height: 55%; width: 100%">
         <div id="engineers" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; float: left">
             <table id="engineer_table"></table></div>
