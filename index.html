@@ -8,34 +8,34 @@
 <script src="js/vis-timeline-graph2d.min.js"></script>
 
 <div style="height: 55%; width: 100%" id="visjs-outer-container">
-  <div style="height: 55%; width: 100%" id="visjs-engineer-container"> </div>
-  <div style="height: 55%; width: 100%" id="visjs-project-container"> </div>
+  <div style="height: 55%; width: 45%; float: left" id="visjs-engineers-container"> </div>
+  <div style="height: 55%; width: 45%; float: right" id="visjs-projects-container"> </div>
 </div>
 
 <script type="text/javascript">
-  // DOM element where the Timeline will be attached
-  var container = document.getElementById('visjs-engineer-container');
+  var engineersContainer = document.getElementById('visjs-engineers-container');
+  var projectsContainer = document.getElementById('visjs-projects-container');
 
-  // Create a DataSet (allows two way data-binding)
-  var items = [
-    {id: 1, content: 'Project 1', start: '2013-04-20', end: '2013-04-19', group: 1},
-    {id: 2, content: 'Another P', start: '2013-04-14', end: '2013-04-19', group: 1},
-    {id: 3, content: 'Big Proje', start: '2013-04-18', end: '2013-04-19', group: 1},
-    {id: 4, content: 'Pathfinde', start: '2013-04-16', end: '2013-04-19', group: 2},
-    {id: 5, content: 'eStep 018', start: '2013-04-25', end: '2013-04-19', group: 2},
-    {id: 6, content: 'item 6   ', start: '2013-04-27', end: '2013-04-19', group: 2}
-  ];
+  var datasetOptions = {};
+  var engineerAssignments = new vis.DataSet(datasetOptions);
+  var engineerGroups = new vis.DataSet(datasetOptions);
+  
+  var projectAssignments = new vis.DataSet(datasetOptions);
+  var projectGroups = new vis.DataSet(datasetOptions);
 
-  var groups = [
-    {id: 1, content: 'EngineerA'},
-    {id: 2, content: 'EngineerB'}
-  ]
+  engineerAssignments.add([ {id: 1, content: 'Project 1', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
+  engineerGroups.add([{id: 1, content: 'EngineerA'}]);
+
+  projectAssignments.add([ {id: 1, content: 'Engineer A', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
+  projectGroups.add([{id: 1, content: 'Project 1'}]);
 
   // Configuration for the Timeline
-  var options = {};
+  var timelineOptions = {};
 
   // Create a Timeline
-  var timeline = new vis.Timeline(container, items, groups, options);
+  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
+  var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
+ 
 </script>
 
 <div style="height: 55%; width: 100%">

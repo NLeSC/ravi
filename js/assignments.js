@@ -1,3 +1,65 @@
+function initializeAssignments (assignments) {
+
+/*
+  engineerAssignments.add([
+    {id: 1, content: 'Project 1', start: '2013-04-20', end: '2013-04-19', group: 1},
+    {id: 2, content: 'Another P', start: '2013-04-14', end: '2013-04-19', group: 1},
+    {id: 3, content: 'Big Proje', start: '2013-04-18', end: '2013-04-19', group: 1},
+    {id: 4, content: 'Pathfinde', start: '2013-04-16', end: '2013-04-19', group: 2},
+    {id: 5, content: 'eStep 018', start: '2013-04-25', end: '2013-04-19', group: 2},
+    {id: 6, content: 'item 6   ', start: '2013-04-27', end: '2013-04-19', group: 2}
+  ]);
+
+  engineerGroups.add([
+    {id: 1, content: 'EngineerA'},
+    {id: 2, content: 'EngineerB'}
+  ])
+*/
+
+
+
+  // assignmenents: Array[assignment]
+  assignments.forEach(function (assignment) {
+    engineerGroups.update({
+      id : assignment.eid,
+      content: assignment.eid
+    });
+    projectGroups.update({
+      id : assignment.pid,
+      content: assignment.pid
+    });
+
+    // assignment: {
+    // aid
+    // eid
+    // pid
+    // fte
+    // start
+    // end
+    // }
+
+    // sanitize data
+    var start = assignment.start || '2015-01';
+    var end = assignment.end || '2050-01';
+
+    engineerAssignments.update({
+      id: assignment.aid,
+      group: assignment.eid,
+      start: start,
+      end: end,
+      content: assignment.pid
+    });
+
+    projectAssignments.update({
+      id: assignment.aid,
+      group: assignment.pid,
+      start: start,
+      end: end,
+      content: assignment.eid
+    });
+  });
+}
+
 function updateAssignments() {
     clearAssignmentTable()
     var eid = document.getElementById("assignment_eid").value
@@ -6,6 +68,7 @@ function updateAssignments() {
     request_assignments.open('POST', 'http://localhost:5000/get_assignments')
     request_assignments.onload = function() {
         var assignments = JSON.parse(request_assignments.responseText)
+        initializeAssignments(assignments);
         fillAssignmentTable(assignments)
         }
     request_assignments.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
