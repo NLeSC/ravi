@@ -136,7 +136,9 @@
 
   // Create a Timeline
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
-  configureProjectAssignment = function (properties) {
+  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
+
+  projectsTimeline.on('doubleClick', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     if (! currentPA) {
@@ -152,22 +154,9 @@
     $('#inputProjectsTimelineFTE').val(parseFloat(currentPA.content));
 
     $('#projectAssignmentModal').modal();
-  }
-  projectsTimeline.on('doubleClick', configureProjectAssignment);
+  });
 
-  // update the current assignment with values from the modal dialog
-  var updateProjectAssignment = function () {
-    currentEA.group = $('#inputProjectsTimelineEngineer').val();
-    currentPA.content = $('#inputProjectsTimelineFTE').val() + ' FTE: ' +  $('#inputProjectsTimelineEngineer').val();
-
-    console.log(currentEA, currentPA);
-    engineerAssignments.update(currentEA);  
-    projectAssignments.update(currentPA);  
-    sendAssignmentToServer(currentEA, currentPA);
-  };
-
-  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
-  configureEngineerAssignment = function (properties) {
+  engineersTimeline.on('doubleClick', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     if (! currentEA) {
@@ -183,21 +172,40 @@
     $('#inputEngineersTimelineFTE').val(parseFloat(currentEA.content));
 
     $('#engineerAssignmentModal').modal();
-  }
-  engineersTimeline.on('doubleClick', configureEngineerAssignment);
+  });
+
+  // automatically select the assignments on the other timeline
+  engineersTimeline.on('select', function (properties) {
+    projectsTimeline.setSelection(properties.items);
+  });
+  projectsTimeline.on('select', function (properties) {
+    engineersTimeline.setSelection(properties.items);
+  });
+
+
+
+  // Modal dialog setup
+
+  // update the current assignment with values from the modal dialog
+  var updateProjectAssignment = function () {
+    currentEA.group = $('#inputProjectsTimelineEngineer').val();
+    currentPA.content = $('#inputProjectsTimelineFTE').val() + ' FTE: ' +  $('#inputProjectsTimelineEngineer').val();
+
+    engineerAssignments.update(currentEA);  
+    projectAssignments.update(currentPA);  
+    sendAssignmentToServer(currentEA, currentPA);
+  };
 
   // update the current assignment with values from the modal dialog
   var updateEngineerAssignment = function () {
     currentEA.content = $('#inputEngineersTimelineFTE').val() + ' FTE: ' +  $('#inputEngineersTimelineProject').val();
     currentPA.group = $('#inputEngineersTimelineProject').val();
 
-    console.log(currentEA, currentPA);
     engineerAssignments.update(currentEA);
     projectAssignments.update(currentPA);
     sendAssignmentToServer(currentEA, currentPA);
   };
 
-  // Modal dialog setup
   $('#inputProjectsTimelineApply').on('click', updateProjectAssignment);
   $('#inputEngineersTimelineApply').on('click', updateEngineerAssignment);
 
