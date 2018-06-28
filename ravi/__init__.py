@@ -633,6 +633,27 @@ def add_assignment():
         abort(500, "Adding assignment failed:\n\n" + str(err))
     return flask_response(["success"])
 
+@app.route('/update_assignment', methods = ['POST'])
+def update_assignment():
+    try:
+        assignment_data = json.loads(request.form['data'])
+        db_session.query(Assignment).\
+            filter_by(aid=assignment_data['aid']).update({
+                'eid': str(assignment_data['eid']),
+                'pid': str(assignment_data['pid']),
+                'fte': str(assignment_data['fte']),
+                'start': date2ym(assignment_data['start']),
+                'end': date2ym(assignment_data['end'])
+                })
+    except Exception as err:
+        abort(500, "Incorrect assignment input:\n\n" + str(err))
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Updating assignment failed:\n\n" + str(err))
+    return flask_response(["success"])
+
 @app.route('/del_assignment', methods = ['POST'])
 def del_assignment():
     aid = request.form['aid']
