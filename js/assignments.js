@@ -51,6 +51,34 @@ function initializeAssignments (assignments) {
       content: assignment.fte + ' FTE: ' + assignment.eid
     });
   });
+
+  // remove dummy assignment (issue with empty plots)
+  engineerGroups.remove(1);
+  projectGroups.remove(1);
+  engineerAssignments.remove(1);
+  projectAssignments.remove(1);
+}
+
+/**
+ * Create a full assignment object from the current Engineer and Project Assignment,
+ * and send it to the server
+ *
+ * arguments:
+ *    currentEA the engineer assignment
+ *    currentPA the project assignment
+ */
+function sendAssignmentToServer(currentEA, currentPA) {
+  req = new XMLHttpRequest()
+  req.open('POST', 'http://localhost:5000/update_assignment')
+  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+  req.send('data=' + JSON.stringify({
+    aid: currentEA.id,
+    eid: currentPA.group,
+    pid: currentEA.group,
+    fte: parseFloat(currentEA.content), // BUGFIX: TODO: get this value in a better way
+    start: currentEA.start,
+    end: currentEA.end
+  }));
 }
 
 function updateAssignments() {
