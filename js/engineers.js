@@ -58,15 +58,17 @@ function get_engineer_load () {
 
       var data = JSON.parse(request.responseText);
       data.forEach(function (load) {
-        if (load.fte < 0.2) {
-          color = 'white';
-        } else if (load.fte < 0.5) {
-          color = 'gray';
-        } else if (load.fte < 0.8) {
+        if (load.fte < -0.5) {
           color = 'green';
-        } else if (load.fte > 1.0) {
-          color = 'red'
-        };
+        } else if (load.fte < -0.2) {
+          color = 'yellow';
+        } else if (load.fte < 0.0) {
+          color = 'white';
+        } else if (load.fte < 0.2) {
+          color = 'orange';
+        } else {
+          color = 'red';
+        }
         engineerAssignments.add({
           group: load.eid,
           type: 'background',
