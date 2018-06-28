@@ -23,13 +23,18 @@
         </button>
       </div>
       <div class="modal-body">
-
         <div class="input-group mb-3">
           <div class="input-group-prepend">
             <label class="input-group-text" for="inputProjectsTimelineEngineer">Engineer</label>
           </div>
           <select class="custom-select" id="inputProjectsTimelineEngineer">
           </select>
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="inputProjectsTimelineFTELabel">FTE</span>
+          </div>
+          <input id="inputProjectsTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputProjectsTimelineFTELabel">
         </div>
       </div>
 
@@ -59,6 +64,12 @@
           </div>
           <select class="custom-select" id="inputEngineersTimelineProject">
           </select>
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="inputEngineersTimelineFTELabel">FTE</span>
+          </div>
+          <input id="inputEngineersTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputEngineersTimelineFTELabel">
         </div>
       </div>
 
@@ -105,13 +116,19 @@
   // Create a Timeline
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
   configureProjectAssignment = function (properties) {
-    // pre-select the right engineer in the dropdown
-    var item = engineerAssignments.get(properties.item);
-    if (! item) {
+    var assignment = engineerAssignments.get(properties.item);
+    if (! assignment) {
+      // double clicked somehwere else (not on an assignment)
       return;
     }
 
-    $('#inputProjectsTimelineEngineer').val(item.group);
+    // pre-select the right engineer in the dropdown
+    $('#inputProjectsTimelineEngineer').val(assignment.group);
+
+    // enter the FTE in the input field
+    console.log(assignment);
+    // $('#inputProjectsTimelineFTE').val(item.fte);
+
     $('#projectAssignmentModal').modal();
   }
   projectsTimeline.on('doubleClick', configureProjectAssignment);
@@ -119,13 +136,14 @@
 
   var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
   configureEngineerAssignment = function (properties) {
-    // pre-select the right project in the dropdown
-    var item = projectAssignments.get(properties.item);
-    if (! item) {
+    var assignment = projectAssignments.get(properties.item);
+    if (! assignment) {
+      // double clicked somehwere else (not on an assignment)
       return;
     }
 
-    $('#inputEngineersTimelineProject').val(item.group);
+    // pre-select the right project in the dropdown
+    $('#inputEngineersTimelineProject').val(assignment.group);
     $('#engineerAssignmentModal').modal();
   }
   engineersTimeline.on('doubleClick', configureEngineerAssignment);
