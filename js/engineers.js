@@ -39,6 +39,49 @@ function initializeEngineers (engineers) {
   });
 }
 
+/**
+ * Request the project loads from the server
+ */
+function get_engineer_load () {
+  var request = new XMLHttpRequest();
+
+  request.open('POST', 'http://localhost:5000/get_engineer_load');
+  request.onload = (function(pid) {
+    return function() {
+      var old_backgrounds = [];
+      engineerAssignments.forEach(function (a) {
+        if (a.type == 'background') {
+          old_backgrounds.push(a.id);
+        }
+      })
+      engineerAssignments.remove(old_backgrounds);
+
+      var data = JSON.parse(request.responseText);
+      data.forEach(function (load) {
+        if (load.fte < 0.2) {
+          color = 'white';
+        } else if (load.fte < 0.5) {
+          color = 'gray';
+        } else if (load.fte < 0.8) {
+          color = 'green';
+        } else if (load.fte > 1.0) {
+          color = 'red'
+        };
+        engineerAssignments.add({
+          group: load.eid,
+          type: 'background',
+          start: load.start,
+          end: load.end,
+          editable: false,
+          style: "opacity: " + load.fte + ";background-color: " + color
+        });
+      })
+    };
+  })(this.pid);
+  request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+  request.send();
+}
+
 function createEngineerTable(engineerList) {
     for(i=0; i<engineerList.length; i++) {
         var e_data = engineerList[i]

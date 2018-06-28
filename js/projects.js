@@ -29,6 +29,25 @@ function initializeProjects(projects) {
     }).appendTo(inputBox);
   });
 }
+
+/**
+ * Request the project loads from the server
+ */
+function get_project_load () {
+  var request = new XMLHttpRequest();
+
+  request.open('POST', 'http://localhost:5000/get_project_load');
+  request.onload = (function(pid) {
+    return function() {
+      var data = JSON.parse(request.responseText);
+      console.log(data);
+    };
+  })(this.pid);
+  request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+  request.send();
+}
+
+
 var projects = {}
 
 function createProjectTable(projectList) {
