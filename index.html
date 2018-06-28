@@ -124,7 +124,14 @@
     start: new Date(year - 1, month, day),
     end: new Date(year + 1, month, day),
     zoomMin: 15768000000, // Half a year
-    zoomMax: 157680000000 // 5 years
+    zoomMax: 157680000000, // 5 years
+    editable: {
+      add: true,         // add new items by double tapping
+      updateTime: true,  // drag items horizontally
+      updateGroup: true, // drag items from one group to another
+      remove: true,       // delete an item by tapping the delete button top right
+      overrideItems: false  // allow these options to override item.editable
+    }
   };
 
   // Create a Timeline
