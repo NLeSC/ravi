@@ -85,9 +85,9 @@
 
 <script src="js/vis-timeline-graph2d.min.js"></script>
 
-<div style="height: 55%; width: 100%" id="visjs-outer-container">
-  <div style="height: 55%; width: 48%; float: left" id="visjs-engineers-container"> </div>
-  <div style="height: 55%; width: 48%; float: right" id="visjs-projects-container"> </div>
+<div style="height: 70%; width: 100%" id="visjs-outer-container">
+  <div style="height: 70%; width: 48%; float: left" id="visjs-engineers-container"> </div>
+  <div style="height: 70%; width: 48%; float: right" id="visjs-projects-container"> </div>
 </div>
 
 <script type="text/javascript">
@@ -108,9 +108,17 @@
   projectGroups.add([{id: 1, content: 'Project 1'}]);
 
   // Configuration for the Timeline
+  var d = new Date();
+  var year = d.getFullYear();
+  var month = d.getMonth();
+  var day = d.getDate();
   var timelineOptions = {
-    height: '400px',
-    verticalScroll: true
+    height: '120%',
+    verticalScroll: true,
+    start: new Date(year - 1, month, day),
+    end: new Date(year + 1, month, day),
+    zoomMin: 15768000000, // Half a year
+    zoomMax: 157680000000 // 5 years
   };
 
   // Create a Timeline
@@ -151,6 +159,7 @@
 
 </script>
 
+<!--
 <div style="height: 55%; width: 100%">
         <div id="engineers" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; float: left">
             <table id="engineer_table"></table></div>
@@ -185,6 +194,7 @@
                 <td id="xLabels2" style="background-color: lightgray"></td></tr></table>
             </div>
     </form></div>
+-->
 <div style="width: 100%; overflow: hidden; margin-top: 0%">
         <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
@@ -316,6 +326,7 @@
                 </div>
             </form></div>
     </div>
+
 <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
     <div style="height:100%; width:50%; float: left">
         <div style="height:30%; width:100%">
