@@ -12,6 +12,9 @@
  * uses the following global variables:
  *    projectGroups
  */
+
+var projects = {}
+
 function initializeProjects(projects) {
   projects.forEach(function(project) {
     projectGroups.update({
@@ -34,9 +37,9 @@ var projects = {}
 function createProjectTable(projectList) {
     for(i=0; i<projectList.length; i++) {
         var p_data = projectList[i]
-        addProjectTableRow(p_data.pid)
+        // addProjectTableRow(p_data.pid)
         p = new Project(p_data)
-        p.plot()
+        // p.plot()
         projects[p_data.pid] = p
         }
     togglePlanningHistory(); // Make sure to show the right totals
@@ -106,11 +109,12 @@ function Project(project_data) {
 
 function plotProject(popup=false) {
     var pid = document.getElementById('projectform').elements['name'].value
-    var history = document.getElementById('timerangeform').elements['planning_history'].checked;
+    // var history = document.getElementById('timerangeform').elements['planning_history'].checked;
+    var history = "false"
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_project_plot');
     request.onload = function() {
-        plotDetails(JSON.parse(request.responseText), pid, 0.05, 'left', popup);
+        plotDetails(JSON.parse(request.responseText), pid, 0.05, 'left', 'plot_project', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request.send('pid=' + pid + '&history=' + history);
@@ -119,25 +123,15 @@ function plotProject(popup=false) {
 
 function selectProject(pid) {
     var project = projects[pid]
-    var row = document.getElementById(pid)
-    if (row.style.backgroundColor == "lavender") {
-        clearProjectSelection()
-        }
-    else {
-        document.getElementById("project_name").value = project.pid
-        document.getElementById("project_fte").value = project.fte
-        document.getElementById("project_start").value = project.start
-        document.getElementById("project_end").value = project.end
-        document.getElementById("project_coordinator").value = project.coordinator
-        document.getElementById("project_exact").value = project.exact
-        document.getElementById("project_comments").value = project.comments
-        document.getElementById("project_active").checked = project.active
-        resetAssignmentForm()
-        unhighlightProjects()
-        row.style.backgroundColor = "lavender"
-        plotProject()
-        }
-    updateAssignments()
+    document.getElementById("project_name").value = project.pid
+    document.getElementById("project_fte").value = project.fte
+    document.getElementById("project_start").value = project.start
+    document.getElementById("project_end").value = project.end
+    document.getElementById("project_coordinator").value = project.coordinator
+    document.getElementById("project_exact").value = project.exact
+    document.getElementById("project_comments").value = project.comments
+    document.getElementById("project_active").checked = project.active
+    plotProject()
     }
 
 function clearProjectSelection() {
@@ -289,7 +283,7 @@ request_projects.onload = function() {
     var projectList = JSON.parse(request_projects.responseText);
     initializeProjects(projectList);
     createProjectTable(projectList);
-    updateInactiveProjects();
+    // updateInactiveProjects();
     }
 request_projects.send();
 

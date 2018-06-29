@@ -106,13 +106,6 @@
   var currentPA;
   var currentEA;
 
-  // Do some dummy assignments to prevent issues with empty plots
-  engineerAssignments.add([ {id: 1, content: 'Dummy', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
-  engineerGroups.add([{id: 1, content: 'Dummy'}]);
-
-  projectAssignments.add([ {id: 1, content: 'Dummy', start: '2013-04-20', end: '2014-04-19', group: 1} ]);
-  projectGroups.add([{id: 1, content: 'Dummy'}]);
-
   // Configuration for the Timeline
   var d = new Date();
   var year = d.getFullYear();
@@ -177,9 +170,13 @@
   // automatically select the assignments on the other timeline
   engineersTimeline.on('select', function (properties) {
     projectsTimeline.setSelection(properties.items);
+    selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
+    selectProject(projectAssignments.get(properties.items)[0]['group']);
   });
   projectsTimeline.on('select', function (properties) {
     engineersTimeline.setSelection(properties.items);
+    selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
+    selectProject(projectAssignments.get(properties.items)[0]['group']);
   });
 
 
@@ -380,7 +377,8 @@
     </div>
 
 <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
-    <div style="height:100%; width:50%; float: left">
+    <div style="height:100%; width:50%; float: left" id="plot_engineer">
+    <!--
         <div style="height:30%; width:100%">
         <form id="assignmentsform" name="assignmentsform" action="" method="GET">
             Assignments:
@@ -418,8 +416,9 @@
             </form></div>
         <div style="height:70%; width:100%; overflow-y:scroll; overflow-x:hidden">
             <table style="width:100%; table-layout:fixed" id="assignment_table"></table></div>
+        -->
         </div>
-    <div style="width:50%; margin-left: 50%" id="plot_detailed"></div>
+    <div style="width:50%; margin-left: 50%" id="plot_project"></div>
 </div>
 <script src="js/plotly-latest.min.js"></script>
 <script src="js/engineers.js"></script>

@@ -21,8 +21,8 @@ function plotPlanning(data, DOMelement) {
     Plotly.newPlot(DOMelement, data, layout, {displayModeBar: false});
     };
 
-function plotDetails(data, title, x, xanchor, popup=false) {
-    var plot_detailed = document.getElementById("plot_detailed")
+function plotDetails(data, title, x, xanchor, plotid, popup=false) {
+    var plot_detailed = document.getElementById(plotid)
     var layout = {
         autosize: true,
         height: 270,

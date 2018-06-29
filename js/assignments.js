@@ -84,15 +84,17 @@ function sendAssignmentToServer(currentEA, currentPA) {
 }
 
 function updateAssignments() {
-    clearAssignmentTable()
-    var eid = document.getElementById("assignment_eid").value
-    var pid = document.getElementById("assignment_pid").value
+    // clearAssignmentTable()
+    // var eid = document.getElementById("assignment_eid").value
+    // var pid = document.getElementById("assignment_pid").value
+    var eid = ""
+    var pid = ""
     request_assignments = new XMLHttpRequest()
     request_assignments.open('POST', 'http://localhost:5000/get_assignments')
     request_assignments.onload = function() {
         var assignments = JSON.parse(request_assignments.responseText)
         initializeAssignments(assignments);
-        fillAssignmentTable(assignments)
+        // fillAssignmentTable(assignments)
         }
     request_assignments.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request_assignments.send('eid=' + eid + '&pid=' + pid)    

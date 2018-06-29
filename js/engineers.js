@@ -20,6 +20,9 @@
  * uses the following global variables:
  *    engineerGroups
  */
+
+var engineers = {}
+
 function initializeEngineers (engineers) {
   engineers.forEach(function(engineer) {
     engineerGroups.update({
@@ -42,9 +45,9 @@ function initializeEngineers (engineers) {
 function createEngineerTable(engineerList) {
     for(i=0; i<engineerList.length; i++) {
         var e_data = engineerList[i]
-        addEngineerTableRow(e_data.eid)
+        // addEngineerTableRow(e_data.eid)
         e = new Engineer(e_data)
-        e.plot()
+        // e.plot()
         engineers[e_data.eid] = e
         }
     }
@@ -90,7 +93,7 @@ function plotEngineer(popup=false) {
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_engineer_plot');
     request.onload = function() {
-        plotDetails(JSON.parse(request.responseText), eid, 0.95, 'right', popup);
+        plotDetails(JSON.parse(request.responseText), eid, 0.95, 'right', 'plot_engineer', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
     request.send('eid=' + eid + '&exact=' + exact_id);
@@ -98,24 +101,14 @@ function plotEngineer(popup=false) {
 
 function selectEngineer(eid) {
     var engineer = engineers[eid]
-    var row = document.getElementById(eid)
-    if (row.style.backgroundColor == "lavender") {
-        clearEngineerSelection()
-        }
-    else {
-        document.getElementById("engineer_name").value = engineer.eid
-        document.getElementById("engineer_fte").value = engineer.fte
-        document.getElementById("engineer_start").value = engineer.start
-        document.getElementById("engineer_end").value = engineer.end
-        document.getElementById("engineer_exact").value = engineer.exact_id
-        document.getElementById("engineer_comments").value = engineer.comments
-        document.getElementById("engineer_active").checked = engineer.active
-        resetAssignmentForm()
-        unhighlightEngineers()
-        row.style.backgroundColor = "lavender"
-        plotEngineer()
-        }
-    updateAssignments()
+    document.getElementById("engineer_name").value = engineer.eid;
+    document.getElementById("engineer_fte").value = engineer.fte;
+    document.getElementById("engineer_start").value = engineer.start;
+    document.getElementById("engineer_end").value = engineer.end;
+    document.getElementById("engineer_exact").value = engineer.exact_id;
+    document.getElementById("engineer_comments").value = engineer.comments;
+    document.getElementById("engineer_active").checked = engineer.active;
+    plotEngineer()
     }
 
 function clearEngineerSelection() {
@@ -244,6 +237,6 @@ request_engineers.onload = function() {
     var engineerList = JSON.parse(request_engineers.responseText);
     initializeEngineers(engineerList);
     createEngineerTable(engineerList);
-    updateInactiveEngineers();
+    // updateInactiveEngineers();
     }
 request_engineers.send();
