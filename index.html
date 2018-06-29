@@ -170,11 +170,13 @@
   // automatically select the assignments on the other timeline
   engineersTimeline.on('select', function (properties) {
     projectsTimeline.setSelection(properties.items);
+    projectsTimeline.focus(properties.items);
     selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
     selectProject(projectAssignments.get(properties.items)[0]['group']);
   });
   projectsTimeline.on('select', function (properties) {
     engineersTimeline.setSelection(properties.items);
+    engineersTimeline.focus(properties.items);
     selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
     selectProject(projectAssignments.get(properties.items)[0]['group']);
   });

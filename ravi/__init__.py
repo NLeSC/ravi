@@ -3,7 +3,7 @@ Resources Assignment and VIewing (RAVI) tool
 """
 
 from flask import Flask, Response, json, request, abort
-from sqlalchemy import create_engine, desc, collate
+from sqlalchemy import create_engine, desc, collate, text
 from sqlalchemy.orm import sessionmaker, exc
 from sqlalchemy.sql import func, desc
 from .items import Base, Engineer, Project, Assignment, Usersetting
@@ -12,6 +12,10 @@ import datetime
 from itertools import groupby
 import pandas as pd
 from builtins import str
+
+PROJECT_LOAD = "WITH totals AS (SELECT pid, sum((end - start) * fte / 12) AS assigned FROM assignments GROUP BY pid) SELECT projects.pid AS pid, (totals.assigned - projects.fte) AS fte FROM projects, totals WHERE projects.pid = totals.pid"
+
+ENGINEER_LOAD = "WITH boundaries AS (SELECT eid, end AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM assignments), intervals AS ( SELECT b1.eid AS eid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.eid = b2.eid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.eid = b2.eid)), load AS (SELECT intervals.eid AS eid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte FROM assignments, intervals WHERE assignments.eid = intervals.eid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.eid, intervals.start, intervals.end) SELECT load.eid AS eid, load.start AS start, load.end AS end, load.fte - engineers.fte AS fte FROM load, engineers WHERE load.eid = engineers.eid"
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 colors = ['#1f77b4',
@@ -91,6 +95,26 @@ def stack(data):
 def get_engineers():
     data = []
     for e in db_session.query(Engineer).order_by(Engineer.eid).all():
+        d = dict(e)
+        d['start'] = ym2date(d['start'])
+        d['end'] = ym2date(d['end'])
+        data.append(d)
+    return flask_response(data)
+
+@app.route('/get_project_load', methods = ['POST'])
+def get_project_load():
+    my_query = text(PROJECT_LOAD)
+    data = []
+    for e in engine.execute(my_query):
+        d = dict(e)
+        data.append(d)
+    return flask_response(data)
+
+@app.route('/get_engineer_load', methods = ['POST'])
+def get_engineer_load():
+    my_query = text(ENGINEER_LOAD)
+    data = []
+    for e in engine.execute(my_query):
         d = dict(e)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
@@ -758,10 +782,11 @@ def main():
     db_name = sys.argv[1]
     if len(sys.argv) > 2:
         read_exact_data(sys.argv[2])
+    global engine
+    global db_session
     engine = create_engine('sqlite:///' + db_name + '?check_same_thread=False', echo=False)
     session = sessionmaker()
     session.configure(bind=engine)
-    global db_session
     db_session = session()
     Base.metadata.create_all(engine)
     if len(db_session.query(Usersetting).all()) < 2:

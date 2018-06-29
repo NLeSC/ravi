@@ -32,6 +32,41 @@ function initializeProjects(projects) {
     }).appendTo(inputBox);
   });
 }
+
+/**
+ * Request the project loads from the server
+ */
+function get_project_load () {
+  var request = new XMLHttpRequest();
+
+  request.open('POST', 'http://localhost:5000/get_project_load');
+  request.onload = (function(pid) {
+    return function() {
+      var data = JSON.parse(request.responseText);
+      data.forEach(function (load) {
+        var color;
+        if (load.fte < -0.5) {
+          color = "green";
+        } else if (load.fte < -0.2) {
+          color = "yellow";
+        } else if (load.fte < 0.2) {
+          color = "white";
+        } else if (load.fte < 0.5) {
+          color = "orange";
+        } else {
+          color = "red";
+        }
+        var group = projectGroups.get(load.pid);
+        group.style = "background-color: " + color;
+        projectGroups.update(group);
+      });
+    };
+  })(this.pid);
+  request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+  request.send();
+}
+
+
 var projects = {}
 
 function createProjectTable(projectList) {
