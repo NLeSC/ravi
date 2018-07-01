@@ -18,9 +18,6 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="projectAssignmentLabel">Update assignment</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
         <div class="input-group mb-3">
@@ -39,8 +36,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard changes</button>
+        <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
       </div>
     </div>
   </div>
@@ -52,9 +49,6 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="engineerAssignmentLabel">Update assignment</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
       <div class="modal-body">
 
@@ -74,8 +68,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard Changes</button>
+        <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
       </div>
     </div>
   </div>
@@ -183,6 +177,7 @@
 
     applyFullAssignmentUpdate ();
     sendAssignmentToServer(currentFA);
+    $('#projectAssignmentModal').modal('hide');
   });
 
   // Engineers Timeline
@@ -216,6 +211,7 @@
 
     applyFullAssignmentUpdate ();
     sendAssignmentToServer(currentFA);
+    $('#engineerAssignmentModal').modal('hide');
   });
 
   // Link the Engineers and Project timelines
