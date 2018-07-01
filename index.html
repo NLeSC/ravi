@@ -91,20 +91,26 @@
 </div>
 
 <script type="text/javascript">
-  var engineersContainer = document.getElementById('visjs-engineers-container');
-  var projectsContainer = document.getElementById('visjs-projects-container');
-
   var datasetOptions = {};
+
+  // The full assignments containing all information necessary to
+  // sync with the server
+  var fullAssignments = new vis.DataSet(datasetOptions);
+
+  // Datasets bound to the timelines:
+  //  * for the engineer timeline
   var engineerAssignments = new vis.DataSet(datasetOptions);
   var engineerGroups = new vis.DataSet(datasetOptions);
-  
+
+  // * for the project timeline
   var projectAssignments = new vis.DataSet(datasetOptions);
   var projectGroups = new vis.DataSet(datasetOptions);
 
   // current (selected) assignments; they should point to the same assignment,
   // but on the two different views
-  var currentPA;
-  var currentEA;
+  var currentPA; // on the project timeline
+  var currentEA; // on the engineer timeline
+  var currentFA; // the corresponding full assignment
 
   // Configuration for the Timeline
   var d = new Date();
@@ -127,86 +133,117 @@
     }
   };
 
-  // Create a Timeline
+  function applyFullAssignmentUpdate () {
+    // after entering new values for the assignment in the dialogs,
+    // and after having updated the currentFA,  we now need to
+    // update the three DataSet instance (which will also update the timeline plots)
+    currentPA.content = currentFA.fte + ' FTE: ' + currentFA.eid;
+    currentPA.fte = currentFA.fte;
+    currentPA.group = currentFA.pid;
+
+    currentEA.content = currentFA.fte + ' FTE: ' + currentFA.pid;
+    currentEA.fte = currentFA.fte;
+    currentEA.group = currentFA.eid;
+
+    fullAssignments.update(currentFA);
+    engineerAssignments.update(currentEA);
+    projectAssignments.update(currentPA);
+
+    console.log(currentFA, currentPA, currentEA);
+  };
+
+  // Projects Timeline
+  // ------------------
+  var projectsContainer = document.getElementById('visjs-projects-container');
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
-  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
 
   projectsTimeline.on('doubleClick', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
-    if (! currentPA) {
-      // double clicked somehwere else (not on an assignment)
+    currentFA = fullAssignments.get(properties.item);
+    if (! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
+      // double clicked somewhere else (not on an assignment)
       return;
     }
 
     // pre-select the right engineer in the dropdown
-    $('#inputProjectsTimelineEngineer').val(currentEA.group);
+    $('#inputProjectsTimelineEngineer').val(currentFA.eid);
 
     // enter the FTE in the input field
-    // BUGFIX: get proper way to get FTE instead of parsing the label
-    $('#inputProjectsTimelineFTE').val(parseFloat(currentPA.content));
+    $('#inputProjectsTimelineFTE').val(currentFA.fte);
 
     $('#projectAssignmentModal').modal();
+    // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
   });
+
+  // update the full assignment with values from the modal dialog
+  $('#inputProjectsTimelineApply').on('click', function () {
+    currentFA.eid = $('#inputProjectsTimelineEngineer').val();
+    currentFA.fte = $('#inputProjectsTimelineFTE').val();
+
+    applyFullAssignmentUpdate ();
+    sendAssignmentToServer(currentFA);
+  });
+
+  // Engineers Timeline
+  // ------------------
+  var engineersContainer = document.getElementById('visjs-engineers-container');
+  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
 
   engineersTimeline.on('doubleClick', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
-    if (! currentEA) {
-      // double clicked somehwere else (not on an assignment)
+    currentFA = fullAssignments.get(properties.item);
+    if (! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
+      // double clicked somewhere else (not on an assignment)
       return;
     }
 
     // pre-select the right project in the dropdown
-    $('#inputEngineersTimelineProject').val(currentPA.group);
+    $('#inputEngineersTimelineProject').val(currentFA.pid);
 
     // enter the FTE in the input field
-    // BUGFIX: get proper way to get FTE instead of parsing the label
-    $('#inputEngineersTimelineFTE').val(parseFloat(currentEA.content));
+    $('#inputEngineersTimelineFTE').val(currentFA.fte);
 
     $('#engineerAssignmentModal').modal();
+    // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
   });
+
+  // update the full assignment with values from the modal dialog
+  $('#inputEngineersTimelineApply').on('click', function () {
+    currentFA.pid = $('#inputEngineersTimelineProject').val();
+    currentFA.fte = $('#inputEngineersTimelineFTE').val();
+
+    applyFullAssignmentUpdate ();
+    sendAssignmentToServer(currentFA);
+  });
+
+  // Link the Engineers and Project timelines
+  // ----------------------------------------
 
   // automatically select the assignments on the other timeline
   engineersTimeline.on('select', function (properties) {
     projectsTimeline.setSelection(properties.items);
     projectsTimeline.focus(properties.items);
-    selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
-    selectProject(projectAssignments.get(properties.items)[0]['group']);
+
+    var firstSelectedAssignment = fullAssignments.get(properties.items[0]);
+    if (firstSelectedAssignment) {
+      selectEngineer(firstSelectedAssignment.eid);
+      selectProject(firstSelectedAssignment.pid);
+    }
   });
+
   projectsTimeline.on('select', function (properties) {
     engineersTimeline.setSelection(properties.items);
     engineersTimeline.focus(properties.items);
-    selectEngineer(engineerAssignments.get(properties.items)[0]['group']);
-    selectProject(projectAssignments.get(properties.items)[0]['group']);
+
+    var firstSelectedAssignment = fullAssignments.get(properties.items[0]);
+    if (firstSelectedAssignment) {
+      selectEngineer(firstSelectedAssignment.eid);
+      selectProject(firstSelectedAssignment.pid);
+    }
   });
 
-
-
-  // Modal dialog setup
-
-  // update the current assignment with values from the modal dialog
-  var updateProjectAssignment = function () {
-    currentEA.group = $('#inputProjectsTimelineEngineer').val();
-    currentPA.content = $('#inputProjectsTimelineFTE').val() + ' FTE: ' +  $('#inputProjectsTimelineEngineer').val();
-
-    engineerAssignments.update(currentEA);  
-    projectAssignments.update(currentPA);  
-    sendAssignmentToServer(currentEA, currentPA);
-  };
-
-  // update the current assignment with values from the modal dialog
-  var updateEngineerAssignment = function () {
-    currentEA.content = $('#inputEngineersTimelineFTE').val() + ' FTE: ' +  $('#inputEngineersTimelineProject').val();
-    currentPA.group = $('#inputEngineersTimelineProject').val();
-
-    engineerAssignments.update(currentEA);
-    projectAssignments.update(currentPA);
-    sendAssignmentToServer(currentEA, currentPA);
-  };
-
-  $('#inputProjectsTimelineApply').on('click', updateProjectAssignment);
-  $('#inputEngineersTimelineApply').on('click', updateEngineerAssignment);
 
 </script>
 

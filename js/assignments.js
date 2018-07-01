@@ -3,12 +3,12 @@
  *
  * An assignment is an object with the following properties:
  * Assignment {
- *   aid
- *   eid
- *   pid
- *   fte
- *   start
- *   end
+ *   aid    : assignemnt ID
+ *   eid    : engineer ID (name + first letter of last name)
+ *   pid    : project ID (human understandable abbreviation)
+ *   fte    : FTE (float in [0,1])
+ *   start  : start date (integer, YYYY-MM)
+ *   end    : end data (integer, YYYY-MM)
  * }
  *
  * arguments:
@@ -18,6 +18,7 @@
  *    engineerAssignments, projectAssignments
  */
 function initializeAssignments (assignments) {
+  console.log('INITIALIZING ASSIGNMENTS');
   // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
     // this is slightly redundant:
@@ -52,6 +53,16 @@ function initializeAssignments (assignments) {
       content: assignment.fte + ' FTE: ' + assignment.eid,
       editable: true
     });
+
+    fullAssignments.update({
+      id: assignment.aid, // re-use the assignment id as DataSet id
+      aid: assignment.aid,
+      eid: assignment.eid,
+      pid: assignment.pid,
+      start: start,
+      end: end,
+      fte: assignment.fte
+    });
   });
 
   // remove dummy assignment (issue with empty plots)
@@ -62,24 +73,22 @@ function initializeAssignments (assignments) {
 }
 
 /**
- * Create a full assignment object from the current Engineer and Project Assignment,
- * and send it to the server
+ * Send a full assignment object to the server
  *
  * arguments:
- *    currentEA the engineer assignment
- *    currentPA the project assignment
+ *    assignment
  */
-function sendAssignmentToServer(currentEA, currentPA) {
+function sendAssignmentToServer(assignment) {
   req = new XMLHttpRequest()
   req.open('POST', 'http://localhost:5000/update_assignment')
   req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
   req.send('data=' + JSON.stringify({
-    aid: currentEA.id,
-    eid: currentEA.group,
-    pid: currentPA.group,
-    fte: parseFloat(currentEA.content), // BUGFIX: TODO: get this value in a better way
-    start: currentEA.start,
-    end: currentEA.end
+    aid: assignment.aid,
+    eid: assignment.eid,
+    pid: assignment.pid,
+    fte: assignment.fte,
+    start: assignment.start,
+    end: assignment.end
   }));
 }
 
