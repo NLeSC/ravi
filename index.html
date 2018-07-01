@@ -1,231 +1,289 @@
 <html>
-<head>
-    <title>RAVI</title>
-    <link rel="stylesheet" href="js/bootstrap.min.css">
-    <link rel="stylesheet" href="js/vis-timeline-graph2d.min.css">
+  <head>
+     <title>RAVI</title>
+     <link rel="stylesheet" href="js/bootstrap.min.css">
+     <link rel="stylesheet" href="js/vis-timeline-graph2d.min.css">
 
-    <!-- external javascript libraries --!>
-    <script src="js/jquery.slim.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/vis-timeline-graph2d.min.js"></script>
-    <script src="js/plotly-latest.min.js"></script>
-    <meta charset="utf-8"/>
-</head>
-<body>
+     <!-- external javascript libraries --!>
+     <script src="js/jquery.slim.min.js"></script>
+     <script src="js/popper.min.js"></script>
+     <script src="js/bootstrap.min.js"></script>
+     <script src="js/vis-timeline-graph2d.min.js"></script>
+     <script src="js/plotly-latest.min.js"></script>
+     <meta charset="utf-8"/>
+  </head>
 
-<!-- Modal for assignments on project timeline-->
-<div class="modal fade" id="projectAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="projectAssignmentLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="projectAssignmentLabel">Update assignment</h5>
-      </div>
-      <div class="modal-body">
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <label class="input-group-text" for="inputProjectsTimelineEngineer">Engineer</label>
+  <body>
+
+    <!-- Modal for assignments on project timeline-->
+    <div class="modal fade" id="projectAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="projectAssignmentLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="projectAssignmentLabel">Update assignment</h5>
           </div>
-          <select class="custom-select" id="inputProjectsTimelineEngineer">
-          </select>
-        </div>
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="inputProjectsTimelineFTELabel">FTE</span>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="inputProjectsTimelineEngineer">Engineer</label>
+              </div>
+              <select class="custom-select" id="inputProjectsTimelineEngineer">
+              </select>
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputProjectsTimelineFTELabel">FTE</span>
+              </div>
+              <input id="inputProjectsTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputProjectsTimelineFTELabel">
+            </div>
           </div>
-          <input id="inputProjectsTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputProjectsTimelineFTELabel">
-        </div>
-      </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard changes</button>
-        <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard changes</button>
+            <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Modal for assignments on engineer timeline-->
-<div class="modal fade" id="engineerAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="engineerAssignmentLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="engineerAssignmentLabel">Update assignment</h5>
-      </div>
-      <div class="modal-body">
-
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <label class="input-group-text" for="inputEngineersTimelineEngineer">Project</label>
+    <!-- Modal for assignments on engineer timeline-->
+    <div class="modal fade" id="engineerAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="engineerAssignmentLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="engineerAssignmentLabel">Update assignment</h5>
           </div>
-          <select class="custom-select" id="inputEngineersTimelineProject">
-          </select>
-        </div>
-        <div class="input-group mb-3">
-          <div class="input-group-prepend">
-            <span class="input-group-text" id="inputEngineersTimelineFTELabel">FTE</span>
-          </div>
-          <input id="inputEngineersTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputEngineersTimelineFTELabel">
-        </div>
-      </div>
+          <div class="modal-body">
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard Changes</button>
-        <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="inputEngineersTimelineEngineer">Project</label>
+              </div>
+              <select class="custom-select" id="inputEngineersTimelineProject">
+              </select>
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputEngineersTimelineFTELabel">FTE</span>
+              </div>
+              <input id="inputEngineersTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputEngineersTimelineFTELabel">
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard Changes</button>
+            <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<div style="height: 70%; width: 100%" id="visjs-outer-container">
-  <div style="height: 70%; width: 48%; float: left" id="visjs-engineers-container"> </div>
-  <div style="height: 70%; width: 48%; float: right" id="visjs-projects-container"> </div>
-</div>
+    <-- Div for the Engineer and Project timelines -->
+    <div style="height: 70%; width: 100%" id="visjs-outer-container">
+      <div style="height: 70%; width: 48%; float: left" id="visjs-engineers-container"> </div>
+      <div style="height: 70%; width: 48%; float: right" id="visjs-projects-container"> </div>
+    </div>
 
-<div style="width: 100%; overflow: hidden; margin-top: 0%">
-        <div style="width:50%; float: left">
+
+    <-- Div for the tables underneath the timelines -->
+    <div style="width: 100%; overflow: hidden; margin-top: 0%">
+
+      <-- From for displaying and entering engineer data -->
+      <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
-            <div style="width:65%; float: left">
-                <table style="width:100%; table-layout:fixed"><tr>
-                    <td>Engineer:</td>
-                    <td>FTE:</td>
-                    <td>Start date:</td>
-                    <td>End date:</td>
-                    <td>Exact ID:</td>
-                    </tr>
-                <tr>
-                    <td><span title="Enter unique name, e.g. first name + first letter of last name.">
-                        <input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()">
-                        </span></td>
-                    <td><span title="1 FTE corresponds to 38 hours/week and 1680 hours/year.">
-                        <input style="width:100%" type="text" id="engineer_fte" name="fte" value="">
-                        </span></td>
-                    <td><span title="Enter start of contract as yyyy-mm.">
-                        <input style="width:100%" type="text" id="engineer_start" name="start" value="">
-                        </span></td>
-                    <td><span title="Enter end of contract as yyyy-mm.">
-                        <input style="width:100%" type="text" id="engineer_end" name="end" value="">
-                        </span></td>
-                    <td><span title="Enter employee ID from Exact.">
-                        <input style="width:100%" type="text" id="engineer_exact" name="exact" value="">
-                        </span></td>
-                    </tr></table>
-                <span title="Click to deselect engineer.">
-                    <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
-                    </span>
-                <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new engineer name, a new engineer will be generated. To change the name of an existing engineer press 'Rename'.">
-                    <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
-                    </span>
-                <span title="Rename the currently selected engineer.">
-                    <input type="button" name="button" value="Rename" onClick="renameEngineer();">
-                    </span>
-                <span title="Delete the currently selected engineer.">
-                    <input type="button" name="button" value="Delete" onClick="delEngineer();">
-                    </span>
-                <span title="Show large detailed plot with written and planned hours by engineer.">
-                    <input type="button" name="button" value="Pop-out Plot" onClick="plotEngineer(popup=true);">
-                    </span>
-                <span title="Export the table above to file or printer.">
-                    <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
-                    </span>
-                </div>
-            <div style="width:35%; margin-left: 65%">
-                <table style="width:100%; table-layout:fixed">
-                    <tr>
-                        <td>Notes:</td>
-                        <td><span title="Inactive engineers will be hidden from table above, by default.">Active:
-                            <input style="width:100% align:left" type="checkbox" id="engineer_active" name="active" checked>
-                            </span></td/>
-                        </tr>
-                    <tr><td colspan = 2><span title="Free text area">
-                        <textarea id="engineer_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
-                        </span></td></tr>
-                    </table>
-                </div>
-            </form></div>
-        <div style="width:50%; margin-left: 50%">
+          <div style="width:65%; float: left">
+
+            <-- left hand-size -->
+            <table style="width:100%; table-layout:fixed">
+              <tr>
+                <td>Engineer:</td>
+                <td>FTE:</td>
+                <td>Start date:</td>
+                <td>End date:</td>
+                <td>Exact ID:</td>
+              </tr>
+              <tr>
+                <td>
+                  <span title="Enter unique name, e.g. first name + first letter of last name.">
+                   <input style="width:100%" type="text" id="engineer_name" name="name" value="" onkeyup="scrollToEngineer()">
+                  </span>
+                </td>
+                <td>
+                  <span title="1 FTE corresponds to 38 hours/week and 1680 hours/year.">
+                    <input style="width:100%" type="text" id="engineer_fte" name="fte" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter start of contract as yyyy-mm.">
+                    <input style="width:100%" type="text" id="engineer_start" name="start" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter end of contract as yyyy-mm.">
+                    <input style="width:100%" type="text" id="engineer_end" name="end" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter employee ID from Exact.">
+                    <input style="width:100%" type="text" id="engineer_exact" name="exact" value="">
+                  </span>
+                </td>
+              </tr>
+            </table>
+
+            <span title="Click to deselect engineer.">
+              <input type="button" name="button" value="Clear" onClick="clearEngineerSelection();">
+            </span>
+            <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new engineer name, a new engineer will be generated. To change the name of an existing engineer press 'Rename'.">
+              <input type="button" name="button" value="Add / Modify" onClick="addEngineer();">
+            </span>
+            <span title="Rename the currently selected engineer.">
+              <input type="button" name="button" value="Rename" onClick="renameEngineer();">
+            </span>
+            <span title="Delete the currently selected engineer.">
+              <input type="button" name="button" value="Delete" onClick="delEngineer();">
+            </span>
+            <span title="Show large detailed plot with written and planned hours by engineer.">
+              <input type="button" name="button" value="Pop-out Plot" onClick="plotEngineer(popup=true);">
+            </span>
+            <span title="Export the table above to file or printer.">
+              <input type="button" name="button" value="Print Overview" onClick="printEngineers();">
+            </span>
+          </div>
+
+          <-- right-hand side -->
+          <div style="width:35%; margin-left: 65%">
+            <table style="width:100%; table-layout:fixed">
+              <tr>
+                <td>Notes:</td>
+                <td>
+                  <span title="Inactive engineers will be hidden from table above, by default.">Active:
+                    <input style="width:100% align:left" type="checkbox" id="engineer_active" name="active" checked>
+                  </span>
+                </td/>
+              </tr>
+              <tr>
+                <td colspan = 2>
+                  <span title="Free text area">
+                    <textarea id="engineer_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </form>
+      </div>
+
+      <-- From for displaying and entering project data -->
+      <div style="width:50%; margin-left: 50%">
         <form id="projectform" name="projectform" action="" method="GET">
-            <div style="width:65%; float: left">
-                <table style="width:100%; table-layout:fixed">
-                <col width=150>
-                <tr>
-                    <td>Project:</td>
-                    <td>Person-yrs:</td>
-                    <td>Start date:</td>
-                    <td>End date:</td>
-                    <td>Coordinator:</td>
-                    <td>Exact Code:</td>
-                    </tr>
-                <tr>
-                    <td><span title="Enter a unique project name.">
-                        <input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()">
-                        </span></td>
-                    <td><span title="Enter person-years available for the project. One person-year = 1680 hours.">
-                        <input style="width:100%" type="text" id="project_fte" name="fte" value="">
-                        </span></td>
-                    <td><span title="Enter start of project as yyyy-mm.">
-                        <input style="width:100%" type="text" id="project_start" name="start" value="">
-                        </span></td>
-                    <td><span title="Enter end of project as yyyy-mm.">
-                        <input style="width:100%" type="text" id="project_end" name="end" value="">
-                        </span></td>
-                    <td><span title="Enter coordinator of the project.">
-                        <input style="width:100%" type="text" id="project_coordinator" name="coordinator" value="">
-                        </span></td>
-                    <td><span title="Enter project code from Exact.">
-                        <input style="width:100%" type="text" id="project_exact" name="exact" value="">
-                        </span></td>
-                    </tr></table>
-                <span title="Click to deselect project.">
-                    <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
-                    </span>
-                <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new project name, a new project will be generated. To change the name of an existing project press 'Rename'.">
-                    <input type="button" name="button" value="Add / Modify" onClick="addProject();">
-                    </span>
-                <span title="Rename the currently selected project.">
-                    <input type="button" name="button" value="Rename" onClick="renameProject();">
-                    </span>
-                <span title="Delete the currently selected project.">
-                    <input type="button" name="button" value="Delete" onClick="delProject();">
-                    </span>
-                <span title="Show large detailed plot with written and planned hours on project.">
-                    <input type="button" name="button" value="Pop-out Plot" onClick="plotProject(popup=true);">
-                    </span>
-                <span title="Export the table above to file or printer.">
-                    <input type="button" name="button" value="Print Overview" onClick="printProjects();">
-                    </span>
-                <span title="Prepare a 5% assignment of the project coordinator.">
-                    <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
-                    </span>
-                </div>
-            <div style="width:35%; margin-left: 65%">
-                <table style="width:100%; table-layout:fixed">
-                    <tr>
-                        <td>Notes:</td>
-                        <td><span title="Inactive projects will be hidden from table above, by default.">Active:
-                            <input style="width:100% align:left" type="checkbox" id="project_active" name="active" checked>
-                            </span></td/>
-                        </tr>
-                    <tr><td colspan = 2><span title="Free text area">
-                        <textarea id="project_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
-                        </span></td></tr>
-                    </table>
-                </div>
-            </form></div>
+
+          <-- left-hand side -->
+          <div style="width:65%; float: left">
+            <table style="width:100%; table-layout:fixed"><col width=150>
+              <tr>
+                <td>Project:</td>
+                <td>Person-yrs:</td>
+                <td>Start date:</td>
+                <td>End date:</td>
+                <td>Coordinator:</td>
+                <td>Exact Code:</td>
+              </tr>
+              <tr>
+                <td>
+                  <span title="Enter a unique project name.">
+                    <input style="width:100%" type="text" id="project_name" name="name" value="" onkeyup="scrollToProject()">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter person-years available for the project. One person-year = 1680 hours.">
+                    <input style="width:100%" type="text" id="project_fte" name="fte" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter start of project as yyyy-mm.">
+                    <input style="width:100%" type="text" id="project_start" name="start" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter end of project as yyyy-mm.">
+                    <input style="width:100%" type="text" id="project_end" name="end" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter coordinator of the project.">
+                    <input style="width:100%" type="text" id="project_coordinator" name="coordinator" value="">
+                  </span>
+                </td>
+                <td>
+                  <span title="Enter project code from Exact.">
+                    <input style="width:100%" type="text" id="project_exact" name="exact" value="">
+                  </span>
+                </td>
+              </tr>
+            </table>
+
+            <span title="Click to deselect project.">
+              <input type="button" name="button" value="Clear" onClick="clearProjectSelection();">
+            </span>
+            <span title="Changes in the fields above will only be stored after pressing this button. Note that in case of a new project name, a new project will be generated. To change the name of an existing project press 'Rename'.">
+              <input type="button" name="button" value="Add / Modify" onClick="addProject();">
+            </span>
+            <span title="Rename the currently selected project.">
+              <input type="button" name="button" value="Rename" onClick="renameProject();">
+            </span>
+            <span title="Delete the currently selected project.">
+              <input type="button" name="button" value="Delete" onClick="delProject();">
+            </span>
+            <span title="Show large detailed plot with written and planned hours on project.">
+              <input type="button" name="button" value="Pop-out Plot" onClick="plotProject(popup=true);">
+            </span>
+            <span title="Export the table above to file or printer.">
+              <input type="button" name="button" value="Print Overview" onClick="printProjects();">
+            </span>
+            <span title="Prepare a 5% assignment of the project coordinator.">
+              <input type="button" name="button" value="Assign Coordinator" onClick="assignCoordinator();">
+            </span>
+          </div>
+
+          <-- right-hand side -->
+          <div style="width:35%; margin-left: 65%">
+            <table style="width:100%; table-layout:fixed">
+              <tr>
+                <td>Notes:</td>
+                <td>
+                  <span title="Inactive projects will be hidden from table above, by default.">Active:
+                    <input style="width:100% align:left" type="checkbox" id="project_active" name="active" checked>
+                  </span>
+                </td/>
+              </tr>
+              <tr>
+                <td colspan = 2>
+                  <span title="Free text area">
+                    <textarea id="project_comments" rows=3 style="vertical-align:top; width:90%; resize:none;"></textarea>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </form>
+      </div>
     </div>
 
-<div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
-    <div style="height:100%; width:50%; float: left" id="plot_engineer"> </div>
-    <div style="width:50%; margin-left: 50%" id="plot_project"></div>
-</div>
+    <-- div for holding the plotted hours -->
+    <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
+      <div style="height:100%; width:50%; float: left" id="plot_engineer"> </div>
+      <div style="width:50%; margin-left: 50%" id="plot_project"></div>
+    </div>
 
-<!-- RAVI sources --!>
-<script src="js/engineers.js"></script>
-<script src="js/projects.js"></script>
-<script src="js/axis.js"></script>
-<script src="js/assignments.js"></script>
-<script src="js/exact.js"></script>
-<script src="js/plots.js"></script>
-<script src="js/main.js"></script>
-</body>
+    <!-- RAVI sources --!>
+    <script src="js/engineers.js"></script>
+    <script src="js/projects.js"></script>
+    <script src="js/axis.js"></script>
+    <script src="js/assignments.js"></script>
+    <script src="js/exact.js"></script>
+    <script src="js/plots.js"></script>
+    <script src="js/main.js"></script>
+
+  </body>
 </html>
