@@ -96,17 +96,19 @@ function addProjectTableRow(pid) {
     }
 
 function togglePlanningHistory() {
-    var history = document.getElementById('timerangeform').elements['planning_history'].checked;
+    // var history = document.getElementById('timerangeform').elements['planning_history'].checked;
     for (pid in projects) {
         planned_id = document.getElementById("planned_" + pid);
         combined_id = document.getElementById("combined_" + pid);
-        if (history) { // Show total of planned person-years only
-            planned_id.style.display = "";
-            combined_id.style.display = "none";
-            }
-        else { // Show combined result of written and planned person-years
-            planned_id.style.display = "none";
-            combined_id.style.display = "";
+        if (planned_id && combined_id) {
+            if (history) { // Show total of planned person-years only
+               planned_id.style.display = "";
+               combined_id.style.display = "none";
+               }
+            else { // Show combined result of written and planned person-years
+                planned_id.style.display = "none";
+                combined_id.style.display = "";
+                }
             }
         }
     if (document.getElementById("project_name").value != "") {
@@ -185,7 +187,7 @@ function unhighlightProjects() {
 
 function scrollToProject() {
     var query = document.getElementById("project_name").value.toLowerCase()
-    var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
+    // var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
     if (query.length > 0) {
         for(pid in projects) {
             if ((projects[pid].active || showInactives) &&
@@ -199,7 +201,7 @@ function scrollToProject() {
 
 function updateInactiveProjects() {
     var tableRows = document.getElementById("project_table").getElementsByTagName("tr")
-    var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
+    // var showInactives = document.getElementById('timerangeform').elements['inactive_projects'].checked
     for(r=0; r<tableRows.length; r++) {
         if (projects[tableRows[r].id].active || showInactives) {
             tableRows[r].style.display = "";

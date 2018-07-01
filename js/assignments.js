@@ -18,7 +18,6 @@
  *    engineerAssignments, projectAssignments
  */
 function initializeAssignments (assignments) {
-  console.log('INITIALIZING ASSIGNMENTS');
   // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
     // this is slightly redundant:
@@ -167,7 +166,6 @@ function addAssignment(data) {
         "start": form.elements["start"].value,
         "end": form.elements["end"].value
         }
-    console.log(assignment_data)
     request_add_assignment = new XMLHttpRequest()
     request_add_assignment.open('POST', 'http://localhost:5000/add_assignment')
     request_add_assignment.onload = function() {

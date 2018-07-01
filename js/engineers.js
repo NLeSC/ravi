@@ -174,7 +174,6 @@ function scrollToEngineer() {
     var query = document.getElementById("engineer_name").value.toLowerCase()
     if (query.length > 0) {
         for(eid in engineers) {
-            console.log(eid)
             if (eid.toLowerCase().indexOf(document.getElementById("engineer_name").value.toLowerCase()) == 0) {
                 document.getElementById(eid).scrollIntoView();
                 break;

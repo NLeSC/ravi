@@ -23,7 +23,6 @@ function plotxAxis(id, xAxisLabels) {
         plot_bgcolor: 'rgba(0,0,0,0)'
         };
 
-    console.log(xAxisLabels)
     Plotly.plot(xAxis, xAxisLabels, layout, {displayModeBar: false});
     }
 
