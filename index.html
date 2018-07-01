@@ -121,9 +121,14 @@
     editable: {
       add: true,         // add new items by double tapping
       updateTime: true,  // drag items horizontally
-      updateGroup: true, // drag items from one group to another
+      updateGroup: false, // drag items from one group to another
       remove: true,       // delete an item by tapping the delete button top right
-      overrideItems: false  // allow these options to override item.editable
+      overrideItems: true // allow these options to override item.editable
+    },
+    type: 'range',
+    template: function (item, element, data) {
+      var html = "<div>" + item.content + "</div>";
+      return html;
     },
     // individual item events
     // these have to be passed to the options object on construction of the timeline
@@ -134,8 +139,27 @@
 
       delAssignment(item);
       callback(null); // we already removed the assignment ourselves, so block any further action
+    },
+    onMove: function (item, callback) {
+      var aid = item.id;
+
+      currentFA = fullAssignments.get(aid);
+      currentEA = engineerAssignments.get(aid);
+      currentPA = projectAssignments.get(aid);
+
+      currentFA.start = item.start.getFullYear() + '-' + (item.start.getMonth() + 1);
+      currentFA.end = item.end.getFullYear() + '-' + (item.end.getMonth() + 1);
+      applyFullAssignmentUpdate();
+      sendAssignmentToServer(currentFA);
+
+      // just to be sure the visjs framework sets the same value
+      // as the one we set above (ie. a year-month string, not a Date object)
+      item.start = currentFA.start;
+      item.end = currentFA.end;
+      callback(item);
     }
   };
+  timelineOptions.onUpdate = timelineOptions.onMove;
 
   function applyFullAssignmentUpdate () {
     // after entering new values for the assignment in the dialogs,
@@ -144,10 +168,14 @@
     currentPA.content = currentFA.fte + ' FTE: ' + currentFA.eid;
     currentPA.fte = currentFA.fte;
     currentPA.group = currentFA.pid;
+    currentPA.start = currentFA.start;
+    currentPA.end = currentFA.end;
 
     currentEA.content = currentFA.fte + ' FTE: ' + currentFA.pid;
     currentEA.fte = currentFA.fte;
     currentEA.group = currentFA.eid;
+    currentEA.start = currentFA.start;
+    currentEA.end = currentFA.end;
 
     fullAssignments.update(currentFA);
     engineerAssignments.update(currentEA);
@@ -159,7 +187,7 @@
   var projectsContainer = document.getElementById('visjs-projects-container');
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
 
-  projectsTimeline.on('doubleClick', function (properties) {
+  projectsTimeline.on('contextmenu', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     currentFA = fullAssignments.get(properties.item);
@@ -174,8 +202,9 @@
     // enter the FTE in the input field
     $('#inputProjectsTimelineFTE').val(currentFA.fte);
 
-    $('#projectAssignmentModal').modal();
     // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
+    $('#projectAssignmentModal').modal();
+    props.event.preventDefault(); // prevent default browser pop-up menu
   });
 
   // update the full assignment with values from the modal dialog
@@ -193,7 +222,7 @@
   var engineersContainer = document.getElementById('visjs-engineers-container');
   var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
 
-  engineersTimeline.on('doubleClick', function (properties) {
+  engineersTimeline.on('contextmenu', function (properties) {
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     currentFA = fullAssignments.get(properties.item);
@@ -208,8 +237,9 @@
     // enter the FTE in the input field
     $('#inputEngineersTimelineFTE').val(currentFA.fte);
 
-    $('#engineerAssignmentModal').modal();
     // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
+    $('#engineerAssignmentModal').modal();
+    props.event.preventDefault(); // prevent default browser pop-up menu
   });
 
   // update the full assignment with values from the modal dialog
