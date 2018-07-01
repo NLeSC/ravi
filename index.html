@@ -3,14 +3,16 @@
     <title>RAVI</title>
     <link rel="stylesheet" href="js/bootstrap.min.css">
     <link rel="stylesheet" href="js/vis-timeline-graph2d.min.css">
+
+    <!-- external javascript libraries --!>
+    <script src="js/jquery.slim.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/vis-timeline-graph2d.min.js"></script>
+    <script src="js/plotly-latest.min.js"></script>
     <meta charset="utf-8"/>
 </head>
 <body>
-
-<script src="js/jquery.slim.min.js"></script>
-<script src="js/popper.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/vis-timeline-graph2d.min.js"></script>
 
 <!-- Modal for assignments on project timeline-->
 <div class="modal fade" id="projectAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="projectAssignmentLabel" aria-hidden="true">
@@ -75,250 +77,11 @@
   </div>
 </div>
 
-
-
-<script src="js/vis-timeline-graph2d.min.js"></script>
-
 <div style="height: 70%; width: 100%" id="visjs-outer-container">
   <div style="height: 70%; width: 48%; float: left" id="visjs-engineers-container"> </div>
   <div style="height: 70%; width: 48%; float: right" id="visjs-projects-container"> </div>
 </div>
 
-<script type="text/javascript">
-  var datasetOptions = {};
-
-  // The full assignments containing all information necessary to
-  // sync with the server
-  var fullAssignments = new vis.DataSet(datasetOptions);
-
-  // Datasets bound to the timelines:
-  //  * for the engineer timeline
-  var engineerAssignments = new vis.DataSet(datasetOptions);
-  var engineerGroups = new vis.DataSet(datasetOptions);
-
-  // * for the project timeline
-  var projectAssignments = new vis.DataSet(datasetOptions);
-  var projectGroups = new vis.DataSet(datasetOptions);
-
-  // current (selected) assignments; they should point to the same assignment,
-  // but on the two different views
-  var currentPA; // on the project timeline
-  var currentEA; // on the engineer timeline
-  var currentFA; // the corresponding full assignment
-
-  // Configuration for the Timeline
-  var d = new Date();
-  var year = d.getFullYear();
-  var month = d.getMonth();
-  var day = d.getDate();
-  var timelineOptions = {
-    height: '120%',
-    verticalScroll: true,
-    start: new Date(year - 1, month, day),
-    end: new Date(year + 1, month, day),
-    zoomMin: 15768000000, // Half a year
-    zoomMax: 157680000000, // 5 years
-    editable: {
-      add: true,         // add new items by double tapping
-      updateTime: true,  // drag items horizontally
-      updateGroup: false, // drag items from one group to another
-      remove: true,       // delete an item by tapping the delete button top right
-      overrideItems: true // allow these options to override item.editable
-    },
-    type: 'range',
-    template: function (item, element, data) {
-      var html = "<div>" + item.content + "</div>";
-      return html;
-    },
-    // individual item events
-    // these have to be passed to the options object on construction of the timeline
-    onRemove: function (item, callback) {
-      engineerAssignments.remove(item);
-      projectAssignments.remove(item);
-      fullAssignments.remove(item);
-
-      delAssignment(item);
-      callback(null); // we already removed the assignment ourselves, so block any further action
-    },
-    onMove: function (item, callback) {
-      var aid = item.id;
-
-      currentFA = fullAssignments.get(aid);
-      currentEA = engineerAssignments.get(aid);
-      currentPA = projectAssignments.get(aid);
-
-      currentFA.start = item.start.getFullYear() + '-' + (item.start.getMonth() + 1);
-      currentFA.end = item.end.getFullYear() + '-' + (item.end.getMonth() + 1);
-      applyFullAssignmentUpdate();
-      sendAssignmentToServer(currentFA);
-
-      // just to be sure the visjs framework sets the same value
-      // as the one we set above (ie. a year-month string, not a Date object)
-      item.start = currentFA.start;
-      item.end = currentFA.end;
-      callback(item);
-    }
-  };
-  timelineOptions.onUpdate = timelineOptions.onMove;
-
-  function applyFullAssignmentUpdate () {
-    // after entering new values for the assignment in the dialogs,
-    // and after having updated the currentFA,  we now need to
-    // update the three DataSet instance (which will also update the timeline plots)
-    currentPA.content = currentFA.fte + ' FTE: ' + currentFA.eid;
-    currentPA.fte = currentFA.fte;
-    currentPA.group = currentFA.pid;
-    currentPA.start = currentFA.start;
-    currentPA.end = currentFA.end;
-
-    currentEA.content = currentFA.fte + ' FTE: ' + currentFA.pid;
-    currentEA.fte = currentFA.fte;
-    currentEA.group = currentFA.eid;
-    currentEA.start = currentFA.start;
-    currentEA.end = currentFA.end;
-
-    fullAssignments.update(currentFA);
-    engineerAssignments.update(currentEA);
-    projectAssignments.update(currentPA);
-  };
-
-  // Projects Timeline
-  // ------------------
-  var projectsContainer = document.getElementById('visjs-projects-container');
-  var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
-
-  projectsTimeline.on('contextmenu', function (properties) {
-    properties.event.preventDefault(); // prevent default browser pop-up menu
-
-    currentPA = projectAssignments.get(properties.item);
-    currentEA = engineerAssignments.get(properties.item);
-    currentFA = fullAssignments.get(properties.item);
-    if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
-      // double clicked somewhere else (not on an assignment)
-      return;
-    }
-
-    // pre-select the right engineer in the dropdown
-    $('#inputProjectsTimelineEngineer').val(currentFA.eid);
-
-    // enter the FTE in the input field
-    $('#inputProjectsTimelineFTE').val(currentFA.fte);
-
-    // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
-    $('#projectAssignmentModal').modal();
-  });
-
-  // update the full assignment with values from the modal dialog
-  $('#inputProjectsTimelineApply').on('click', function () {
-    currentFA.eid = $('#inputProjectsTimelineEngineer').val();
-    currentFA.fte = $('#inputProjectsTimelineFTE').val();
-
-    applyFullAssignmentUpdate ();
-    sendAssignmentToServer(currentFA);
-    $('#projectAssignmentModal').modal('hide');
-  });
-
-  // Engineers Timeline
-  // ------------------
-  var engineersContainer = document.getElementById('visjs-engineers-container');
-  var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
-
-  engineersTimeline.on('contextmenu', function (properties) {
-    properties.event.preventDefault(); // prevent default browser pop-up menu
-
-    currentPA = projectAssignments.get(properties.item);
-    currentEA = engineerAssignments.get(properties.item);
-    currentFA = fullAssignments.get(properties.item);
-    if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
-      // double clicked somewhere else (not on an assignment)
-      return;
-    }
-
-    // pre-select the right project in the dropdown
-    $('#inputEngineersTimelineProject').val(currentFA.pid);
-
-    // enter the FTE in the input field
-    $('#inputEngineersTimelineFTE').val(currentFA.fte);
-
-    // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
-    $('#engineerAssignmentModal').modal();
-  });
-
-  // update the full assignment with values from the modal dialog
-  $('#inputEngineersTimelineApply').on('click', function () {
-    currentFA.pid = $('#inputEngineersTimelineProject').val();
-    currentFA.fte = $('#inputEngineersTimelineFTE').val();
-
-    applyFullAssignmentUpdate ();
-    sendAssignmentToServer(currentFA);
-    $('#engineerAssignmentModal').modal('hide');
-  });
-
-  // Link the Engineers and Project timelines
-  // ----------------------------------------
-
-  // automatically select the assignments on the other timeline
-  engineersTimeline.on('select', function (properties) {
-    projectsTimeline.setSelection(properties.items);
-    projectsTimeline.focus(properties.items);
-
-    var firstSelectedAssignment = fullAssignments.get(properties.items[0]);
-    if (firstSelectedAssignment) {
-      selectEngineer(firstSelectedAssignment.eid);
-      selectProject(firstSelectedAssignment.pid);
-    }
-  });
-
-  projectsTimeline.on('select', function (properties) {
-    engineersTimeline.setSelection(properties.items);
-    engineersTimeline.focus(properties.items);
-
-    var firstSelectedAssignment = fullAssignments.get(properties.items[0]);
-    if (firstSelectedAssignment) {
-      selectEngineer(firstSelectedAssignment.eid);
-      selectProject(firstSelectedAssignment.pid);
-    }
-  });
-
-
-</script>
-
-<!--
-<div style="height: 55%; width: 100%">
-        <div id="engineers" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; float: left">
-            <table id="engineer_table"></table></div>
-        <div id="projects" style="height:100%; width:50%; overflow-y:auto; overflow-x:hidden; margin-left: 50%">
-            <table id="project_table"></table></div>
-</div>
-<div style="height: 75px; width: 100%; margin-top: 0%"><form id="timerangeform">
-        <div style="height:100%; width:50%; overflow: hidden; float: left">
-            <table><tr>
-                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
-                    <span title="When checked, inactive engineers will be included in the table above.">
-                        <input type="checkbox" name="inactive_engineers" onchange="updateInactiveEngineers();">Inactives
-                        </span><br>
-                    <span title="Here, you can change the time range displayed on the right.">
-                        <input type="text" name="start_date" value="" style="width:60px"> -
-                        <input type="text" name="end_date" value="" style="width:60px"><br>
-                        <input type="button" name="button" value="Update range" onClick="updateTimeRange();">
-                        </span>
-                    </div></td>
-                <td id="xLabels1" style="background-color: lightgray"></td></tr></table>
-            </div>
-        <div style="height:100%; width:50%; overflow: hidden; margin-left: 50%">
-            <table><tr>
-                <td style="vertical-align: top; background-color: lightgray;"><div style="width: 135px;">
-                    <span title="When checked, inactive projects will be included in the table above.">
-                        <input type="checkbox" name="inactive_projects" onchange="updateInactiveProjects();">Inactives
-                        </span><br>
-                    <span title="When checked, totals in the table above will be based on the assigned person-years only. (Otherwise, on the combination of written so-far and remaining assigned person-years.) Also the detailed project plots below will show separate lines for planned and written hours.">
-                        <input type="checkbox" name="planning_history" onchange="togglePlanningHistory();">Planning history
-                        </span>
-                    </div></td>
-                <td id="xLabels2" style="background-color: lightgray"></td></tr></table>
-            </div>
-    </form></div>
--->
 <div style="width: 100%; overflow: hidden; margin-top: 0%">
         <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
@@ -452,55 +215,17 @@
     </div>
 
 <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
-    <div style="height:100%; width:50%; float: left" id="plot_engineer">
-    <!--
-        <div style="height:30%; width:100%">
-        <form id="assignmentsform" name="assignmentsform" action="" method="GET">
-            Assignments:
-            <span title="Show a plot of the total engineer FTEs and assignments over time.">
-                <input type=button value="Plot Total"onClick="plotTotalAssignments();">
-                </span><br>
-            <table style="width:98%; table-layout:fixed"><tr>
-                <td>Engineer:</td>
-                <td>Project:</td>
-                <td>FTE:</td>
-                <td>Start date:</td>
-                <td>End date:</td>
-                <td>Action:</td>
-                </tr>
-            <tr>
-                <td><span title="You can fill this field by selecting one of the engineers in the top left table.">
-                    <input style="width:100%" type="text" id="assignment_eid" name="eid" value="">
-                    </span></td>
-                <td><span title="You can fill this field by selecting one of the projects in the top right table.">
-                    <input style="width:100%" type="text" id="assignment_pid" name="pid" value="">
-                    </span></td>
-                <td><spant title="Enter the extent of the assignment in FTE, e.g. 0.2 FTE is approximately 1 day a week.">
-                    <input style="width:100%" type="text" id="assignment_fte" name="fte" value="">
-                    </span></td>
-                <td><span title="Enter start of assignment as yyyy-mm.">
-                    <input style="width:100%" type="text" id="assignment_start" name="start" value="">
-                    </span></td>
-                <td><span title="Enter end of assignment as yyyy-mm.">
-                    <input style="width:100%" type="text" id="assignment_end" name="end" value="">
-                    </span></td>
-                <td><span title="Add the assignment to the list.">
-                    <input type="button" name="button" value="Add" onClick="addAssignment();">
-                    </span></td>
-                </tr></table>
-            </form></div>
-        <div style="height:70%; width:100%; overflow-y:scroll; overflow-x:hidden">
-            <table style="width:100%; table-layout:fixed" id="assignment_table"></table></div>
-        -->
-        </div>
+    <div style="height:100%; width:50%; float: left" id="plot_engineer"> </div>
     <div style="width:50%; margin-left: 50%" id="plot_project"></div>
 </div>
-<script src="js/plotly-latest.min.js"></script>
+
+<!-- RAVI sources --!>
 <script src="js/engineers.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/axis.js"></script>
 <script src="js/assignments.js"></script>
 <script src="js/exact.js"></script>
 <script src="js/plots.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
