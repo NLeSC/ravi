@@ -188,10 +188,12 @@
   var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
 
   projectsTimeline.on('contextmenu', function (properties) {
+    properties.event.preventDefault(); // prevent default browser pop-up menu
+
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     currentFA = fullAssignments.get(properties.item);
-    if (! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
+    if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
       // double clicked somewhere else (not on an assignment)
       return;
     }
@@ -204,7 +206,6 @@
 
     // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
     $('#projectAssignmentModal').modal();
-    props.event.preventDefault(); // prevent default browser pop-up menu
   });
 
   // update the full assignment with values from the modal dialog
@@ -223,10 +224,12 @@
   var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
 
   engineersTimeline.on('contextmenu', function (properties) {
+    properties.event.preventDefault(); // prevent default browser pop-up menu
+
     currentPA = projectAssignments.get(properties.item);
     currentEA = engineerAssignments.get(properties.item);
     currentFA = fullAssignments.get(properties.item);
-    if (! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
+    if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
       // double clicked somewhere else (not on an assignment)
       return;
     }
@@ -239,7 +242,6 @@
 
     // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
     $('#engineerAssignmentModal').modal();
-    props.event.preventDefault(); // prevent default browser pop-up menu
   });
 
   // update the full assignment with values from the modal dialog
