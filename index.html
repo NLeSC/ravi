@@ -20,7 +20,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="projectAssignmentLabel">Update assignment</h5>
+            <h5 class="modal-title" id="projectAssignmentLabel">Update Project assignment</h5>
           </div>
           <div class="modal-body">
             <div class="input-group mb-3">
@@ -35,6 +35,18 @@
                 <span class="input-group-text" id="inputProjectsTimelineFTELabel">FTE</span>
               </div>
               <input id="inputProjectsTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputProjectsTimelineFTELabel">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputProjectsTimelineStartLabel">Start</span>
+              </div>
+              <input id="inputProjectsTimelineStart" type="text" class="form-control" placeholder="YYYY-MM" aria-label="Start" aria-describedby="inputProjectsTimelineStartLabel">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputProjectsTimelineEndLabel">End</span>
+              </div>
+              <input id="inputProjectsTimelineEnd" type="text" class="form-control" placeholder="YYYY-MM" aria-label="End" aria-describedby="inputProjectsTimelineEndLabel">
             </div>
           </div>
 
@@ -51,7 +63,7 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="engineerAssignmentLabel">Update assignment</h5>
+            <h5 class="modal-title" id="engineerAssignmentLabel">Update Engineer assignment</h5>
           </div>
           <div class="modal-body">
 
@@ -68,6 +80,18 @@
               </div>
               <input id="inputEngineersTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputEngineersTimelineFTELabel">
             </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputEngineersTimelineStartLabel">Start</span>
+              </div>
+              <input id="inputEngineersTimelineStart" type="text" class="form-control" placeholder="YYYY-MM" aria-label="Start" aria-describedby="inputEngineersTimelineStartLabel">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputEngineersTimelineEndLabel">End</span>
+              </div>
+              <input id="inputEngineersTimelineEnd" type="text" class="form-control" placeholder="YYYY-MM" aria-label="End" aria-describedby="inputEngineersTimelineEndLabel">
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -78,22 +102,22 @@
       </div>
     </div>
 
-    <-- Div for the Engineer and Project timelines -->
+    <!-- Div for the Engineer and Project timelines -->
     <div style="height: 70%; width: 100%" id="visjs-outer-container">
       <div style="height: 70%; width: 48%; float: left" id="visjs-engineers-container"> </div>
       <div style="height: 70%; width: 48%; float: right" id="visjs-projects-container"> </div>
     </div>
 
 
-    <-- Div for the tables underneath the timelines -->
+    <!-- Div for the tables underneath the timelines -->
     <div style="width: 100%; overflow: hidden; margin-top: 0%">
 
-      <-- From for displaying and entering engineer data -->
+      <!-- Form for displaying and entering engineer data -->
       <div style="width:50%; float: left">
         <form id="engineerform" name="engineerform" action="" method="GET">
           <div style="width:65%; float: left">
 
-            <-- left hand-size -->
+            <!-- left-hand size -->
             <table style="width:100%; table-layout:fixed">
               <tr>
                 <td>Engineer:</td>
@@ -151,7 +175,7 @@
             </span>
           </div>
 
-          <-- right-hand side -->
+          <!-- right-hand side -->
           <div style="width:35%; margin-left: 65%">
             <table style="width:100%; table-layout:fixed">
               <tr>
@@ -174,11 +198,11 @@
         </form>
       </div>
 
-      <-- From for displaying and entering project data -->
+      <!-- Form for displaying and entering project data -->
       <div style="width:50%; margin-left: 50%">
         <form id="projectform" name="projectform" action="" method="GET">
 
-          <-- left-hand side -->
+          <!-- left-hand side -->
           <div style="width:65%; float: left">
             <table style="width:100%; table-layout:fixed"><col width=150>
               <tr>
@@ -246,7 +270,7 @@
             </span>
           </div>
 
-          <-- right-hand side -->
+          <!-- right-hand side -->
           <div style="width:35%; margin-left: 65%">
             <table style="width:100%; table-layout:fixed">
               <tr>
@@ -270,7 +294,7 @@
       </div>
     </div>
 
-    <-- div for holding the plotted hours -->
+    <!-- div for holding the plotted hours -->
     <div style="height:25%; width: 100%; overflow: hidden; margin-top: 0%">
       <div style="height:100%; width:50%; float: left" id="plot_engineer"> </div>
       <div style="width:50%; margin-left: 50%" id="plot_project"></div>

@@ -117,6 +117,10 @@ projectsTimeline.on('contextmenu', function (properties) {
   // enter the FTE in the input field
   $('#inputProjectsTimelineFTE').val(currentFA.fte);
 
+  // enter start and end in the input fields
+  $('#inputProjectsTimelineStart').val(currentFA.start);
+  $('#inputProjectsTimelineEnd').val(currentFA.end);
+
   // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
   $('#projectAssignmentModal').modal();
 });
@@ -125,6 +129,8 @@ projectsTimeline.on('contextmenu', function (properties) {
 $('#inputProjectsTimelineApply').on('click', function () {
   currentFA.eid = $('#inputProjectsTimelineEngineer').val();
   currentFA.fte = $('#inputProjectsTimelineFTE').val();
+  currentFA.start = $('#inputProjectsTimelineStart').val();
+  currentFA.end = $('#inputProjectsTimelineEnd').val();
 
   applyFullAssignmentUpdate ();
   sendAssignmentToServer(currentFA);
@@ -153,6 +159,10 @@ engineersTimeline.on('contextmenu', function (properties) {
   // enter the FTE in the input field
   $('#inputEngineersTimelineFTE').val(currentFA.fte);
 
+  // enter the start and end in the input fields
+  $('#inputEngineersTimelineStart').val(currentFA.start);
+  $('#inputEngineersTimelineEnd').val(currentFA.end);
+
   // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
   $('#engineerAssignmentModal').modal();
 });
@@ -161,6 +171,8 @@ engineersTimeline.on('contextmenu', function (properties) {
 $('#inputEngineersTimelineApply').on('click', function () {
   currentFA.pid = $('#inputEngineersTimelineProject').val();
   currentFA.fte = $('#inputEngineersTimelineFTE').val();
+  currentFA.start = $('#inputEngineersTimelineStart').val();
+  currentFA.end = $('#inputEngineersTimelineEnd').val();
 
   applyFullAssignmentUpdate ();
   sendAssignmentToServer(currentFA);
