@@ -124,6 +124,16 @@
       updateGroup: true, // drag items from one group to another
       remove: true,       // delete an item by tapping the delete button top right
       overrideItems: false  // allow these options to override item.editable
+    },
+    // individual item events
+    // these have to be passed to the options object on construction of the timeline
+    onRemove: function (item, callback) {
+      engineerAssignments.remove(item);
+      projectAssignments.remove(item);
+      fullAssignments.remove(item);
+
+      delAssignment(item);
+      callback(null); // we already removed the assignment ourselves, so block any further action
     }
   };
 
