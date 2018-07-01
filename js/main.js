@@ -37,6 +37,7 @@ var timelineOptions = {
     var html = "<div>" + item.content + "</div>";
     return html;
   },
+  groupOrder: 'id',
   // individual item events
   // these have to be passed to the options object on construction of the timeline
   onRemove: function (item, callback) {
