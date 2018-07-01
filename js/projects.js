@@ -24,7 +24,7 @@ function initializeProjects(projects) {
   });
 
   // add to the modal pop up on the engineer timeline
-  inputBox = $('#inputEngineersTimelineProject');
+  inputBox = $('#inputProject');
   projectGroups.forEach(function(project) {
     $('<option />', {
       value: project.id,

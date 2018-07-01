@@ -13,12 +13,6 @@ var engineerGroups = new vis.DataSet(datasetOptions);
 var projectAssignments = new vis.DataSet(datasetOptions);
 var projectGroups = new vis.DataSet(datasetOptions);
 
-// current (selected) assignments; they should point to the same assignment,
-// but on the two different views
-var currentPA; // on the project timeline
-var currentEA; // on the engineer timeline
-var currentFA; // the corresponding full assignment
-
 // Configuration for the Timeline
 var d = new Date();
 var year = d.getFullYear();
@@ -56,13 +50,13 @@ var timelineOptions = {
   onMove: function (item, callback) {
     var aid = item.id;
 
-    currentFA = fullAssignments.get(aid);
-    currentEA = engineerAssignments.get(aid);
-    currentPA = projectAssignments.get(aid);
+    var currentFA = fullAssignments.get(aid);
+    var currentEA = engineerAssignments.get(aid);
+    var currentPA = projectAssignments.get(aid);
 
     currentFA.start = item.start.getFullYear() + '-' + (item.start.getMonth() + 1);
     currentFA.end = item.end.getFullYear() + '-' + (item.end.getMonth() + 1);
-    applyFullAssignmentUpdate();
+    applyFullAssignmentUpdate(currentFA);
     sendAssignmentToServer(currentFA);
 
     // just to be sure the visjs framework sets the same value
@@ -70,114 +64,124 @@ var timelineOptions = {
     item.start = currentFA.start;
     item.end = currentFA.end;
     callback(item);
+  },
+  onAdd: function (item, callback) {
+    console.log('Adding ', item);
+    var currentFA = {
+      start : item.start.getFullYear() + '-' + item.start.getMonth(),
+      end : item.end.getFullYear() + '-' + item.end.getMonth(),
+      fte : 0.5,
+      aid : 5000, // FIXME
+    }
+    currentFA.id = currentFA.aid;
+
+    if (engineerGroups.get(item.group)) {
+      // adding on engineers timeline, the group is the engineer
+      currentFA.eid = item.group;
+      currentFA.pid = projectGroups.get()[0].id;
+      applyFullAssignmentUpdate(currentFA);
+    } else if (projectGroups.get(item.group)) {
+      // adding on projects timeline, the group is the project
+      currentFA.eid = engineerGroups.get()[0].id;
+      currentFA.pid = item.group;
+      applyFullAssignmentUpdate(currentFA);
+    }
+
+    callback(null);
   }
 };
 timelineOptions.onUpdate = timelineOptions.onMove;
 
-function applyFullAssignmentUpdate () {
-  // after entering new values for the assignment in the dialogs,
-  // and after having updated the currentFA,  we now need to
-  // update the three DataSet instance (which will also update the timeline plots)
+/**
+ * apply changes to a full assignment
+ *
+ * after entering new values for the assignment in the dialogs,
+ * and after having updated the currentFA,  we now need to
+ * update the three DataSet instance (which will also update the timeline plots)
+ *
+ * arguments:
+ *    currentFA  full assignment object to sync to the DataSets
+ */
+function applyFullAssignmentUpdate (currentFA) {
+  var currentPA = {};
   currentPA.content = currentFA.fte + ' FTE: ' + currentFA.eid;
   currentPA.fte = currentFA.fte;
   currentPA.group = currentFA.pid;
   currentPA.start = currentFA.start;
   currentPA.end = currentFA.end;
+  currentPA.id = currentFA.aid;
 
+  var currentEA = {};
   currentEA.content = currentFA.fte + ' FTE: ' + currentFA.pid;
   currentEA.fte = currentFA.fte;
   currentEA.group = currentFA.eid;
   currentEA.start = currentFA.start;
   currentEA.end = currentFA.end;
+  currentEA.id = currentFA.aid;
 
   fullAssignments.update(currentFA);
   engineerAssignments.update(currentEA);
   projectAssignments.update(currentPA);
 };
 
-// Projects Timeline
-// ------------------
+// Projects and Engineers Timelines
+// --------------------------------
 var projectsContainer = document.getElementById('visjs-projects-container');
 var projectsTimeline = new vis.Timeline(projectsContainer, projectAssignments, projectGroups, timelineOptions);
 
-projectsTimeline.on('contextmenu', function (properties) {
-  properties.event.preventDefault(); // prevent default browser pop-up menu
-
-  currentPA = projectAssignments.get(properties.item);
-  currentEA = engineerAssignments.get(properties.item);
-  currentFA = fullAssignments.get(properties.item);
-  if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
-    // double clicked somewhere else (not on an assignment)
-    return;
-  }
-
-  // pre-select the right engineer in the dropdown
-  $('#inputProjectsTimelineEngineer').val(currentFA.eid);
-
-  // enter the FTE in the input field
-  $('#inputProjectsTimelineFTE').val(currentFA.fte);
-
-  // enter start and end in the input fields
-  $('#inputProjectsTimelineStart').val(currentFA.start);
-  $('#inputProjectsTimelineEnd').val(currentFA.end);
-
-  // start the model dialog continue; processing on #inputProjectsTimelineApply.on('click')
-  $('#projectAssignmentModal').modal();
-});
-
-// update the full assignment with values from the modal dialog
-$('#inputProjectsTimelineApply').on('click', function () {
-  currentFA.eid = $('#inputProjectsTimelineEngineer').val();
-  currentFA.fte = $('#inputProjectsTimelineFTE').val();
-  currentFA.start = $('#inputProjectsTimelineStart').val();
-  currentFA.end = $('#inputProjectsTimelineEnd').val();
-
-  applyFullAssignmentUpdate ();
-  sendAssignmentToServer(currentFA);
-  $('#projectAssignmentModal').modal('hide');
-});
-
-// Engineers Timeline
-// ------------------
 var engineersContainer = document.getElementById('visjs-engineers-container');
 var engineersTimeline = new vis.Timeline(engineersContainer, engineerAssignments, engineerGroups, timelineOptions);
 
-engineersTimeline.on('contextmenu', function (properties) {
+// map contextmenu (ie. right mouse button)
+// to open a modal window to update assignments
+function openAssignmentModal (properties) {
   properties.event.preventDefault(); // prevent default browser pop-up menu
 
-  currentPA = projectAssignments.get(properties.item);
-  currentEA = engineerAssignments.get(properties.item);
-  currentFA = fullAssignments.get(properties.item);
-  if (! properties.item || ! currentPA || ! currentEA || ! currentFA || currentPA.id != currentEA.id) {
+  var currentFA = fullAssignments.get(properties.item);
+  if (! properties.item || ! currentFA) {
     // double clicked somewhere else (not on an assignment)
     return;
   }
 
+  // set the assignemnt id in the title
+  $('#inputAid').text(currentFA.aid);
+
+  // pre-select the right engineer in the dropdown
+  $('#inputEngineer').val(currentFA.eid);
+
   // pre-select the right project in the dropdown
-  $('#inputEngineersTimelineProject').val(currentFA.pid);
+  $('#inputProject').val(currentFA.pid);
 
   // enter the FTE in the input field
-  $('#inputEngineersTimelineFTE').val(currentFA.fte);
+  $('#inputFTE').val(currentFA.fte);
 
   // enter the start and end in the input fields
-  $('#inputEngineersTimelineStart').val(currentFA.start);
-  $('#inputEngineersTimelineEnd').val(currentFA.end);
+  $('#inputStart').val(currentFA.start);
+  $('#inputEnd').val(currentFA.end);
 
-  // start the model dialog continue processing on #inputEngineersTimelineApply.on('click')
-  $('#engineerAssignmentModal').modal();
+  // start the model dialog continue processing on #assignmentUpdateApply.on('click')
+  $('#assignmentModal').modal();
+}
+
+// update the assignment when the user clicks on the 'Apply changes' button
+$('#assignmentUpdateApply').on('click', function () {
+  var assignment = {
+    aid : $('#inputAid').text(), // a span, not an input
+    eid : $('#inputEngineer').val(),
+    pid : $('#inputProject').val(),
+    fte : $('#inputFTE').val(),
+    start : $('#inputStart').val(),
+    end : $('#inputEnd').val()
+  };
+  assignment.id = assignment.aid; // re-use the aid as DataSet id
+
+  applyFullAssignmentUpdate(assignment);
+  sendAssignmentToServer(assignment);
+  $('#assignmentModal').modal('hide');
 });
 
-// update the full assignment with values from the modal dialog
-$('#inputEngineersTimelineApply').on('click', function () {
-  currentFA.pid = $('#inputEngineersTimelineProject').val();
-  currentFA.fte = $('#inputEngineersTimelineFTE').val();
-  currentFA.start = $('#inputEngineersTimelineStart').val();
-  currentFA.end = $('#inputEngineersTimelineEnd').val();
-
-  applyFullAssignmentUpdate ();
-  sendAssignmentToServer(currentFA);
-  $('#engineerAssignmentModal').modal('hide');
-});
+engineersTimeline.on('contextmenu', openAssignmentModal);
+projectsTimeline.on('contextmenu', openAssignmentModal);
 
 // Link the Engineers and Project timelines
 // ----------------------------------------

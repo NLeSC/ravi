@@ -15,88 +15,54 @@
 
   <body>
 
-    <!-- Modal for assignments on project timeline-->
-    <div class="modal fade" id="projectAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="projectAssignmentLabel" aria-hidden="true">
+    <!-- Modal for updating assignments on project and engineer timelines -->
+    <div class="modal fade" id="assignmentModal" tabindex="-1" role="dialog" aria-labelledby="assignmentLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="projectAssignmentLabel">Update Project assignment</h5>
+            <h5 class="modal-title" id="assignmentLabel">
+              Update assignment
+              <span id="inputAid"></span>
+            </h5>
           </div>
           <div class="modal-body">
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <label class="input-group-text" for="inputProjectsTimelineEngineer">Engineer</label>
+                <label class="input-group-text" for="inputEngineer">Engineer</label>
               </div>
-              <select class="custom-select" id="inputProjectsTimelineEngineer">
+              <select class="custom-select" id="inputEngineer">
               </select>
             </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text" id="inputProjectsTimelineFTELabel">FTE</span>
+                <label class="input-group-text" for="inputProject">Project</label>
               </div>
-              <input id="inputProjectsTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputProjectsTimelineFTELabel">
+              <select class="custom-select" id="inputProject">
+              </select>
             </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text" id="inputProjectsTimelineStartLabel">Start</span>
+                <span class="input-group-text" id="inputFTELabel">FTE</span>
               </div>
-              <input id="inputProjectsTimelineStart" type="text" class="form-control" placeholder="YYYY-MM" aria-label="Start" aria-describedby="inputProjectsTimelineStartLabel">
+              <input id="inputFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputFTELabel">
             </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
-                <span class="input-group-text" id="inputProjectsTimelineEndLabel">End</span>
+                <span class="input-group-text" id="inputStartLabel">Start</span>
               </div>
-              <input id="inputProjectsTimelineEnd" type="text" class="form-control" placeholder="YYYY-MM" aria-label="End" aria-describedby="inputProjectsTimelineEndLabel">
+              <input id="inputStart" type="text" class="form-control" placeholder="YYYY-MM" aria-label="Start" aria-describedby="inputStartLabel">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="inputEndLabel">End</span>
+              </div>
+              <input id="inputEnd" type="text" class="form-control" placeholder="YYYY-MM" aria-label="End" aria-describedby="inputEndLabel">
             </div>
           </div>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard changes</button>
-            <button id="inputProjectsTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal for assignments on engineer timeline-->
-    <div class="modal fade" id="engineerAssignmentModal" tabindex="-1" role="dialog" aria-labelledby="engineerAssignmentLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="engineerAssignmentLabel">Update Engineer assignment</h5>
-          </div>
-          <div class="modal-body">
-
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <label class="input-group-text" for="inputEngineersTimelineEngineer">Project</label>
-              </div>
-              <select class="custom-select" id="inputEngineersTimelineProject">
-              </select>
-            </div>
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <span class="input-group-text" id="inputEngineersTimelineFTELabel">FTE</span>
-              </div>
-              <input id="inputEngineersTimelineFTE" type="text" class="form-control" placeholder="0.5" aria-label="FTE" aria-describedby="inputEngineersTimelineFTELabel">
-            </div>
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <span class="input-group-text" id="inputEngineersTimelineStartLabel">Start</span>
-              </div>
-              <input id="inputEngineersTimelineStart" type="text" class="form-control" placeholder="YYYY-MM" aria-label="Start" aria-describedby="inputEngineersTimelineStartLabel">
-            </div>
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <span class="input-group-text" id="inputEngineersTimelineEndLabel">End</span>
-              </div>
-              <input id="inputEngineersTimelineEnd" type="text" class="form-control" placeholder="YYYY-MM" aria-label="End" aria-describedby="inputEngineersTimelineEndLabel">
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard Changes</button>
-            <button id="inputEngineersTimelineApply" type="button" class="btn btn-primary">Apply changes</button>
+            <button id="assignmentUpdateApply" type="button" class="btn btn-primary">Apply changes</button>
           </div>
         </div>
       </div>

@@ -33,7 +33,7 @@ function initializeEngineers (engineers) {
 
   // TODO: remove old options
   // add to the modal pop up on the project timeline
-  inputBox = $('#inputProjectsTimelineEngineer');
+  inputBox = $('#inputEngineer');
   engineerGroups.forEach(function(engineer) {
     $('<option />', {
       value: engineer.id,
