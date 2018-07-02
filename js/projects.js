@@ -4,6 +4,14 @@
  *
  * An project is an object with the following properties:
  * Project {
+ *   pid          string
+ *   active       boolean
+ *   comments     string
+ *   coordinator  eid
+ *   start        YYYY-MM
+ *   end          YYYY-MM
+ *   exact_code   integer
+ *   fte          number
  * }
  *
  * arguments:
@@ -16,12 +24,54 @@
 var projects = {}
 
 function initializeProjects(projects) {
+
   projects.forEach(function(project) {
+
+    // sanitize data
+    var d;
+    var start = project.start || '2015-01';
+    var end = project.end || '2050-01';
+
+    d = new Date(start);
+    if (d.getMonth() < 10) {
+      start = d.getFullYear() + '-0' + d.getMonth();
+    } else {
+      start = d.getFullYear() + '-' + d.getMonth();
+    }
+
+    d = new Date(end);
+    if (d.getMonth() < 10) {
+      end = d.getFullYear() + '-0' + d.getMonth();
+    } else {
+      end = d.getFullYear() + '-' + d.getMonth();
+    }
+
     projectGroups.update({
       id: project.pid,
-      content: project.pid
+      content: project.pid,
+
+      active: project.active,
+      comments: project.comments,
+      coordinator: project.coordinator,
+      start: start,
+      end: end,
+      exact_code: project.exact_code,
+      fte: project.fte
     });
+
+    projectAssignments.update({
+      id: project.pid,
+      group: project.pid,
+      start: start,
+      end: end,
+      content: '',
+      type: 'background',
+      editable: false,
+      className: 'expected'
+    });
+
   });
+
 
   // add to the modal pop up on the engineer timeline
   inputBox = $('#inputProject');
