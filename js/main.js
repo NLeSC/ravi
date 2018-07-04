@@ -151,30 +151,66 @@ var engineersTimeline = new vis.Timeline(engineersContainer, engineerTLItems, al
 function openAssignmentModal (properties) {
   properties.event.preventDefault(); // prevent default browser pop-up menu
 
-  var assignment = allAssignments.get(properties.item);
-  if (! properties.item || ! assignment) {
-    // double clicked somewhere else (not on an assignment)
+  if (properties.what == 'item') {
+    var assignment = allAssignments.get(properties.item);
+
+    $('#inputAid').text(assignment.aid);
+    $('#inputEngineer').val(assignment.eid);
+    $('#inputProject').val(assignment.pid);
+    $('#inputFTE').val(assignment.fte);
+    $('#inputStart').val(assignment.start);
+    $('#inputEnd').val(assignment.end);
+
+    $('#inputAidDiv').show()
+    $('#inputEngineerDiv').hide()
+    $('#inputLinemanagerDiv').hide();
+    $('#inputCoordinatorDiv').hide();
+    $('#inputProjectDiv').show()
+    $('#inputFTEDiv').show()
+    $('#inputStartDiv').show()
+    $('#inputEndDiv').show()
+  } else if (properties.what == 'group-label' && allProjects.get(properties.group)) {
+    var project = allProjects.get(properties.group);
+
+    $('#inputAid').text(project.pid);
+    $('#inputCoordinator').val(project.coordinator);
+    $('#inputFTE').val(project.fte);
+    $('#inputStart').val(project.start);
+    $('#inputEnd').val(project.end);
+
+    $('#inputAidDiv').show()
+    $('#inputEngineerDiv').hide()
+    $('#inputLinemanagerDiv').hide();
+    $('#inputCoordinatorDiv').show();
+    $('#inputProjectDiv').hide()
+    $('#inputFTEDiv').show()
+    $('#inputStartDiv').show()
+    $('#inputEndDiv').show()
+  } else if (properties.what == 'group-label' && allEngineers.get(properties.group)) {
+    var engineer = allEngineers.get(properties.group);
+
+    $('#inputAid').text(engineer.eid);
+    $('#inputLinemanager').val(engineer.coordinator);
+    $('#inputFTE').val(engineer.fte);
+    $('#inputStart').val(engineer.start);
+    $('#inputEnd').val(engineer.end);
+
+    $('#inputAidDiv').show()
+    $('#inputEngineerDiv').hide()
+    $('#inputLinemanagerDiv').show();
+    $('#inputCoordinatorDiv').hide();
+    $('#inputProjectDiv').hide()
+    $('#inputFTEDiv').show()
+    $('#inputStartDiv').show()
+    $('#inputEndDiv').show()
+  } else {
+    console.log(properties);
     return;
   }
 
-  // set the assignemnt id in the title
-  $('#inputAid').text(assignment.aid);
-
-  // pre-select the right engineer in the dropdown
-  $('#inputEngineer').val(assignment.eid);
-
-  // pre-select the right project in the dropdown
-  $('#inputProject').val(assignment.pid);
-
-  // enter the FTE in the input field
-  $('#inputFTE').val(assignment.fte);
-
-  // enter the start and end in the input fields
-  $('#inputStart').val(assignment.start);
-  $('#inputEnd').val(assignment.end);
-
   // start the model dialog continue processing on #assignmentUpdateApply.on('click')
   $('#assignmentModal').modal();
+
 }
 
 // update the assignment when the user clicks on the 'Apply changes' button
