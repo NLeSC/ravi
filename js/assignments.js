@@ -15,27 +15,16 @@
  *    assignments: Array[assignment]
  *
  * uses the following global variables:
- *    engineerAssignments, projectAssignments
+ *    engineerTLItems, projectTLItems
  */
 function initializeAssignments (assignments) {
   // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
-    // this is slightly redundant:
-    // it makes sure that the engineer and project actually exist on the plot
-    engineerGroups.update({
-      id : assignment.eid,
-      content: assignment.eid
-    });
-    projectGroups.update({
-      id : assignment.pid,
-      content: assignment.pid
-    });
-
     // sanitize data
     var start = assignment.start || '2015-01';
     var end = assignment.end || '2050-01';
 
-    engineerAssignments.update({
+    engineerTLItems.update({
       id: assignment.aid,
       group: assignment.eid,
       start: start,
@@ -44,7 +33,7 @@ function initializeAssignments (assignments) {
       editable: true
     });
 
-    projectAssignments.update({
+    projectTLItems.update({
       id: assignment.aid,
       group: assignment.pid,
       start: start,
@@ -53,7 +42,7 @@ function initializeAssignments (assignments) {
       editable: true
     });
 
-    fullAssignments.update({
+    allAssignments.update({
       id: assignment.aid, // re-use the assignment id as DataSet id
       aid: assignment.aid,
       eid: assignment.eid,
@@ -65,10 +54,9 @@ function initializeAssignments (assignments) {
   });
 
   // remove dummy assignment (issue with empty plots)
-  engineerGroups.remove(1);
-  projectGroups.remove(1);
-  engineerAssignments.remove(1);
-  projectAssignments.remove(1);
+  allProjects.remove(1);
+  engineerTLItems.remove(1);
+  projectTLItems.remove(1);
 }
 
 /**

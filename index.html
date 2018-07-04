@@ -42,6 +42,20 @@
             </div>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
+                <label class="input-group-text" for="inputLinemanager">Linemanager</label>
+              </div>
+              <select class="custom-select" id="inputLinemanager">
+              </select>
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="inputCoordinator">Coordinator</label>
+              </div>
+              <select class="custom-select" id="inputCoordinator">
+              </select>
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
                 <label class="input-group-text" for="inputProject">Project</label>
               </div>
               <select class="custom-select" id="inputProject">
@@ -92,6 +106,16 @@
         </div>
         <div class="input-group mb-3 col">
           <div class="input-group-prepend">
+            <label class="input-group-text" for="inputSortOptions">Sort by</label>
+          </div>
+          <select class="custom-select" id="inputSortOptions">
+            <option value="name">Name</option>
+            <option value="start">Start</option>
+            <option value="end">End</option>
+          </select>
+        </div>
+        <div class="input-group mb-3 col">
+          <div class="input-group-prepend">
             <label class="input-group-text" for="inputProjectOptions">Project</label>
           </div>
           <select class="custom-select" id="inputProjectOptions">
@@ -102,12 +126,18 @@
         </div>
         <div class="input-group mb-3 col">
           <div class="input-group-prepend">
-            <label class="input-group-text" for="inputSortOptions">Sort by</label>
+            <label class="input-group-text" for="inputCoordinatorOptions">Coordinator</label>
           </div>
-          <select class="custom-select" id="inputSortOptions">
-            <option value="name">Name</option>
-            <option value="start">Start</option>
-            <option value="end">End</option>
+          <select class="custom-select" id="inputCoordinatorOptions">
+            <option value="all">All</option>
+          </select>
+        </div>
+        <div class="input-group mb-3 col">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="inputLinemanagerOptions">Linemanager</label>
+          </div>
+          <select class="custom-select" id="inputLinemanagerOptions">
+            <option value="all">All</option>
           </select>
         </div>
       </div>

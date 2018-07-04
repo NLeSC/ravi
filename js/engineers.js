@@ -18,27 +18,51 @@
  *    engineers: Array[engineer]
  *
  * uses the following global variables:
- *    engineerGroups
+ *    allEengineers
  */
 
 var engineers = {}
 
 function initializeEngineers (engineers) {
   engineers.forEach(function(engineer) {
-    engineerGroups.update({
+    allEngineers.update({
       id: engineer.eid,
-      content: engineer.eid
+      eid: engineer.eid,
+      content: engineer.eid,
+
+      active: engineer.active,
+      comments: engineer.comments,
+      coordinator: engineer.coordinator,
+      start: engineer.start,
+      end: engineer.end,
+      exact_id: engineer.exact_id,
+      fte: engineer.fte
     });
+
+    // TODO: Linemanagers not yet filled-in in database
+    if (engineer.coordinator) {
+      allLinemanagers.update({
+       id: engineer.coordinator
+     });
+    }
   });
+
 
   // TODO: remove old options
   // add to the modal pop up on the project timeline
   inputBox = $('#inputEngineer');
-  engineerGroups.forEach(function(engineer) {
+  allEngineers.forEach(function(engineer) {
     $('<option />', {
       value: engineer.id,
       text: engineer.content
     }).appendTo(inputBox);
+  });
+
+  inputBox = $('#inputLinemanager');
+  filterBox = $('#inputLinemanagerOptions');
+  allLinemanagers.forEach(function (linemanager) {
+    $('<option />', { value: linemanager.id, text: linemanager.id, }).appendTo(inputBox);
+    $('<option />', { value: linemanager.id, text: linemanager.id, }).appendTo(filterBox);
   });
 }
 
@@ -52,12 +76,12 @@ function get_engineer_load () {
   request.onload = (function(pid) {
     return function() {
       var old_backgrounds = [];
-      engineerAssignments.forEach(function (a) {
+      engineerTLItems.forEach(function (a) {
         if (a.type == 'background') {
           old_backgrounds.push(a.id);
         }
       })
-      engineerAssignments.remove(old_backgrounds);
+      engineerTLItems.remove(old_backgrounds);
 
       var data = JSON.parse(request.responseText);
       data.forEach(function (load) {
@@ -72,7 +96,7 @@ function get_engineer_load () {
         } else {
           color = 'red';
         }
-        engineerAssignments.add({
+        engineerTLItems.add({
           group: load.eid,
           type: 'background',
           start: load.start,
