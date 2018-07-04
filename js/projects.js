@@ -112,11 +112,11 @@ function get_project_load () {
       data.forEach(function (load) {
         var color;
         if (load.fte < -0.5) {
-          color = "green";
+          color = "black";
         } else if (load.fte < -0.2) {
-          color = "yellow";
+          color = "grey";
         } else if (load.fte < 0.2) {
-          color = "white";
+          color = "green";
         } else if (load.fte < 0.5) {
           color = "orange";
         } else {

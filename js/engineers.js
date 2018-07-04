@@ -85,12 +85,12 @@ function get_engineer_load () {
       var data = JSON.parse(request.responseText);
       data.forEach(function (load) {
         if (load.fte < -0.5) {
+          color = 'black';
+        } else if (load.fte < -0.1) {
+          color = 'grey';
+        } else if (load.fte < 0.1) {
           color = 'green';
-        } else if (load.fte < -0.2) {
-          color = 'yellow';
-        } else if (load.fte < 0.0) {
-          color = 'white';
-        } else if (load.fte < 0.2) {
+        } else if (load.fte < 0.5) {
           color = 'orange';
         } else {
           color = 'red';
@@ -101,7 +101,8 @@ function get_engineer_load () {
           start: load.start,
           end: load.end,
           editable: false,
-          style: "opacity: " + load.fte + ";background-color: " + color
+          content: "" + load.fte.toFixed(2) + " FTE",
+          style: "background-color: " + color
         });
       })
     };

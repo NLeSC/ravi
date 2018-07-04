@@ -277,6 +277,7 @@ projectsTimeline.on('select', function (properties) {
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {
+  'show': 'eng_and_proj', // eng_and_proj, eng, proj, eng_sum, proj_sum
   'state': 'all', // all, active, inactive
   'coordinator': 'all',
   'linemanager': 'all',
@@ -363,6 +364,10 @@ function applyFilterSettings () {
     ) && (
       (filterSettings.engineer == 'all') ||
       (filterSettings.engineer == assignment.eid)
+    ) && (
+      (filterSettings.show == 'eng_and_proj') ||
+      (filterSettings.show == 'eng') ||
+      (filterSettings.show == 'eng_sum')
     )) {
       show = true;
     }
@@ -389,49 +394,82 @@ function applyFilterSettings () {
   // projectTLItems.update(addPAs);
 }
 
+/**
+ * Remove engineer load backgrounds
+ */
+function clearEngineerLoads () {
+  var old_backgrounds = [];
+  engineerTLItems.forEach(function (a) {
+    if (a.type == 'background') {
+      old_backgrounds.push(a.id);
+    }
+  })
+  engineerTLItems.remove(old_backgrounds);
+}
+
+/**
+ * Remove project load coloring
+ */
+function clearProjectLoads () {
+  allProjects.forEach(function (project) {
+    project.style = "";
+    allProjects.update(project);
+  });
+}
+
 $('#inputWindowOptions').on('change', function () {
   var option = $('#inputWindowOptions').val();
+  filterSettings.show = option;
 
   var projTL = $('#visjs-projects-container');
   var engTL = $('#visjs-engineers-container');
 
   if (option == 'eng_and_proj') {
+    clearProjectLoads();
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
+    clearEngineerLoads();
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
   } else if (option == 'eng') {
+    clearEngineerLoads();
     engTL.removeClass('w-50');
     engTL.addClass('w-100');
     engTL.show();
 
     projTL.hide();
   } else if (option == 'proj') {
+    clearProjectLoads();
     projTL.removeClass('w-50');
     projTL.addClass('w-100');
     projTL.show();
 
     engTL.hide();
   } else if (option == 'eng_sum') {
+    get_project_load ();
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
+    clearEngineerLoads();
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
   } else if (option == 'proj_sum') {
+    clearProjectLoads();
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
+    get_engineer_load();
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
   }
+  applyFilterSettings();
 });
 
 $('#inputStatusOptions').on('change', function () {
