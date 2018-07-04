@@ -639,17 +639,20 @@ def get_assignments():
   
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
-    try:
-        assignment_data = json.loads(request.form['data'])
-        assignment = Assignment()
+    assignment_data = json.loads(request.form['data'])
+    assignment = Assignment()
+    if 'eid' in assignment_data:
         assignment.eid = str(assignment_data['eid'])
+    if 'pid' in assignment_data:
         assignment.pid = str(assignment_data['pid'])
+    if 'fte' in assignment_data:
         assignment.fte = assignment_data['fte']
+    if 'start' in assignment_data:
         assignment.start = date2ym(assignment_data['start'])
+    if 'end' in assignment_data:
         assignment.end = date2ym(assignment_data['end'])
-        db_session.add(assignment)
-    except Exception as err:
-        abort(500, "Incorrect assignment input:\n\n" + str(err))
+    db_session.add(assignment)
+
     try:
         db_session.commit()
     except Exception as err:

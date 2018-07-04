@@ -52,7 +52,7 @@ var timelineOptions = {
     projectTLItems.remove(item);
     allAssignments.remove(item);
 
-    delAssignment(item);
+    sendDeleteAssignmentToServer(item.id);
     callback(null); // we already removed the assignment ourselves, so block any further action
   },
   onMove: function (item, callback) {
@@ -78,29 +78,24 @@ var timelineOptions = {
       start : item.start.getFullYear() + '-' + (item.start.getMonth() + 1),
       end : item.end.getFullYear() + '-' + (item.end.getMonth() + 1),
       fte : 0.5,
-      aid : 5000, // FIXME
     }
-    assignment.id = assignment.aid;
 
+    // when adding on engineers timeline, the group is the engineer
+    // when adding on projects timeline, the group is the project
     if (allEngineers.get(item.group)) {
-      // adding on engineers timeline, the group is the engineer
       assignment.eid = item.group;
-      assignment.pid = allProjects.get()[0].id;
-      applyAssignmentUpdate(assignment);
     } else if (allProjects.get(item.group)) {
-      // adding on projects timeline, the group is the project
-      assignment.eid = allEngineers.get()[0].id;
       assignment.pid = item.group;
-      applyAssignmentUpdate(assignment);
     }
 
-    // high-light the added assignment and zoom to it
-    engineersTimeline.setSelection([assignment.id]);
-    engineersTimeline.focus([assignment.id]);
+    // have the database create the assignment and have it find
+    // an assignment index (aid)
+    sendCreateAssignmentToServer(assignment);
 
-    projectsTimeline.setSelection([assignment.id]);
-    projectsTimeline.focus([assignment.id]);
+    // get the new assignment from the server
+    sendRequestForAssignments(assignment.eid, assignment.pid);
 
+    // the assignment will be added when the server responds, so we're done here
     callback(null);
   }
 };
@@ -162,7 +157,7 @@ function openAssignmentModal (properties) {
     $('#inputEnd').val(assignment.end);
 
     $('#inputAidDiv').show()
-    $('#inputEngineerDiv').hide()
+    $('#inputEngineerDiv').show()
     $('#inputLinemanagerDiv').hide();
     $('#inputCoordinatorDiv').hide();
     $('#inputProjectDiv').show()

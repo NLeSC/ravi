@@ -1,7 +1,6 @@
 /**
- * Add assignments to the projects and engineers timelines
- *
  * An assignment is an object with the following properties:
+ *
  * Assignment {
  *   aid    : assignemnt ID
  *   eid    : engineer ID (name + first letter of last name)
@@ -10,12 +9,17 @@
  *   start  : start date (integer, YYYY-MM)
  *   end    : end data (integer, YYYY-MM)
  * }
+ */
+
+/**
+ * Add assignments to the projects and engineers timelines
+ *
  *
  * arguments:
  *    assignments: Array[assignment]
  *
  * uses the following global variables:
- *    engineerTLItems, projectTLItems
+ *    engineerTLItems, projectTLItems, allAssignments
  */
 function initializeAssignments (assignments) {
   // assignmenents: Array[assignment]
@@ -65,7 +69,7 @@ function initializeAssignments (assignments) {
  * arguments:
  *    assignment
  */
-function sendAssignmentToServer(assignment) {
+function sendAssignmentToServer (assignment) {
   req = new XMLHttpRequest()
   req.open('POST', 'http://localhost:5000/update_assignment')
   req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -78,6 +82,57 @@ function sendAssignmentToServer(assignment) {
     end: assignment.end
   }));
 }
+
+/**
+ * Delete an assignment at the server
+ *
+ * arguments:
+ *    assignmentID : typically assignment.aid
+ */
+function sendDeleteAssignmentToServer (assignmentID) {
+  var req = new XMLHttpRequest();
+  req.open('POST', 'http://localhost:5000/del_assignment');
+  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  req.send('aid=' + assignmentID);
+}
+
+/**
+ * Create a new assignment at the server.
+ *
+ * Note that the caller should take care to update its list of assignments
+ * by a call to sendRequestForAssignments() later.
+ *
+ * arguments:
+ *    assignment  : assignemnt object
+ */
+function sendCreateAssignmentToServer (assignment) {
+  var req = new XMLHttpRequest();
+  req.open('POST', 'http://localhost:5000/add_assignment');
+  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  req.send('data=' + JSON.stringify(assignment));
+}
+
+/**
+ * Send a request for (a subset of) assignments to the server.
+ *
+ * arguments:
+ *    eid : Optional, engineer ID; only request assignments for this engineer
+ *    pid : Optional, project ID; only request assignments for this project
+ */
+function sendRequestForAssignments (eid, pid) {
+  // sanitize arguments
+  eid = eid || "";
+  pid = pid || "";
+
+  var req = new XMLHttpRequest();
+  req.open('POST', 'http://localhost:5000/get_assignments');
+  req.onload = function() {
+    initializeAssignments(JSON.parse(req.responseText));
+  }
+  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  req.send('eid=' + eid + '&pid=' + pid);
+}
+
 
 function updateAssignments() {
     // clearAssignmentTable()
@@ -198,5 +253,6 @@ function plotTotalAssignments() {
     request.send();
     }
 
-updateAssignments()
+// updateAssignments()
+sendRequestForAssignments();
 
