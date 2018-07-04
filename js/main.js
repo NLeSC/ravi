@@ -164,6 +164,7 @@ function openAssignmentModal (properties) {
     $('#inputFTEDiv').show()
     $('#inputStartDiv').show()
     $('#inputEndDiv').show()
+    $('#inputStatusDiv').hide();
   } else if (properties.what == 'group-label' && allProjects.get(properties.group)) {
     var project = allProjects.get(properties.group);
 
@@ -172,15 +173,17 @@ function openAssignmentModal (properties) {
     $('#inputFTE').val(project.fte);
     $('#inputStart').val(project.start);
     $('#inputEnd').val(project.end);
+    $('#inputStatus').val(project.active ? 'active' : 'inactive');
 
-    $('#inputAidDiv').show()
-    $('#inputEngineerDiv').hide()
+    $('#inputAidDiv').show();
+    $('#inputEngineerDiv').hide();
     $('#inputLinemanagerDiv').hide();
     $('#inputCoordinatorDiv').show();
-    $('#inputProjectDiv').hide()
-    $('#inputFTEDiv').show()
-    $('#inputStartDiv').show()
-    $('#inputEndDiv').show()
+    $('#inputProjectDiv').hide();
+    $('#inputFTEDiv').show();
+    $('#inputStartDiv').show();
+    $('#inputEndDiv').show();
+    $('#inputStatusDiv').show();
   } else if (properties.what == 'group-label' && allEngineers.get(properties.group)) {
     var engineer = allEngineers.get(properties.group);
 
@@ -189,15 +192,17 @@ function openAssignmentModal (properties) {
     $('#inputFTE').val(engineer.fte);
     $('#inputStart').val(engineer.start);
     $('#inputEnd').val(engineer.end);
+    $('#inputStatus').val(engineer.active ? 'active' : 'inactive');
 
-    $('#inputAidDiv').show()
-    $('#inputEngineerDiv').hide()
+    $('#inputAidDiv').show();
+    $('#inputEngineerDiv').hide();
     $('#inputLinemanagerDiv').show();
     $('#inputCoordinatorDiv').hide();
-    $('#inputProjectDiv').hide()
-    $('#inputFTEDiv').show()
-    $('#inputStartDiv').show()
-    $('#inputEndDiv').show()
+    $('#inputProjectDiv').hide();
+    $('#inputFTEDiv').show();
+    $('#inputStartDiv').show();
+    $('#inputEndDiv').show();
+    $('#inputStatusDiv').show();
   } else {
     console.log(properties);
     return;
@@ -205,7 +210,6 @@ function openAssignmentModal (properties) {
 
   // start the model dialog continue processing on #assignmentUpdateApply.on('click')
   $('#assignmentModal').modal();
-
 }
 
 // update the assignment when the user clicks on the 'Apply changes' button
@@ -260,7 +264,6 @@ projectsTimeline.on('select', function (properties) {
     return;
   }
   var firstSelectedAssignment = allAssignments.get(properties.items[0]);
-
 
   if (properties.items[0] && firstSelectedAssignment) {
     engineersTimeline.setSelection([firstSelectedAssignment.id]);
@@ -373,15 +376,6 @@ function applyFilterSettings () {
         content: assignment.fte + ' FTE: ' + assignment.pid,
         editable: true
       });
-
-      // addPAs.push({
-      //   id: assignment.aid,
-      //   group: assignment.pid,
-      //   start: assignment.start,
-      //   end: assignment.end,
-      //   content: assignment.fte + ' FTE: ' + assignment.eid,
-      //   editable: true
-      // });
     } else {
       removeAid.push(assignment.id);
     }
