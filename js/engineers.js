@@ -51,11 +51,10 @@ function initializeEngineers (engineers) {
   // TODO: remove old options
   // add to the modal pop up on the project timeline
   inputBox = $('#inputEngineer');
+  filterBox = $('#inputEngineerOptions');
   allEngineers.forEach(function(engineer) {
-    $('<option />', {
-      value: engineer.id,
-      text: engineer.content
-    }).appendTo(inputBox);
+    $('<option />', { value: engineer.id, text: engineer.content }).appendTo(inputBox);
+    $('<option />', { value: engineer.id, text: engineer.content }).appendTo(filterBox);
   });
 
   inputBox = $('#inputLinemanager');

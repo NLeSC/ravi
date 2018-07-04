@@ -243,7 +243,10 @@ projectsTimeline.on('select', function (properties) {
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {
-  'project': 'all', // all, active, inactive
+  'state': 'all', // all, active, inactive
+  'coordinator': 'all',
+  'linemanager': 'all',
+  'engineer': 'all'
 };
 
 /**
@@ -260,23 +263,50 @@ var filterSettings = {
  *   engineerTLItems, projectTLItems
  */
 function applyFilterSettings () {
-  // projects are groups on the timeline and have
-  // a boolean 'visibile'
-  // This also hides the item for the duration (type 'background', in green)
+  // projects are groups on the timeline and have a boolean 'visible'
+  // This hides the all items: the assignments and the duration (type 'background', in green)
   allProjects.forEach(function (project) {
     project.visible = false;
 
     if ((
-      (filterSettings.project == 'all') ||
-      (filterSettings.project == 'active' && project.active == true) ||
-      (filterSettings.project == 'inactive' && project.active == false)
+      // if set, only show active/inactive projects
+      (filterSettings.state == 'all') ||
+      (filterSettings.state == 'active' && project.active == true) ||
+      (filterSettings.state == 'inactive' && project.active == false)
     ) && (
+      // if set, only show projects with selected coordinator
       (filterSettings.coordinator == 'all') ||
       (filterSettings.coordinator == project.coordinator)
     )) {
       project.visible = true;
     }
+    if (filterSettings.engineer != 'all') {
+      needle = false;
+      // if set, remove projects that dont have the selected engineer assigned:
+      // iterate over all projects, and stop and return true as soon as one assignment matches
+      project.visible = allAssignments.get().some(function (assignment) {
+        return (assignment.pid == project.pid && assignment.eid == filterSettings.engineer);
+      });
+    }
     allProjects.update(project);
+  });
+
+  // engineers are groups on the timeline and have a boolean 'visible'
+  allEngineers.forEach(function (engineer) {
+    engineer.visible = false;
+    if ((
+      // if set, only show active/inactive projects
+      (filterSettings.state == 'all') ||
+      (filterSettings.state == 'active' && engineer.active == true) ||
+      (filterSettings.state == 'inactive' && engineer.active == false)
+    ) && (
+      // if set, only show selected engineer
+      (filterSettings.engineer == 'all') ||
+      (filterSettings.engineer == engineer.id)
+    )) {
+      engineer.visible = true;
+    }
+    allEngineers.update(engineer);
   });
 
   // assignments are items on a timeline, that cannot be individually hidden/shown
@@ -288,15 +318,18 @@ function applyFilterSettings () {
   allAssignments.forEach(function (assignment) {
     var show = false;
     var project = allProjects.get(assignment.pid);
-    var egineer = allEngineers.get(assignment.eid);
+    var engineer = allEngineers.get(assignment.eid);
 
     if ((
-      (filterSettings.project == 'all') ||
-      (filterSettings.project == 'active' && project.active == true) ||
-      (filterSettings.project == 'inactive' && project.active == false)
+      (filterSettings.state == 'all') ||
+      (filterSettings.state == 'active' && project.active == true) ||
+      (filterSettings.state == 'inactive' && project.active == false)
     ) && (
       (filterSettings.coordinator == 'all') ||
       (filterSettings.coordinator = project.coordinator)
+    ) && (
+      (filterSettings.engineer == 'all') ||
+      (filterSettings.engineer == assignment.eid)
     )) {
       show = true;
     }
@@ -378,7 +411,7 @@ $('#inputWindowOptions').on('change', function () {
 });
 
 $('#inputProjectOptions').on('change', function () {
-  filterSettings.project = $('#inputProjectOptions').val();
+  filterSettings.state = $('#inputProjectOptions').val();
   applyFilterSettings();
 });
 
@@ -403,5 +436,10 @@ $('#inputCoordinatorOptions').on('change', function () {
 
 $('#inputLinemanagerOptions').on('change', function () {
   filterSettings.linemanager = $('#inputLinemanagerOptions').val();
+  applyFilterSettings();
+});
+
+$('#inputEngineerOptions').on('change', function () {
+  filterSettings.engineer = $('#inputEngineerOptions').val();
   applyFilterSettings();
 });
