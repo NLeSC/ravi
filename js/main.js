@@ -37,11 +37,11 @@ var timelineOptions = {
   groupEditable: true,
   type: 'range',
   template: function (item, element, data) {
-    var html = "<div>" + item.content + "</div>";
+    var html = '<div>' + item.content + '</div>';
     return html;
   },
   groupTemplate: function (item, element) {
-    var html = "<div>" + item.content + "</div>";
+    var html = '<div>' + item.content + '</div>';
     return html;
   },
   groupOrder: 'id',
@@ -295,7 +295,7 @@ function applyFilterSettings () {
   allEngineers.forEach(function (engineer) {
     engineer.visible = false;
     if ((
-      // if set, only show active/inactive projects
+      // if set, only show active/inactive engineers
       (filterSettings.state == 'all') ||
       (filterSettings.state == 'active' && engineer.active == true) ||
       (filterSettings.state == 'inactive' && engineer.active == false)
@@ -311,7 +311,6 @@ function applyFilterSettings () {
 
   // assignments are items on a timeline, that cannot be individually hidden/shown
   // so actually remove or add them where necessary
-  // however, project assignments are hidden with their project (ie. group) so skip them for now
   var addEAs = [];
   // var addPAs = [];
   var removeAid = [];
@@ -410,8 +409,8 @@ $('#inputWindowOptions').on('change', function () {
   }
 });
 
-$('#inputProjectOptions').on('change', function () {
-  filterSettings.state = $('#inputProjectOptions').val();
+$('#inputStatusOptions').on('change', function () {
+  filterSettings.state = $('#inputStatusOptions').val();
   applyFilterSettings();
 });
 

@@ -67,6 +67,7 @@ function initializeProjects(projects) {
       });
     }
 
+    // add project duration to the project timeline
     projectTLItems.update({
       id: project.pid,
       group: project.pid,
