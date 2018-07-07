@@ -13,7 +13,13 @@ from itertools import groupby
 import pandas as pd
 from builtins import str
 
-PROJECT_LOAD = "WITH totals AS (SELECT pid, sum((end - start) * fte / 12) AS assigned FROM assignments GROUP BY pid) SELECT projects.pid AS pid, (totals.assigned - projects.fte) AS fte FROM projects, totals WHERE projects.pid = totals.pid"
+PROJECT_LOAD = "WITH boundaries AS ( SELECT pid, end AS 'edge' FROM assignments UNION SELECT pid, start AS 'edge' FROM assignments UNION SELECT pid, start AS 'edge' FROM projects UNION SELECT pid, end AS 'edge' FROM projects), intervals AS ( SELECT b1.pid AS pid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.pid = b2.pid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.pid = b2.pid)) SELECT intervals.pid AS pid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte, intervals.end - intervals.start AS months FROM assignments, intervals WHERE assignments.pid = intervals.pid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.pid, intervals.start, intervals.end"
+
+PROJECT_AND_FTES ="SELECT assignments.pid AS pid, SUM(assignments.fte * (assignments.end - assignments.start)) / 12 AS assigned, projects.fte AS fte, projects.start AS start, projects.end AS end, projects.coordinator AS coordinator, projects.comments AS comments, projects.exact_code AS exact_code, projects.active AS active FROM assignments, projects WHERE assignments.pid = projects.pid GROUP BY projects.pid"
+
+
+
+TOTAL_LOAD = "WITH totals AS (SELECT pid, sum((end - start) * fte / 12) AS assigned FROM assignments GROUP BY pid) SELECT projects.pid AS pid, (totals.assigned - projects.fte) AS fte FROM projects, totals WHERE projects.pid = totals.pid"
 
 ENGINEER_LOAD = "WITH boundaries AS ( SELECT eid, end AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM engineers UNION SELECT eid, end AS 'edge' FROM engineers), intervals AS ( SELECT b1.eid AS eid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.eid = b2.eid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.eid = b2.eid)), load AS ( SELECT intervals.eid AS eid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte FROM assignments, intervals WHERE assignments.eid = intervals.eid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.eid, intervals.start, intervals.end) SELECT load.eid AS eid, load.start AS start, load.end AS end, load.fte - engineers.fte AS fte FROM load, engineers WHERE load.eid = engineers.eid"
 
@@ -107,10 +113,12 @@ def get_project_load():
     data = []
     for e in engine.execute(my_query):
         d = dict(e)
+        d['start'] = ym2date(d['start'])
+        d['end'] = ym2date(d['end'])
         data.append(d)
     return flask_response(data)
 
-@app.route('/get_engineer_load', methods = ['POST'])
+@app.route('/get_engineer_load', methods = ['GET'])
 def get_engineer_load():
     my_query = text(ENGINEER_LOAD)
     data = []
@@ -362,8 +370,9 @@ def get_total_assignments_plot():
 
 @app.route('/get_projects', methods = ['GET'])
 def get_projects():
+    my_query = text(PROJECT_AND_FTES)
     data = []
-    for p in db_session.query(Project).order_by(collate(Project.pid, 'NOCASE')).all():
+    for p in engine.execute(my_query):
         d = dict(p)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
@@ -621,16 +630,17 @@ def rename_project():
 
 @app.route('/get_assignments', methods = ['POST'])
 def get_assignments():
-    eid = request.form['eid']
-    pid = request.form['pid']
-    query = db_session.query(Assignment)
-    if eid != "":
-        query = query.filter_by(eid=eid)
-    if pid != "":
-        query = query.filter_by(pid=pid)
-    query = query.order_by(Assignment.pid, Assignment.eid, Assignment.start)
+    my_query = "SELECT aid, pid, eid, start, end, fte FROM assignments "
+    if (len(request.form['pid']) > 0 and len(request.form['eid']) > 0):
+        my_query += "WHERE pid = '" + request.form['pid'] + "' AND eid = '" + request.form['eid'] + "' "
+    elif (len(request.form['pid']) > 0):
+        my_query += "WHERE pid = '" + request.form['pid'] + "' "
+    elif (len(request.form['eid']) > 0):
+        my_query += "WHERE eid = '" + request.form['eid'] + "' "
+    my_query += "ORDER BY pid, eid, start"
+
     data = []
-    for a in query.all():
+    for a in engine.execute(my_query):
         d = dict(a)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
@@ -639,18 +649,13 @@ def get_assignments():
   
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
-    assignment_data = json.loads(request.form['data'])
+
     assignment = Assignment()
-    if 'eid' in assignment_data:
-        assignment.eid = str(assignment_data['eid'])
-    if 'pid' in assignment_data:
-        assignment.pid = str(assignment_data['pid'])
-    if 'fte' in assignment_data:
-        assignment.fte = assignment_data['fte']
-    if 'start' in assignment_data:
-        assignment.start = date2ym(assignment_data['start'])
-    if 'end' in assignment_data:
-        assignment.end = date2ym(assignment_data['end'])
+    assignment.eid = str(request.form['eid'])
+    assignment.pid = str(request.form['pid'])
+    assignment.fte = str(request.form['fte'])
+    assignment.start = date2ym(str(request.form['start']))
+    assignment.end = date2ym(str(request.form['end']))
     db_session.add(assignment)
 
     try:
@@ -663,34 +668,34 @@ def add_assignment():
 @app.route('/update_assignment', methods = ['POST'])
 def update_assignment():
     try:
-        assignment_data = json.loads(request.form['data'])
-        db_session.query(Assignment).\
-            filter_by(aid=assignment_data['aid']).update({
-                'eid': str(assignment_data['eid']),
-                'pid': str(assignment_data['pid']),
-                'fte': str(assignment_data['fte']),
-                'start': date2ym(assignment_data['start']),
-                'end': date2ym(assignment_data['end'])
-                })
+        db_session.query(Assignment).filter_by(aid=int(request.form['aid'])).update({
+            'eid': str(request.form['eid']),
+            'pid': str(request.form['pid']),
+            'fte': str(request.form['fte']),
+            'start': date2ym(str(request.form['start'])),
+            'end': date2ym(str(request.form['end']))
+            })
     except Exception as err:
-        abort(500, "Incorrect assignment input:\n\n" + str(err))
+        abort(500, "Parsing assignment failed:\n\n" + str(err))
+
     try:
         db_session.commit()
     except Exception as err:
         db_session.rollback()
         abort(500, "Updating assignment failed:\n\n" + str(err))
+
     return flask_response(["success"])
 
 @app.route('/del_assignment', methods = ['POST'])
 def del_assignment():
-    aid = request.form['aid']
-    a = db_session.query(Assignment).filter_by(aid=aid).one()
-    data = dict(a)
-    data['start'] = ym2date(data['start'])
-    data['end'] = ym2date(data['end'])
-    db_session.delete(a)
-    db_session.commit()
-    return flask_response(data)
+    try:
+        aid = int(request.form['aid'])
+    except Exception as err:
+        abort(500, "Incorrect assignment input:\n\n" + str(err))
+
+    engine.execute('DELETE FROM assignments WHERE aid = ' + str(aid))
+
+    return flask_response(["success"])
 
 @app.route('/get_user_settings', methods = ['GET'])
 def get_user_settings():

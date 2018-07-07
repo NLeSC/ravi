@@ -7,6 +7,7 @@ var allEngineers = new vis.DataSet(datasetOptions);
 var allProjects = new vis.DataSet(datasetOptions);
 var allLinemanagers = new vis.DataSet(datasetOptions);
 var allCoordinators = new vis.DataSet(datasetOptions);
+var allLoads = new vis.DataSet(datasetOptions);
 
 // Datasets bound to the timelines.
 // These are filtered depending on filterSettings,
@@ -32,7 +33,10 @@ var timelineOptions = {
     updateTime: true,    // drag items horizontally
     updateGroup: false,  // drag items from one group to another
     remove: true,        // delete an item by tapping the delete button top right
-    overrideItems: false // allow these options to override item.editable
+    overrideItems: true  // allow these options to override item.editable
+  },
+  orientation: {
+    axis: 'top'
   },
   groupEditable: true,
   type: 'range',
@@ -41,7 +45,14 @@ var timelineOptions = {
     return html;
   },
   groupTemplate: function (item, element) {
-    var html = '<div>' + item.content + '</div>';
+    var html;
+
+    if (allEngineers.get(item.id)) {
+      var engineer = allEngineers.get(item.id);
+      html = '<div> <img width=150px src="assets/' + engineer.eid + '.png")> ' + item.content + '</div>';
+    } else {
+      html = '<div>' + item.content + '</div>';
+    }
     return html;
   },
   groupOrder: 'id',
@@ -93,7 +104,7 @@ var timelineOptions = {
     sendCreateAssignmentToServer(assignment);
 
     // get the new assignment from the server
-    sendRequestForAssignments(assignment.eid, assignment.pid);
+    sendRequestForAssignmentsToServer(assignment.eid, assignment.pid);
 
     // the assignment will be added when the server responds, so we're done here
     callback(null);
@@ -274,6 +285,118 @@ projectsTimeline.on('select', function (properties) {
   }
 });
 
+/**
+ * Remove all items with property 'background'
+ * from the dataset.
+ * NOTE: this will automatically remove them from the timeline plot
+ *
+ * arguments:
+ *   dataset  : the DataSet to prune
+ */
+function remove_backgrounds (dataset) {
+  var backgrounds = [];
+  dataset.forEach(function (item) {
+    if (item.type == 'background') {
+      backgrounds.push(item.id);
+    }
+  })
+  dataset.remove(backgrounds);
+}
+
+/**
+ * Draw project load as items on the project timeline
+ * remove any other background present.
+ * arguments:
+ *   background : string, must be 'full' or 'summary'
+ */
+function draw_project_background (background) {
+  remove_backgrounds(projectTLItems);
+
+  // add project duration to the project timeline
+  allProjects.forEach(function (project) {
+    var color;
+    var style;
+    var content;
+
+    if (background == 'summary') {
+      if (project.balance < -0.5) {
+        color = 'black';
+      } else if (project.balance < -0.1) {
+        color = 'grey';
+      } else if (project.balance < 0.1) {
+        color = 'green';
+      } else if (project.balance < 0.5) {
+        color = 'orange';
+      } else {
+        color = 'red';
+      }
+      content = '' + project.assigned.toFixed(2) + ' / ' + project.fte.toFixed(2) + ' FTE';
+    } else if (background == 'full') {
+      color = 'rgba(105, 255, 98, 0.20)';
+      content = '';
+    } else {
+      console.error('Project background not implemented: ', background);
+    }
+
+    projectTLItems.update({
+      id: project.pid,
+      group: project.pid,
+      start: project.start,
+      end: project.end,
+      content: content,
+      type: 'background',
+      style: 'background-color: ' + color,
+      editable: false
+    });
+  });
+}
+
+/**
+ * Draw engineer load as items on the project timeline
+ * remove any other background present.
+ *
+ * arguments:
+ *   background : string, must be 'full' or 'summary'
+ */
+function draw_engineer_background (background) {
+  // NOTE: we dont control the ID for the load, as it is the result of
+  // some complex SQL query. Therefore we cannot update the items, but
+  // we have to remove and add everything
+  remove_backgrounds(engineerTLItems);
+
+  if (background == 'full') {
+    return;
+  }
+
+  if (background != 'summary') {
+    console.error('Background for engineer not implemented: ', background);
+  }
+
+  allLoads.forEach(function (load) {
+    if (load.fte < -0.5) {
+      color = 'black';
+    } else if (load.fte < -0.1) {
+      color = 'grey';
+    } else if (load.fte < 0.1) {
+      color = 'green';
+    } else if (load.fte < 0.5) {
+      color = 'orange';
+    } else {
+      color = 'red';
+    }
+
+    engineerTLItems.add({
+      group: load.eid,
+      type: 'background',
+      start: load.start,
+      end: load.end,
+      editable: false,
+      content: "" + load.fte.toFixed(2) + " FTE",
+      style: "background-color: " + color
+    });
+  });
+}
+
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {
@@ -281,7 +404,8 @@ var filterSettings = {
   'state': 'all', // all, active, inactive
   'coordinator': 'all',
   'linemanager': 'all',
-  'engineer': 'all'
+  'engineer': 'all',
+  'project': 'all'
 };
 
 /**
@@ -292,7 +416,7 @@ var filterSettings = {
  * As the timelines are bound to the DataSet, updating the views is automatic
  *
  * uses global args:
- *   filterSettings, allAssignments
+ *   filterSettings, allAssignments, allProjects, allEngineers
  *
  * datasets filtered:
  *   engineerTLItems, projectTLItems
@@ -312,6 +436,10 @@ function applyFilterSettings () {
       // if set, only show projects with selected coordinator
       (filterSettings.coordinator == 'all') ||
       (filterSettings.coordinator == project.coordinator)
+    ) && (
+      // if set, only show the selected project
+      (filterSettings.project == 'all') ||
+      (filterSettings.project == project.pid)
     )) {
       project.visible = true;
     }
@@ -341,14 +469,23 @@ function applyFilterSettings () {
     )) {
       engineer.visible = true;
     }
+    if (filterSettings.project != 'all') {
+      needle = false;
+      // if set, remove engineers that are not assigned to the selected project
+      // iterate over all engineers, and stop and return true as soon as one assignment matches
+      engineer.visible = allAssignments.get().some(function (assignment) {
+        return (assignment.eid == engineer.eid && assignment.pid == filterSettings.project);
+      });
+    }
     allEngineers.update(engineer);
   });
 
   // assignments are items on a timeline, that cannot be individually hidden/shown
   // so actually remove or add them where necessary
-  var addEAs = [];
-  // var addPAs = [];
-  var removeAid = [];
+  var addEA = [];
+  var addPA = [];
+  var removeEA = [];
+  var removePA = [];
   allAssignments.forEach(function (assignment) {
     var show = false;
     var project = allProjects.get(assignment.pid);
@@ -365,15 +502,19 @@ function applyFilterSettings () {
       (filterSettings.engineer == 'all') ||
       (filterSettings.engineer == assignment.eid)
     ) && (
-      (filterSettings.show == 'eng_and_proj') ||
-      (filterSettings.show == 'eng') ||
-      (filterSettings.show == 'eng_sum')
+      (filterSettings.project == 'all') ||
+      (filterSettings.project == assignment.pid)
     )) {
       show = true;
     }
 
-    if (show) {
-      addEAs.push({
+    // update assignment on engineer timeline
+    if (show && (
+      (filterSettings.show == 'eng_and_proj') ||
+      (filterSettings.show == 'eng') ||
+      (filterSettings.show == 'eng_sum')
+    )) {
+      addEA.push({
         id: assignment.aid,
         group: assignment.eid,
         start: assignment.start,
@@ -382,39 +523,33 @@ function applyFilterSettings () {
         editable: true
       });
     } else {
-      removeAid.push(assignment.id);
+      removeEA.push(assignment.id);
     }
 
-  });
-
-  engineerTLItems.remove(removeAid);
-  engineerTLItems.update(addEAs);
-
-  // projectTLItems.remove(removeAid);
-  // projectTLItems.update(addPAs);
-}
-
-/**
- * Remove engineer load backgrounds
- */
-function clearEngineerLoads () {
-  var old_backgrounds = [];
-  engineerTLItems.forEach(function (a) {
-    if (a.type == 'background') {
-      old_backgrounds.push(a.id);
+    // update assignment on project timeline
+    if (show && (
+      (filterSettings.show == 'eng_and_proj') ||
+      (filterSettings.show == 'proj') ||
+      (filterSettings.show == 'proj_sum')
+    )) {
+      addPA.push({
+        id: assignment.aid,
+        group: assignment.pid,
+        start: assignment.start,
+        end: assignment.end,
+        content: assignment.fte + ' FTE: ' + assignment.eid,
+        editable: true
+      });
+    } else {
+      removePA.push(assignment.id);
     }
-  })
-  engineerTLItems.remove(old_backgrounds);
-}
-
-/**
- * Remove project load coloring
- */
-function clearProjectLoads () {
-  allProjects.forEach(function (project) {
-    project.style = "";
-    allProjects.update(project);
   });
+
+  engineerTLItems.remove(removeEA);
+  engineerTLItems.update(addEA);
+
+  projectTLItems.remove(removePA);
+  projectTLItems.update(addPA);
 }
 
 $('#inputWindowOptions').on('change', function () {
@@ -425,46 +560,46 @@ $('#inputWindowOptions').on('change', function () {
   var engTL = $('#visjs-engineers-container');
 
   if (option == 'eng_and_proj') {
-    clearProjectLoads();
+    draw_project_background('full');
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
-    clearEngineerLoads();
+    draw_engineer_background ('full');
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
   } else if (option == 'eng') {
-    clearEngineerLoads();
+    draw_engineer_background ('full');
     engTL.removeClass('w-50');
     engTL.addClass('w-100');
     engTL.show();
 
     projTL.hide();
   } else if (option == 'proj') {
-    clearProjectLoads();
+    draw_project_background('full');
     projTL.removeClass('w-50');
     projTL.addClass('w-100');
     projTL.show();
 
     engTL.hide();
   } else if (option == 'eng_sum') {
-    get_project_load ();
+    draw_project_background('summary');
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
-    clearEngineerLoads();
+    draw_engineer_background ('full');
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
   } else if (option == 'proj_sum') {
-    clearProjectLoads();
+    draw_project_background('full');
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
-    get_engineer_load();
+    draw_engineer_background ('summary');
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
@@ -488,6 +623,8 @@ $('#inputSortOptions').on('change', function () {
     projectsTimeline.setOptions({groupOrder: 'sortStart'});
   } else if (sort == 'end') {
     projectsTimeline.setOptions({groupOrder: 'sortEnd'});
+  } else if (sort == 'balance') {
+    projectsTimeline.setOptions({groupOrder: 'balance'});
   }
 });
 
@@ -503,5 +640,10 @@ $('#inputLinemanagerOptions').on('change', function () {
 
 $('#inputEngineerOptions').on('change', function () {
   filterSettings.engineer = $('#inputEngineerOptions').val();
+  applyFilterSettings();
+});
+
+$('#inputProjectOptions').on('change', function () {
+  filterSettings.project = $('#inputProjectOptions').val();
   applyFilterSettings();
 });

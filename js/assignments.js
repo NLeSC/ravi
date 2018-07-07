@@ -14,19 +14,33 @@
 /**
  * Add assignments to the projects and engineers timelines
  *
- *
  * arguments:
  *    assignments: Array[assignment]
  *
  * uses the following global variables:
- *    engineerTLItems, projectTLItems, allAssignments
+ *    allAssignments
  */
 function initializeAssignments (assignments) {
   // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
     // sanitize data
+    var d;
     var start = assignment.start || '2015-01';
     var end = assignment.end || '2050-01';
+
+    d = new Date(start);
+    if (d.getMonth() < 9) {
+      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      start = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
+
+    d = new Date(end);
+    if (d.getMonth() < 9) {
+      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      end = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
 
     engineerTLItems.update({
       id: assignment.aid,
@@ -70,17 +84,23 @@ function initializeAssignments (assignments) {
  *    assignment
  */
 function sendAssignmentToServer (assignment) {
-  req = new XMLHttpRequest()
-  req.open('POST', 'http://localhost:5000/update_assignment')
-  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-  req.send('data=' + JSON.stringify({
-    aid: assignment.aid,
-    eid: assignment.eid,
-    pid: assignment.pid,
-    fte: assignment.fte,
-    start: assignment.start,
-    end: assignment.end
-  }));
+  form = new FormData()
+  form.append('aid', assignment.aid || '');
+  form.append('eid', assignment.eid || '');
+  form.append('pid', assignment.pid || '');
+  form.append('fte', assignment.fte || '');
+  form.append('start', assignment.start || '');
+  form.append('end', assignment.end || '');
+  console.log(form);
+
+  fetch('http://localhost:5000/update_assignment', {
+    method: 'POST',
+    body: form
+  })
+  .catch(function (error) {
+    alert('Cannot update assignment at server');
+    console.error(error);
+  });
 }
 
 /**
@@ -90,26 +110,46 @@ function sendAssignmentToServer (assignment) {
  *    assignmentID : typically assignment.aid
  */
 function sendDeleteAssignmentToServer (assignmentID) {
-  var req = new XMLHttpRequest();
-  req.open('POST', 'http://localhost:5000/del_assignment');
-  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  req.send('aid=' + assignmentID);
+
+  form = new FormData();
+  form.append('aid', assignmentID);
+
+  fetch('http://localhost:5000/del_assignment', {
+    method: 'POST',
+    body: form
+  })
+  .catch(function (error) {
+    alert('Cannot delete assignment from server');
+    console.error(error);
+  });
 }
 
 /**
  * Create a new assignment at the server.
  *
  * Note that the caller should take care to update its list of assignments
- * by a call to sendRequestForAssignments() later.
+ * by a call to sendRequestForAssignmentsToServer() later.
  *
  * arguments:
  *    assignment  : assignemnt object
  */
 function sendCreateAssignmentToServer (assignment) {
-  var req = new XMLHttpRequest();
-  req.open('POST', 'http://localhost:5000/add_assignment');
-  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  req.send('data=' + JSON.stringify(assignment));
+  form = new FormData()
+  form.append('eid', assignment.eid || '');
+  form.append('pid', assignment.pid || '');
+  form.append('fte', assignment.fte || '');
+  form.append('start', assignment.start || '');
+  form.append('end', assignment.end || '');
+  console.log(form);
+
+  fetch('http://localhost:5000/add_assignment', {
+    method: 'POST',
+    body: form
+  })
+  .catch(function (error) {
+    alert('Cannot create assignment at server');
+    console.error(error);
+  });
 }
 
 /**
@@ -119,140 +159,27 @@ function sendCreateAssignmentToServer (assignment) {
  *    eid : Optional, engineer ID; only request assignments for this engineer
  *    pid : Optional, project ID; only request assignments for this project
  */
-function sendRequestForAssignments (eid, pid) {
-  // sanitize arguments
-  eid = eid || "";
-  pid = pid || "";
+function sendRequestForAssignmentsToServer (eid, pid) {
 
-  var req = new XMLHttpRequest();
-  req.open('POST', 'http://localhost:5000/get_assignments');
-  req.onload = function() {
-    initializeAssignments(JSON.parse(req.responseText));
-  }
-  req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  req.send('eid=' + eid + '&pid=' + pid);
+  form = new FormData()
+  form.append('eid', eid || '');
+  form.append('pid', pid || '');
+  console.log(form);
+
+  fetch('http://localhost:5000/get_assignments', {
+    method: 'POST',
+    body: form
+  })
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    initializeAssignments(data);
+  })
+  .catch(function (error) {
+    alert('Cannot get assignments from server');
+    console.error(error);
+  });
 }
 
-
-function updateAssignments() {
-    // clearAssignmentTable()
-    // var eid = document.getElementById("assignment_eid").value
-    // var pid = document.getElementById("assignment_pid").value
-    var eid = ""
-    var pid = ""
-    request_assignments = new XMLHttpRequest()
-    request_assignments.open('POST', 'http://localhost:5000/get_assignments')
-    request_assignments.onload = function() {
-        var assignments = JSON.parse(request_assignments.responseText)
-        initializeAssignments(assignments);
-        // fillAssignmentTable(assignments)
-        }
-    request_assignments.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_assignments.send('eid=' + eid + '&pid=' + pid)    
-    }
-
-function fillAssignmentTable(assignments) {
-    var assignmentTable = document.getElementById('assignment_table')
-    for(i=0; i<assignments.length; i++){
-        a = assignments[i]
-        var newrow = assignmentTable.insertRow(i)
-        var c1 = newrow.insertCell(0)
-        c1.innerHTML = '<input type="button" value="' + a.eid + '" onClick="selectEngineer(\'' + a.eid + '\');scrollToEngineer();">'
-        var c2 = newrow.insertCell(1)
-        c2.innerHTML = '<input type="button" value="' + a.pid + '" onClick="selectProject(\'' + a.pid + '\');scrollToProject();">'
-        var c3 = newrow.insertCell(2)
-        c3.innerHTML = a.fte
-        var c4 = newrow.insertCell(3)
-        c4.innerHTML = a.start
-        var c5 = newrow.insertCell(4)
-        c5.innerHTML = a.end
-        var c6 = newrow.insertCell(5)
-        c6.innerHTML = '<span title="This deletes the assignment, allowing to make changes and to add it back to the list.">' +
-                       '<input type="button" name="button" value="Change" onClick="delAssignment('+a.aid+');">' +
-                       '</span>'
-        }
-    }
-
-function clearAssignmentTable() {
-    var assignmentTable = document.getElementById('assignment_table')
-    table_length = assignment_table.rows.length
-    for(i=table_length-1; i>=0; i--) {
-        assignmentTable.deleteRow(i)
-        }
-    }
-
-function resetAssignmentForm() {
-    var aform = document.getElementById('assignmentsform')
-    aform.elements['eid'].value = document.getElementById('engineer_name').value
-    aform.elements['pid'].value = document.getElementById('project_name').value
-    aform.elements['fte'].value = ''
-    aform.elements['start'].value = document.getElementById('project_start').value
-    aform.elements['end'].value = document.getElementById('project_end').value
-    }
-
-function checkResponse(request_object) {
-    if (request_object.readyState == 4 && request_object.status == 200) {
-        return true
-        }
-    else {
-        alert(JSON.parse(request_object.responseText)['error'])
-        return false
-        }
-    }
-
-function addAssignment(data) {
-    var form = document.getElementById('assignmentsform')
-    assignment_data = {
-        "eid": form.elements["eid"].value,
-        "pid": form.elements["pid"].value,
-        "fte": form.elements["fte"].value,
-        "start": form.elements["start"].value,
-        "end": form.elements["end"].value
-        }
-    request_add_assignment = new XMLHttpRequest()
-    request_add_assignment.open('POST', 'http://localhost:5000/add_assignment')
-    request_add_assignment.onload = function() {
-        if (checkResponse(request_add_assignment)) {
-            resetAssignmentForm()
-            updateAssignments()
-            engineers[assignment_data['eid']].plot()
-            projects[assignment_data['pid']].plot()
-            plotProject()
-            }
-        }
-    request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_add_assignment.send('data=' + JSON.stringify(assignment_data))    
-    }
-
-function delAssignment(aid) {
-    request_del_assignment = new XMLHttpRequest()
-    request_del_assignment.open('POST', 'http://localhost:5000/del_assignment')
-    request_del_assignment.onload = function() {
-        var assignment = JSON.parse(request_del_assignment.responseText)
-        updateAssignments()
-        engineers[assignment.eid].plot()
-        projects[assignment.pid].plot()
-        plotProject()
-        form = document.getElementById('assignmentsform')
-        form.elements["eid"].value = assignment.eid
-        form.elements["pid"].value = assignment.pid
-        form.elements["fte"].value = assignment.fte
-        form.elements["start"].value = assignment.start
-        form.elements["end"].value = assignment.end
-        }
-    request_del_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_del_assignment.send('aid=' + aid)    
-    }
-
-function plotTotalAssignments() {
-    var request = new XMLHttpRequest();
-    request.open('GET', 'http://localhost:5000/get_total_assignments_plot');
-    request.onload = function() {
-        plotDetails(JSON.parse(request.responseText), 'Total assignments', 0.05, 'left', true);
-        }
-    request.send();
-    }
-
-// updateAssignments()
-sendRequestForAssignments();
-
+sendRequestForAssignmentsToServer();

@@ -25,6 +25,26 @@ var engineers = {}
 
 function initializeEngineers (engineers) {
   engineers.forEach(function(engineer) {
+
+    // sanitize data
+    var d;
+    var start = engineers.start || '2015-01';
+    var end = engineers.end || '2050-01';
+
+    d = new Date(start);
+    if (d.getMonth() < 9) {
+      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      start = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
+
+    d = new Date(end);
+    if (d.getMonth() < 9) {
+      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      end = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
+
     allEngineers.update({
       id: engineer.eid,
       eid: engineer.eid,
@@ -48,10 +68,15 @@ function initializeEngineers (engineers) {
   });
 
 
-  // TODO: remove old options
   // add to the modal pop up on the project timeline
   inputBox = $('#inputEngineer');
   filterBox = $('#inputEngineerOptions');
+
+  inputBox.empty();
+  filterBox.empty();
+
+  $('<option />', { value: 'all', text: 'All' }).appendTo(filterBox);
+
   allEngineers.forEach(function(engineer) {
     $('<option />', { value: engineer.id, text: engineer.content }).appendTo(inputBox);
     $('<option />', { value: engineer.id, text: engineer.content }).appendTo(filterBox);
@@ -59,6 +84,12 @@ function initializeEngineers (engineers) {
 
   inputBox = $('#inputLinemanager');
   filterBox = $('#inputLinemanagerOptions');
+
+  inputBox.empty();
+  filterBox.empty();
+
+  $('<option />', { value: 'all', text: 'All' }).appendTo(filterBox);
+
   allLinemanagers.forEach(function (linemanager) {
     $('<option />', { value: linemanager.id, text: linemanager.id, }).appendTo(inputBox);
     $('<option />', { value: linemanager.id, text: linemanager.id, }).appendTo(filterBox);
@@ -66,245 +97,80 @@ function initializeEngineers (engineers) {
 }
 
 /**
- * Request the engineer loads from the server
+ * Parse the server response to get_engineer_load
+ * Store the data in the global allLoads variable
  */
-function get_engineer_load () {
-  var request = new XMLHttpRequest();
+function initializeEngineerLoads (loads) {
+  loads.forEach(function (load) {
+    // sanitize data
+    var d;
+    var start = load.start || '2015-01';
+    var end = load.end || '2050-01';
 
-  request.open('POST', 'http://localhost:5000/get_engineer_load');
-  request.onload = (function(pid) {
-    return function() {
-      var old_backgrounds = [];
-      engineerTLItems.forEach(function (a) {
-        if (a.type == 'background') {
-          old_backgrounds.push(a.id);
-        }
-      })
-      engineerTLItems.remove(old_backgrounds);
+    d = new Date(start);
+    if (d.getMonth() < 9) {
+      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      start = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
 
-      var data = JSON.parse(request.responseText);
-      data.forEach(function (load) {
-        if (load.fte < -0.5) {
-          color = 'black';
-        } else if (load.fte < -0.1) {
-          color = 'grey';
-        } else if (load.fte < 0.1) {
-          color = 'green';
-        } else if (load.fte < 0.5) {
-          color = 'orange';
-        } else {
-          color = 'red';
-        }
-        engineerTLItems.add({
-          group: load.eid,
-          type: 'background',
-          start: load.start,
-          end: load.end,
-          editable: false,
-          content: "" + load.fte.toFixed(2) + " FTE",
-          style: "background-color: " + color
-        });
-      })
-    };
-  })(this.pid);
-  request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-  request.send();
+    d = new Date(end);
+    if (d.getMonth() < 9) {
+      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
+    } else {
+      end = d.getFullYear() + '-' + (d.getMonth() + 1);
+    }
+
+    allLoads.update({
+      eid: load.eid,
+      start: load.start,
+      end: load.end,
+      fte: load.fte
+    });
+  });
 }
 
-function createEngineerTable(engineerList) {
-    for(i=0; i<engineerList.length; i++) {
-        var e_data = engineerList[i]
-        // addEngineerTableRow(e_data.eid)
-        e = new Engineer(e_data)
-        // e.plot()
-        engineers[e_data.eid] = e
-        }
-    }
-
-function addEngineerTableRow(eid) {
-    var engineerTable = document.getElementById('engineer_table')
-    var newrow = engineerTable.insertRow(-1)
-    var cell1 = newrow.insertCell(0)
-    var cell2 = newrow.insertCell(1)
-    newrow.id = eid
-    cell1.innerHTML = '<div style="width:135px">' + eid + '</div>'
-    cell2.id = "plot_" + eid
-    document.getElementById(eid).addEventListener("click", function() {
-        selectEngineer(eid)
-        })
-    }
-
-function Engineer(engineer_data) {
-    this.eid = engineer_data.eid
-    this.exact_id = engineer_data.exact_id
-    this.start = engineer_data.start
-    this.end = engineer_data.end
-    this.fte = engineer_data.fte
-    this.comments = engineer_data.comments
-    this.active = engineer_data.active
-    
-    this.plot = function () {
-        var engineerPlot = document.getElementById("plot_" + this.eid)
-        var request = new XMLHttpRequest();
-
-        request.open('POST', 'http://localhost:5000/get_engineer_data');
-        request.onload = function() {
-            plotPlanning(JSON.parse(request.responseText), engineerPlot);
-            }
-        request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request.send('eid=' + this.eid);
-        }
-    }
-
-function plotEngineer(popup=false) {
-    var eid = document.getElementById('engineerform').elements['name'].value
-    var exact_id = document.getElementById('engineerform').elements['exact'].value
-    var request = new XMLHttpRequest();
-    request.open('POST', 'http://localhost:5000/get_engineer_plot');
-    request.onload = function() {
-        plotDetails(JSON.parse(request.responseText), eid, 0.95, 'right', 'plot_engineer', popup);
-        }
-    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request.send('eid=' + eid + '&exact=' + exact_id);
-    }
-
-function selectEngineer(eid) {
-    var engineer = engineers[eid]
-    document.getElementById("engineer_name").value = engineer.eid;
-    document.getElementById("engineer_fte").value = engineer.fte;
-    document.getElementById("engineer_start").value = engineer.start;
-    document.getElementById("engineer_end").value = engineer.end;
-    document.getElementById("engineer_exact").value = engineer.exact_id;
-    document.getElementById("engineer_comments").value = engineer.comments;
-    document.getElementById("engineer_active").checked = engineer.active;
-    plotEngineer()
-    }
-
-function clearEngineerSelection() {
-    document.getElementById("engineerform").reset()
-    unhighlightEngineers()
-    resetAssignmentForm()
-    updateAssignments()
-    }
-
-function unhighlightEngineers() {
-    var tableRows = document.getElementById("engineer_table").getElementsByTagName("tr")
-    for(r=0; r<tableRows.length; r++) {
-        tableRows[r].style.backgroundColor = "white"
-        }
-    }
-
-function scrollToEngineer() {
-    var query = document.getElementById("engineer_name").value.toLowerCase()
-    if (query.length > 0) {
-        for(eid in engineers) {
-            if (eid.toLowerCase().indexOf(document.getElementById("engineer_name").value.toLowerCase()) == 0) {
-                document.getElementById(eid).scrollIntoView();
-                break;
-                }
-            }
-        }
-    }
-
-function updateInactiveEngineers() {
-    var tableRows = document.getElementById("engineer_table").getElementsByTagName("tr")
-    var showInactives = document.getElementById('timerangeform').elements['inactive_engineers'].checked
-    for(r=0; r<tableRows.length; r++) {
-        if (engineers[tableRows[r].id].active || showInactives) {
-            tableRows[r].style.display = "";
-            }
-        else {
-            tableRows[r].style.display = "none";
-            }
-        }
-    }
-
-function addEngineer() {
-    var eid = document.getElementById("engineer_name").value
-    var fte = document.getElementById("engineer_fte").value
-    var start = document.getElementById("engineer_start").value
-    var end = document.getElementById("engineer_end").value
-    var exact = document.getElementById("engineer_exact").value
-    var comments = document.getElementById("engineer_comments").value
-    var active = document.getElementById("engineer_active").checked
-    var engineer_data = {
-        "eid": eid,
-        "fte": fte,
-        "start": start,
-        "end": end,
-        "exact_id": exact,
-        "comments": comments,
-        "active": active
-        }
-    request_add_engineer = new XMLHttpRequest()
-    request_add_engineer.open('POST', 'http://localhost:5000/add_engineer')
-    request_add_engineer.onload = function() {
-        if (checkResponse(request_add_engineer)) {
-            if (!(eid in engineers)) {
-                addEngineerTableRow(eid)
-                }
-            engineers[eid] = new Engineer(engineer_data)
-            engineers[eid].plot()
-            updateInactiveEngineers()
-            }
-        }
-    request_add_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_add_engineer.send('data=' + JSON.stringify(engineer_data))    
-    }
-
-function renameEngineer() {
-    var eid = document.getElementById("engineer_name").value
-    if (eid) {
-        var newID = prompt("Change name of engineer \"" + eid + "\" into:", eid)
-        request_rename_engineer = new XMLHttpRequest()
-        request_rename_engineer.open('POST', 'http://localhost:5000/rename_engineer')
-        request_rename_engineer.onload = function() {
-            location.reload()
-            }
-        request_rename_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request_rename_engineer.send('eid=' + eid + '&newid=' + newID)
-        }
-    }
-
-function delEngineer() {
-    var eid = document.getElementById("engineer_name").value
-    if (eid) {
-        if (confirm("Do you want to remove engineer \"" + eid + "\" and all his/her assignments?") == true) {
-            document.getElementById(eid).remove()
-            delete engineers[eid]
-            request_del_engineer = new XMLHttpRequest()
-            request_del_engineer.open('POST', 'http://localhost:5000/del_engineer')
-            request_del_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-            request_del_engineer.send('eid=' + eid)
-            clearEngineerSelection()
-            }
-        }
-    }
-
-function printEngineers() {
-    var print_window = window.open('', 'PRINT', 'height=600,width=1000')
-
-    print_window.document.write('<html><head><title>' + document.title  + '</title>')
-    print_window.document.write('<style>tr {page-break-inside: avoid}</style>')
-    print_window.document.write('</head><body><h1>Engineer planning</h1><table>')
-    print_window.document.write('<tfoot><tr ><td style="width: 100px"></td><td>')
-    print_window.document.write(document.getElementById("xLabels1").innerHTML + '</td></tr></tfoot>')
-    print_window.document.write('<tbody>' + document.getElementById("engineer_table").innerHTML)
-    print_window.document.write('</tbody></table><script src="js/plotly-latest.min.js"></script></body></html>')
-    print_window.document.close(); // necessary for IE >= 10
-    print_window.focus(); // necessary for IE >= 10*/
-    print_window.print();
-    print_window.close();
-
-    return true;
+/**
+ * Send a request for engineers to the server.
+ *
+ * The response is parsed, and the allEngineers global variable is update()-ed
+ * via a call to initializeEngineers()
+ *
+ */
+function sendRequestForEngineersToServer () {
+  fetch('http://localhost:5000/get_engineers')
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    initializeEngineers(data);
+  })
+  .catch(function (error) {
+    alert('Cannot get engineers from server');
+    console.error(error);
+  });
 }
 
-var request_engineers = new XMLHttpRequest();
-request_engineers.open('GET', 'http://localhost:5000/get_engineers');
-request_engineers.onload = function() {
-    var engineerList = JSON.parse(request_engineers.responseText);
-    initializeEngineers(engineerList);
-    createEngineerTable(engineerList);
-    // updateInactiveEngineers();
-    }
-request_engineers.send();
+/**
+ * Send a request for engineer load to the server.
+ *
+ * The response is parsed, and the allLoads global variable is update()-ed
+ * via a call to initializeEngineerLoads()
+ *
+ */
+function sendRequestForEngineerLoadsToServer (eid, pid) {
+  fetch('http://localhost:5000/get_engineer_load')
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    initializeEngineerLoads(data);
+  })
+  .catch(function (error) {
+    alert('Cannot get engineer load from server');
+    console.error(error);
+  });
+}
+
+sendRequestForEngineersToServer();
+sendRequestForEngineerLoadsToServer();
