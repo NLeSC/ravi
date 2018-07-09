@@ -680,3 +680,10 @@ $('#inputProjectOptions').on('change', function () {
   filterSettings.project = $('#inputProjectOptions').val();
   applyFilterSettings();
 });
+
+
+sendRequestForEngineersToServer();
+sendRequestForProjectsToServer();
+sendRequestForAssignmentsToServer();
+sendRequestForEngineerLoadsToServer();
+sendRequestForOverviewToServer();

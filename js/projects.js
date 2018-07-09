@@ -149,6 +149,3 @@ function sendRequestForOverviewToServer () {
     console.error(error);
   });
 }
-
-sendRequestForProjectsToServer();
-sendRequestForOverviewToServer();

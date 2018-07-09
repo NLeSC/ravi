@@ -171,6 +171,3 @@ function sendRequestForEngineerLoadsToServer (eid, pid) {
     console.error(error);
   });
 }
-
-sendRequestForEngineersToServer();
-sendRequestForEngineerLoadsToServer();

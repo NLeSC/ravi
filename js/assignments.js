@@ -181,5 +181,3 @@ function sendRequestForAssignmentsToServer (eid, pid) {
     console.error(error);
   });
 }
-
-sendRequestForAssignmentsToServer();
