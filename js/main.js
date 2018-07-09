@@ -506,8 +506,7 @@ function applyFilterSettings () {
   var removePA = [];
   allAssignments.forEach(function (assignment) {
     var show = false;
-    var project = allProjects.get(assignment.pid);
-    var engineer = allEngineers.get(assignment.eid);
+    var project = allProjects.get(assignment.pid) || {active: false, coordinator: false};
 
     if ((
       (filterSettings.state == 'all') ||
@@ -515,7 +514,7 @@ function applyFilterSettings () {
       (filterSettings.state == 'inactive' && project.active == false)
     ) && (
       (filterSettings.coordinator == 'all') ||
-      (filterSettings.coordinator = project.coordinator)
+      (filterSettings.coordinator == project.coordinator)
     ) && (
       (filterSettings.engineer == 'all') ||
       (filterSettings.engineer == assignment.eid)
