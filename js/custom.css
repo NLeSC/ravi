@@ -1,0 +1,30 @@
+
+.overview-available-line {
+  stroke: blue;
+  fill: blue;
+  fill-opacity: 0.2;
+}
+
+rect.overview-available-line.vis-point {
+  stroke-width: 0px;
+  fill: none;
+}
+
+rect.overview-required-line.vis-point {
+  stroke-width: 0px;
+  fill: none;
+}
+
+.overview-required-line {
+  stroke: black;
+  fill: none;
+}
+
+#RAVIControlsDiv {
+  margin-top: 1em;
+}
+
+.filter-option {
+  background-color: grey;
+  color: white;
+}
