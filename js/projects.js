@@ -115,4 +115,40 @@ function sendRequestForProjectsToServer () {
   });
 }
 
+/**
+ * Send a request for the overview to the server.
+ */
+function sendRequestForOverviewToServer () {
+  fetch('http://localhost:5000/get_overview')
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    // Add overview data to plot
+    overviewItems.clear();
+
+    data['available'].forEach(function (item) {
+      overviewItems.add({
+        x: item.start,
+        end: item.end,
+        y: item.fte,
+        group: 'available'
+      });
+    });
+    data['required'].forEach(function (item) {
+      overviewItems.add({
+        x: item.start,
+        end: item.end,
+        y: item.fte,
+        group: 'required'
+      });
+    });
+  })
+  .catch(function (error) {
+    alert('Cannot get projects from server');
+    console.error(error);
+  });
+}
+
 sendRequestForProjectsToServer();
+sendRequestForOverviewToServer();

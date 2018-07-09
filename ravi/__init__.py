@@ -17,9 +17,9 @@ PROJECT_LOAD = "WITH boundaries AS ( SELECT pid, end AS 'edge' FROM assignments 
 
 PROJECT_AND_FTES ="SELECT assignments.pid AS pid, SUM(assignments.fte * (assignments.end - assignments.start)) / 12 AS assigned, projects.fte AS fte, projects.start AS start, projects.end AS end, projects.coordinator AS coordinator, projects.comments AS comments, projects.exact_code AS exact_code, projects.active AS active FROM assignments, projects WHERE assignments.pid = projects.pid GROUP BY projects.pid"
 
+REQUIRED_FTE="WITH boundaries AS ( SELECT start AS 'edge' FROM projects UNION SELECT end AS 'edge' FROM projects), intervals AS ( SELECT b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge)) SELECT intervals.start AS start, intervals.end AS end, sum(projects.fte * 12 / (projects.end - projects.start)) AS fte, intervals.end - intervals.start AS months FROM projects, intervals WHERE projects.start < intervals.end AND projects.end > intervals.start GROUP BY intervals.start, intervals.end"
 
-
-TOTAL_LOAD = "WITH totals AS (SELECT pid, sum((end - start) * fte / 12) AS assigned FROM assignments GROUP BY pid) SELECT projects.pid AS pid, (totals.assigned - projects.fte) AS fte FROM projects, totals WHERE projects.pid = totals.pid"
+AVAILABLE_FTE="WITH boundaries AS ( SELECT start AS 'edge' FROM assignments WHERE assignments.eid NOT LIKE '00_%' UNION SELECT end AS 'edge' FROM assignments WHERE assignments.eid NOT LIKE '00_%'), intervals AS ( SELECT b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge)) SELECT intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte, intervals.end - intervals.start AS months FROM assignments, intervals WHERE assignments.start < intervals.end AND assignments.end > intervals.start AND assignments.eid NOT LIKE '00_%' GROUP BY intervals.start, intervals.end ORDER BY intervals.start"
 
 ENGINEER_LOAD = "WITH boundaries AS ( SELECT eid, end AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM engineers UNION SELECT eid, end AS 'edge' FROM engineers), intervals AS ( SELECT b1.eid AS eid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.eid = b2.eid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.eid = b2.eid)), load AS ( SELECT intervals.eid AS eid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte FROM assignments, intervals WHERE assignments.eid = intervals.eid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.eid, intervals.start, intervals.end) SELECT load.eid AS eid, load.start AS start, load.end AS end, load.fte - engineers.fte AS fte FROM load, engineers WHERE load.eid = engineers.eid"
 
@@ -127,6 +127,29 @@ def get_engineer_load():
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
         data.append(d)
+    return flask_response(data)
+
+@app.route('/get_overview', methods = ['GET'])
+def get_overview():
+    my_query = text(REQUIRED_FTE)
+    req = []
+    for e in engine.execute(my_query):
+        d = dict(e)
+        d['start'] = ym2date(d['start'])
+        d['end'] = ym2date(d['end'])
+        req.append(d)
+
+    my_query = text(AVAILABLE_FTE)
+    avl = []
+    for e in engine.execute(my_query):
+        d = dict(e)
+        d['start'] = ym2date(d['start'])
+        d['end'] = ym2date(d['end'])
+        avl.append(d)
+
+    data = dict()
+    data['required'] = req
+    data['available'] = avl
     return flask_response(data)
 
 @app.route('/get_engineer_data', methods = ['POST'])

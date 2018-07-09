@@ -15,6 +15,7 @@ var allLoads = new vis.DataSet(datasetOptions);
 
 var engineerTLItems = new vis.DataSet(datasetOptions);
 var projectTLItems = new vis.DataSet(datasetOptions);
+var overviewItems = new vis.DataSet(datasetOptions);
 
 // Configuration for the Timeline
 var d = new Date();
@@ -151,6 +152,23 @@ var projectsTimeline = new vis.Timeline(projectsContainer, projectTLItems, allPr
 
 var engineersContainer = document.getElementById('visjs-engineers-container');
 var engineersTimeline = new vis.Timeline(engineersContainer, engineerTLItems, allEngineers, timelineOptions);
+
+var overviewGroups = new vis.DataSet();
+overviewGroups.add([
+  {
+    content: 'available',
+    id: 'available',
+    className: 'overview-available-line'
+  }, {
+    content: 'required',
+    id: 'required',
+    className: 'overview-required-line'
+  }]
+);
+
+var overviewContainer = document.getElementById('visjs-overview-container');
+var overviewPlot = new vis.Graph2d(overviewContainer, overviewItems, overviewGroups, {legend: true});
+overviewPlot.on('rangechanged', function () {overviewPlot.redraw()});
 
 // map contextmenu (ie. right mouse button)
 // to open a modal window to update assignments
@@ -558,6 +576,7 @@ $('#inputWindowOptions').on('change', function () {
 
   var projTL = $('#visjs-projects-container');
   var engTL = $('#visjs-engineers-container');
+  var ovPlt = $('#visjs-overview-container');
 
   if (option == 'eng_and_proj') {
     draw_project_background('full');
@@ -569,6 +588,8 @@ $('#inputWindowOptions').on('change', function () {
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
+
+    ovPlt.hide();
   } else if (option == 'eng') {
     draw_engineer_background ('full');
     engTL.removeClass('w-50');
@@ -576,6 +597,7 @@ $('#inputWindowOptions').on('change', function () {
     engTL.show();
 
     projTL.hide();
+    ovPlt.hide();
   } else if (option == 'proj') {
     draw_project_background('full');
     projTL.removeClass('w-50');
@@ -583,6 +605,7 @@ $('#inputWindowOptions').on('change', function () {
     projTL.show();
 
     engTL.hide();
+    ovPlt.hide();
   } else if (option == 'eng_sum') {
     draw_project_background('summary');
     projTL.removeClass('w-100');
@@ -593,6 +616,7 @@ $('#inputWindowOptions').on('change', function () {
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
+    ovPlt.hide();
   } else if (option == 'proj_sum') {
     draw_project_background('full');
     projTL.removeClass('w-100');
@@ -603,7 +627,16 @@ $('#inputWindowOptions').on('change', function () {
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
+    ovPlt.hide();
+  } else if (option == 'overview') {
+    engTL.hide();
+    projTL.hide();
+
+    ovPlt.show();
+    overviewPlot.fit();
+    sendRequestForOverviewToServer();
   }
+
   applyFilterSettings();
 });
 
