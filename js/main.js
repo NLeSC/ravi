@@ -462,11 +462,18 @@ function applyFilterSettings () {
       project.visible = true;
     }
     if (filterSettings.engineer != 'all') {
-      needle = false;
+      needle = project.visible;
       // if set, remove projects that dont have the selected engineer assigned:
-      // iterate over all projects, and stop and return true as soon as one assignment matches
-      project.visible = allAssignments.get().some(function (assignment) {
+      project.visible = needle && allAssignments.get().some(function (assignment) {
         return (assignment.pid == project.pid && assignment.eid == filterSettings.engineer);
+      });
+    }
+    if (filterSettings.linemanager != 'all') {
+      needle = project.visible;
+      // if set, remove projects that are not assigned to a engineer with the select linemanager
+      engineer.visible = needle && allAssignments.get().some(function (assignment) {
+        var engineer = allEngineers.get(assignment.eid) || {linemananer: false};
+        return (assignment.pid == projecct.pid && filterSettings.linemanager == engineer.linemanager);
       });
     }
     allProjects.update(project);
@@ -488,11 +495,18 @@ function applyFilterSettings () {
       engineer.visible = true;
     }
     if (filterSettings.project != 'all') {
-      needle = false;
+      needle = engineer.visible;
       // if set, remove engineers that are not assigned to the selected project
-      // iterate over all engineers, and stop and return true as soon as one assignment matches
-      engineer.visible = allAssignments.get().some(function (assignment) {
+      engineer.visible = needle && allAssignments.get().some(function (assignment) {
         return (assignment.eid == engineer.eid && assignment.pid == filterSettings.project);
+      });
+    }
+    if (filterSettings.coordinator != 'all') {
+      needle = engineer.visible;
+      // if set, remove engineers that are not assigned to the selected project
+      engineer.visible = needle && allAssignments.get().some(function (assignment) {
+        var project = allProjects.get(assignment.pid) || {coordinator: false};
+        return (assignment.eid == engineer.eid && filterSettings.coordinator == project.coordinator);
       });
     }
     allEngineers.update(engineer);
