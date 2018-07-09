@@ -320,17 +320,17 @@ function draw_project_background (background) {
 
     if (background == 'summary') {
       if (project.balance < -0.5) {
-        color = 'black';
+        color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
       } else if (project.balance < -0.1) {
-        color = 'grey';
+        color = 'rgba(75, 75, 75, 0.20)';   // Grey
       } else if (project.balance < 0.1) {
-        color = 'green';
+        color = 'rgba(10, 255, 10, 0.20)';  // Green
       } else if (project.balance < 0.5) {
-        color = 'orange';
+        color = 'rgba(200, 200, 10, 0.20)'; // Orange
       } else {
-        color = 'red';
+        color = 'rgba(255, 10, 10, 0.20)';  // Red
       }
-      content = '' + project.assigned.toFixed(2) + ' / ' + project.fte.toFixed(2) + ' FTE';
+      content = 'Assigned: ' + project.assigned.toFixed(2) + ' of ' + project.fte.toFixed(2) + ' FTE';
     } else if (background == 'full') {
       color = 'rgba(105, 255, 98, 0.20)';
       content = '';
@@ -374,15 +374,15 @@ function draw_engineer_background (background) {
 
   allLoads.forEach(function (load) {
     if (load.fte < -0.5) {
-      color = 'black';
+      color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
     } else if (load.fte < -0.1) {
-      color = 'grey';
+      color = 'rgba(75, 75, 75, 0.20)';   // Grey
     } else if (load.fte < 0.1) {
-      color = 'green';
+      color = 'rgba(10, 255, 10, 0.20)';  // Green
     } else if (load.fte < 0.5) {
-      color = 'orange';
+      color = 'rgba(200, 200, 10, 0.20)'; // Orange
     } else {
-      color = 'red';
+      color = 'rgba(255, 10, 10, 0.20)';  // Red
     }
 
     engineerTLItems.add({
