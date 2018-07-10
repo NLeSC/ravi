@@ -22,22 +22,29 @@ var d = new Date();
 var year = d.getFullYear();
 var month = d.getMonth();
 var day = d.getDate();
+
+var itemEditableOptions = {
+  add: true,           // add new items by double tapping
+  updateTime: true,    // drag items horizontally
+  updateGroup: false,  // drag items from one group to another
+  remove: true,        // delete an item by tapping the delete button top right
+  overrideItems: true  // allow these options to override item.editable
+}
 var timelineOptions = {
   height: '120%',
   verticalScroll: true,
+  horizontalScroll: true,
   start: new Date(year - 1, month, day),
   end: new Date(year + 1, month, day),
+  zoomKey: 'altKey',
+  zoomable: false,
+  moveable: true,
   zoomMin: 15768000000,  // Half a year
   zoomMax: 157680000000, // 5 years
-  editable: {
-    add: true,           // add new items by double tapping
-    updateTime: true,    // drag items horizontally
-    updateGroup: false,  // drag items from one group to another
-    remove: true,        // delete an item by tapping the delete button top right
-    overrideItems: true  // allow these options to override item.editable
-  },
+  editable: itemEditableOptions,
   orientation: {
-    axis: 'top'
+    axis: 'top',
+    item: 'top'
   },
   groupEditable: true,
   type: 'range',
@@ -74,6 +81,10 @@ var timelineOptions = {
     var engineerItem = engineerTLItems.get(aid);
     var projectItem = projectTLItems.get(aid);
 
+    // make sure the assignment has proper dates
+    item.start = new Date(item.start)
+    item.end = new Date(item.end)
+
     assignment.start = item.start.getFullYear() + '-' + (item.start.getMonth() + 1);
     assignment.end = item.end.getFullYear() + '-' + (item.end.getMonth() + 1);
     applyAssignmentUpdate(assignment);
@@ -96,7 +107,9 @@ var timelineOptions = {
     // when adding on projects timeline, the group is the project
     if (allEngineers.get(item.group)) {
       assignment.eid = item.group;
+      assignment.pid = allProjects.get()[0].pid; // by default, to the first project
     } else if (allProjects.get(item.group)) {
+      assignment.eid = allEngineers.get()[0].eid; // by default, to the first engineer
       assignment.pid = item.group;
     }
 
@@ -170,12 +183,8 @@ var overviewContainer = document.getElementById('visjs-overview-container');
 var overviewPlot = new vis.Graph2d(overviewContainer, overviewItems, overviewGroups, {legend: true});
 overviewPlot.on('rangechanged', function () {overviewPlot.redraw()});
 
-// map contextmenu (ie. right mouse button)
-// to open a modal window to update assignments
 function openAssignmentModal (properties) {
-  properties.event.preventDefault(); // prevent default browser pop-up menu
-
-  if (properties.what == 'item') {
+  if (properties.item) {
     var assignment = allAssignments.get(properties.item);
 
     $('#inputAid').text(assignment.aid);
@@ -266,8 +275,8 @@ $('#assignmentUpdateApply').on('click', function () {
 
 });
 
-engineersTimeline.on('contextmenu', openAssignmentModal);
-projectsTimeline.on('contextmenu', openAssignmentModal);
+engineersTimeline.on('doubleClick', openAssignmentModal);
+projectsTimeline.on('doubleClick', openAssignmentModal);
 
 // Link the Engineers and Project timelines
 // ----------------------------------------
@@ -275,31 +284,35 @@ projectsTimeline.on('contextmenu', openAssignmentModal);
 // automatically select the assignments on the other timeline
 engineersTimeline.on('select', function (properties) {
   if (! properties || ! properties.items) {
+    projectsTimeline.setSelection([]);
     return;
   }
   var firstSelectedAssignment = allAssignments.get(properties.items[0]);
 
   if (properties.items[0] && firstSelectedAssignment) {
-    projectsTimeline.setSelection([firstSelectedAssignment.id]);
-    projectsTimeline.focus([firstSelectedAssignment.id]);
-
-    selectEngineer(firstSelectedAssignment.eid);
-    selectProject(firstSelectedAssignment.pid);
+    if (projectTLItems.get(firstSelectedAssignment.id)) {
+      projectsTimeline.setSelection([firstSelectedAssignment.id]);
+      projectsTimeline.focus([firstSelectedAssignment.id]);
+    }
+  } else {
+    projectsTimeline.setSelection([]);
   }
 });
 
 projectsTimeline.on('select', function (properties) {
   if (! properties || ! properties.items) {
+    engineersTimeline.setSelection([]);
     return;
   }
   var firstSelectedAssignment = allAssignments.get(properties.items[0]);
 
   if (properties.items[0] && firstSelectedAssignment) {
-    engineersTimeline.setSelection([firstSelectedAssignment.id]);
-    engineersTimeline.focus([firstSelectedAssignment.id]);
-
-    selectEngineer(firstSelectedAssignment.eid);
-    selectProject(firstSelectedAssignment.pid);
+    if (engineerTLItems.get(firstSelectedAssignment.id)) {
+      engineersTimeline.setSelection([firstSelectedAssignment.id]);
+      engineersTimeline.focus([firstSelectedAssignment.id]);
+    }
+  } else {
+    engineersTimeline.setSelection([]);
   }
 });
 
@@ -383,36 +396,42 @@ function draw_engineer_background (background) {
   remove_backgrounds(engineerTLItems);
 
   if (background == 'full') {
-    return;
-  }
-
-  if (background != 'summary') {
-    console.error('Background for engineer not implemented: ', background);
-  }
-
-  allLoads.forEach(function (load) {
-    if (load.fte < -0.5) {
-      color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
-    } else if (load.fte < -0.1) {
-      color = 'rgba(75, 75, 75, 0.20)';   // Grey
-    } else if (load.fte < 0.1) {
-      color = 'rgba(10, 255, 10, 0.20)';  // Green
-    } else if (load.fte < 0.5) {
-      color = 'rgba(200, 200, 10, 0.20)'; // Orange
-    } else {
-      color = 'rgba(255, 10, 10, 0.20)';  // Red
-    }
-
-    engineerTLItems.add({
-      group: load.eid,
-      type: 'background',
-      start: load.start,
-      end: load.end,
-      editable: false,
-      content: "" + load.fte.toFixed(2) + " FTE",
-      style: "background-color: " + color
+    allEngineers.forEach(function (engineer) {
+      engineerTLItems.add({
+        group: engineer.eid,
+        type: 'background',
+        start: engineer.start || '2000-01',
+        end: engineer.end || '2050-01',
+        editable: false,
+        content: '',
+        style: 'background-color: rgba(105, 255, 98, 0.20)'
+      });
     });
-  });
+  } else if (background == 'summary') {
+    allLoads.forEach(function (load) {
+      if (load.fte < -0.5) {
+        color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
+      } else if (load.fte < -0.1) {
+        color = 'rgba(75, 75, 75, 0.20)';   // Grey
+      } else if (load.fte < 0.1) {
+        color = 'rgba(10, 255, 10, 0.20)';  // Green
+      } else if (load.fte < 0.5) {
+        color = 'rgba(200, 200, 10, 0.20)'; // Orange
+      } else {
+        color = 'rgba(255, 10, 10, 0.20)';  // Red
+      }
+
+      engineerTLItems.add({
+        group: load.eid,
+        type: 'background',
+        start: load.start,
+        end: load.end,
+        editable: false,
+        content: "" + load.fte.toFixed(2) + " FTE",
+        style: "background-color: " + color
+      });
+    });
+  }
 }
 
 // Hash containing all filterable properties
@@ -551,7 +570,7 @@ function applyFilterSettings () {
         start: assignment.start,
         end: assignment.end,
         content: assignment.fte + ' FTE: ' + assignment.pid,
-        editable: true
+        editable: itemEditableOptions
       });
     } else {
       removeEA.push(assignment.id);
@@ -569,7 +588,7 @@ function applyFilterSettings () {
         start: assignment.start,
         end: assignment.end,
         content: assignment.fte + ' FTE: ' + assignment.eid,
-        editable: true
+        editable: itemEditableOptions
       });
     } else {
       removePA.push(assignment.id);
@@ -583,7 +602,7 @@ function applyFilterSettings () {
   projectTLItems.update(addPA);
 }
 
-$('#inputWindowOptions').on('change', function () {
+function resetViews () {
   var option = $('#inputWindowOptions').val();
   filterSettings.show = option;
 
@@ -651,7 +670,9 @@ $('#inputWindowOptions').on('change', function () {
   }
 
   applyFilterSettings();
-});
+}
+
+$('#inputWindowOptions').on('change', resetViews);
 
 $('#inputStatusOptions').on('change', function () {
   filterSettings.state = $('#inputStatusOptions').val();
@@ -694,9 +715,9 @@ $('#inputProjectOptions').on('change', function () {
   applyFilterSettings();
 });
 
+sendRequestForEngineersToServer()
+  .then(sendRequestForProjectsToServer())
+  .then(sendRequestForAssignmentsToServer())
+  .then(sendRequestForEngineerLoadsToServer())
 
-sendRequestForEngineersToServer();
-sendRequestForProjectsToServer();
-sendRequestForAssignmentsToServer();
-sendRequestForEngineerLoadsToServer();
-sendRequestForOverviewToServer();
+resetViews();

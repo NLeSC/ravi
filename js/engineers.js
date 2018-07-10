@@ -138,7 +138,7 @@ function initializeEngineerLoads (loads) {
  *
  */
 function sendRequestForEngineersToServer () {
-  fetch('http://localhost:5000/get_engineers')
+  return fetch('http://localhost:5000/get_engineers')
   .then(function (response) {
     return response.json();
   })
@@ -159,7 +159,7 @@ function sendRequestForEngineersToServer () {
  *
  */
 function sendRequestForEngineerLoadsToServer (eid, pid) {
-  fetch('http://localhost:5000/get_engineer_load')
+  return fetch('http://localhost:5000/get_engineer_load')
   .then(function (response) {
     return response.json();
   })

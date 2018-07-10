@@ -48,7 +48,7 @@ function initializeAssignments (assignments) {
       start: start,
       end: end,
       content: assignment.fte + ' FTE: ' + assignment.pid,
-      editable: true
+      editable: itemEditableOptions
     });
 
     projectTLItems.update({
@@ -57,7 +57,7 @@ function initializeAssignments (assignments) {
       start: start,
       end: end,
       content: assignment.fte + ' FTE: ' + assignment.eid,
-      editable: true
+      editable: itemEditableOptions
     });
 
     allAssignments.update({
@@ -140,7 +140,6 @@ function sendCreateAssignmentToServer (assignment) {
   form.append('fte', assignment.fte || '');
   form.append('start', assignment.start || '');
   form.append('end', assignment.end || '');
-  console.log(form);
 
   fetch('http://localhost:5000/add_assignment', {
     method: 'POST',
@@ -164,9 +163,8 @@ function sendRequestForAssignmentsToServer (eid, pid) {
   form = new FormData()
   form.append('eid', eid || '');
   form.append('pid', pid || '');
-  console.log(form);
 
-  fetch('http://localhost:5000/get_assignments', {
+  return fetch('http://localhost:5000/get_assignments', {
     method: 'POST',
     body: form
   })

@@ -102,7 +102,7 @@ function initializeProjects(projects) {
  * a call to initializeProjects()
  */
 function sendRequestForProjectsToServer () {
-  fetch('http://localhost:5000/get_projects')
+  return fetch('http://localhost:5000/get_projects')
   .then(function (response) {
     return response.json();
   })
@@ -119,7 +119,7 @@ function sendRequestForProjectsToServer () {
  * Send a request for the overview to the server.
  */
 function sendRequestForOverviewToServer () {
-  fetch('http://localhost:5000/get_overview')
+  return fetch('http://localhost:5000/get_overview')
   .then(function (response) {
     return response.json();
   })
