@@ -53,8 +53,10 @@ function initializeEngineers (engineers) {
       active: engineer.active,
       comments: engineer.comments,
       coordinator: engineer.coordinator,
-      start: engineer.start,
-      end: engineer.end,
+      start: start,
+      end: end,
+      sortStart: "" + start,
+      sortEnd: "" + end,
       exact_id: engineer.exact_id,
       fte: engineer.fte
     });

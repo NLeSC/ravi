@@ -702,10 +702,8 @@ $('#inputStatusOptions').on('change', function () {
   applyFilterSettings();
 });
 
-$('#inputSortOptions').on('change', function () {
-  var sort = $('#inputSortOptions').val();
-
-  engineersTimeline.setOptions({groupOrder: 'id'});
+$('#inputProjectSortOptions').on('change', function () {
+  var sort = $('#inputProjectSortOptions').val();
 
   if (sort == 'name') {
     projectsTimeline.setOptions({groupOrder: 'id'});
@@ -716,6 +714,41 @@ $('#inputSortOptions').on('change', function () {
   } else if (sort == 'balance') {
     projectsTimeline.setOptions({groupOrder: 'balance'});
   }
+});
+
+// TODO: on zoom, move to selection.. focus does not do what we want
+$('#projectZoomIn').click(function () {
+  projectsTimeline.zoomIn(0.4);
+  // projectsTimeline.focus(projectsTimeline.getSelection());
+});
+$('#projectZoomOut').click(function () {
+  projectsTimeline.zoomOut(0.4);
+  // projectsTimeline.focus(projectsTimeline.getSelection());
+});
+
+$('#inputEngineerSortOptions').on('change', function () {
+  var sort = $('#inputEngineerSortOptions').val();
+
+
+  if (sort == 'name') {
+    engineersTimeline.setOptions({groupOrder: 'id'});
+  } else if (sort == 'start') {
+    engineersTimeline.setOptions({groupOrder: 'sortStart'});
+  } else if (sort == 'end') {
+    engineersTimeline.setOptions({groupOrder: 'sortEnd'});
+  } else if (sort == 'balance') {
+    engineersTimeline.setOptions({groupOrder: 'balance'});
+  }
+});
+
+// TODO: on zoom, move to selection.. focus does not do what we want
+$('#engineerZoomIn').click(function () {
+  engineersTimeline.zoomIn(0.4);
+  // engineersTimeline.focus(engineersTimeline.getSelection());
+});
+$('#engineerZoomOut').click(function () {
+  engineersTimeline.zoomOut(0.4);
+  // engineersTimeline.focus(engineersTimeline.getSelection());
 });
 
 $('#inputCoordinatorOptions').on('change', function () {
