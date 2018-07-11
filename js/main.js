@@ -49,7 +49,28 @@ var timelineOptions = {
   groupEditable: true,
   type: 'range',
   template: function (item, element, data) {
-    var html = '<div>' + item.content + '</div>';
+    // Heigth classes 0.0 - 0.2
+    //                0.2 - 0.4
+    //                0.4 - 0.6
+    //                0.6 - 0.8
+    //                0.8 - 1.0
+    var fte = parseFloat(item.fte);
+
+    var className;
+    if (fte < 0.2) {
+      className = 'item-fte-01';
+    } else if (fte < 0.2) {
+      className = 'item-fte-12';
+    } else if (fte < 0.4) {
+      className = 'item-fte-24';
+    } else if (fte < 0.6) {
+      className = 'item-fte-46';
+    } else if (fte < 0.8) {
+      className = 'item-fte-68';
+    } else {
+      className = 'item-fte-80';
+    }
+    var html = '<div class="' + className + '" >' + item.content + '</div>';
     return html;
   },
   groupTemplate: function (item, element) {
@@ -570,6 +591,7 @@ function applyFilterSettings () {
         start: assignment.start,
         end: assignment.end,
         content: assignment.fte + ' FTE: ' + assignment.pid,
+        fte: assignment.fte,
         editable: itemEditableOptions
       });
     } else {
@@ -588,6 +610,7 @@ function applyFilterSettings () {
         start: assignment.start,
         end: assignment.end,
         content: assignment.fte + ' FTE: ' + assignment.eid,
+        fte: assignment.fte,
         editable: itemEditableOptions
       });
     } else {

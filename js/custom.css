@@ -28,3 +28,27 @@ rect.overview-required-line.vis-point {
   background-color: grey;
   color: white;
 }
+
+.item-fte-01 {
+  height: 1.4ex;
+}
+
+.item-fte-12 {
+  height: 2ex;
+}
+
+.item-fte-24 {
+  height: 4ex;
+}
+
+.item-fte-46 {
+  height: 6ex;
+}
+
+.item-fte-68 {
+  height: 9ex;
+}
+
+.item-fte-80 {
+  height: 12ex;
+}
