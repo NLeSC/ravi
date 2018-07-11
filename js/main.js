@@ -684,12 +684,12 @@ function resetViews () {
     engTL.show();
     ovPlt.hide();
   } else if (option == 'overview') {
+    sendRequestForOverviewToServer();
     engTL.hide();
     projTL.hide();
 
     ovPlt.show();
     overviewPlot.fit();
-    sendRequestForOverviewToServer();
   }
 
   applyFilterSettings();
@@ -738,9 +738,11 @@ $('#inputProjectOptions').on('change', function () {
   applyFilterSettings();
 });
 
-sendRequestForEngineersToServer()
-  .then(sendRequestForProjectsToServer())
-  .then(sendRequestForAssignmentsToServer())
-  .then(sendRequestForEngineerLoadsToServer())
+Promise.all([
+  sendRequestForEngineersToServer(),
+  sendRequestForProjectsToServer(),
+  sendRequestForAssignmentsToServer()
+]).then(resetViews);
 
-resetViews();
+sendRequestForEngineerLoadsToServer();
+sendRequestForOverviewToServer();
