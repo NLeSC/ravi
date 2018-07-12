@@ -144,6 +144,12 @@ function sendCreateAssignmentToServer (assignment) {
   fetch('http://localhost:5000/add_assignment', {
     method: 'POST',
     body: form
+  }).then(function (response) {
+    return response.json();
+  }).then(function (assignment) {
+    assignment.id = assignment.aid
+    allAssignments.update(assignment);
+    resetViews();
   })
   .catch(function (error) {
     alert('Cannot create assignment at server');

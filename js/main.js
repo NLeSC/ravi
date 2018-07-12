@@ -138,9 +138,6 @@ var timelineOptions = {
     // an assignment index (aid)
     sendCreateAssignmentToServer(assignment);
 
-    // get the new assignment from the server
-    sendRequestForAssignmentsToServer(assignment.eid, assignment.pid);
-
     // the assignment will be added when the server responds, so we're done here
     callback(null);
   }
@@ -263,7 +260,6 @@ function openAssignmentModal (properties) {
     $('#inputEndDiv').show();
     $('#inputStatusDiv').show();
   } else {
-    console.log(properties);
     return;
   }
 

@@ -23,6 +23,8 @@ AVAILABLE_FTE="WITH boundaries AS ( SELECT start AS 'edge' FROM assignments WHER
 
 ENGINEER_LOAD = "WITH boundaries AS ( SELECT eid, end AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM engineers UNION SELECT eid, end AS 'edge' FROM engineers), intervals AS ( SELECT b1.eid AS eid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.eid = b2.eid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.eid = b2.eid)), load AS ( SELECT intervals.eid AS eid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte FROM assignments, intervals WHERE assignments.eid = intervals.eid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.eid, intervals.start, intervals.end) SELECT load.eid AS eid, load.start AS start, load.end AS end, load.fte - engineers.fte AS fte FROM load, engineers WHERE load.eid = engineers.eid"
 
+ENGINEERS="WITH today AS ( SELECT date('now') as nw ), edges AS ( SELECT (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1) AS start, (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1 + 3) AS end FROM today) SELECT engineers.eid AS eid, engineers.start AS start, engineers.end AS end, engineers.fte AS fte, engineers.exact_id AS exact_id, engineers.coordinator AS coordinator, engineers.comments AS comments, sum(min( max(assignments.end - edges.start, edges.end - assignments.start, 0), assignments.end - assignments.start, edges.end - edges.start) * assignments.fte) AS assigned, 3 * engineers.fte AS available FROM edges, assignments, engineers WHERE edges.start < assignments.end AND edges.end > assignments.start AND assignments.eid = engineers.eid GROUP BY engineers.eid"
+
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 colors = ['#1f77b4',
     '#ff7f0e',
@@ -99,8 +101,9 @@ def stack(data):
 
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
+    my_query = text(ENGINEERS)
     data = []
-    for e in db_session.query(Engineer).order_by(Engineer.eid).all():
+    for e in engine.execute(my_query):
         d = dict(e)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])
@@ -672,7 +675,7 @@ def get_assignments():
   
 @app.route('/add_assignment', methods = ['POST'])
 def add_assignment():
-
+    # Create and add the assignment to the database
     assignment = Assignment()
     assignment.eid = str(request.form['eid'])
     assignment.pid = str(request.form['pid'])
@@ -686,7 +689,18 @@ def add_assignment():
     except Exception as err:
         db_session.rollback()
         abort(500, "Adding assignment failed:\n\n" + str(err))
-    return flask_response(["success"])
+
+    # Now that the assignment has been added, it has an unique 'eid'
+    # So respond with the full assignment
+    d = dict()
+    d['aid'] = assignment.aid
+    d['eid'] = assignment.eid
+    d['pid'] = assignment.pid
+    d['fte'] = assignment.fte
+    d['start'] = ym2date(assignment.start)
+    d['end'] = ym2date(assignment.end)
+
+    return flask_response(d)
 
 @app.route('/update_assignment', methods = ['POST'])
 def update_assignment():

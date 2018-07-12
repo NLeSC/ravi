@@ -49,6 +49,8 @@ function initializeEngineers (engineers) {
       id: engineer.eid,
       eid: engineer.eid,
       content: engineer.eid,
+      assigned: engineer.assigned,
+      balance: engineer.assigned - engineer.available,
 
       active: engineer.active,
       comments: engineer.comments,
