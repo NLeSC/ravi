@@ -23,7 +23,7 @@ AVAILABLE_FTE="WITH boundaries AS ( SELECT start AS 'edge' FROM assignments WHER
 
 ENGINEER_LOAD = "WITH boundaries AS ( SELECT eid, end AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM assignments UNION SELECT eid, start AS 'edge' FROM engineers UNION SELECT eid, end AS 'edge' FROM engineers), intervals AS ( SELECT b1.eid AS eid, b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b1.eid = b2.eid AND b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge AND b3.eid = b2.eid)), load AS ( SELECT intervals.eid AS eid, intervals.start AS start, intervals.end AS end, sum(assignments.fte) AS fte FROM assignments, intervals WHERE assignments.eid = intervals.eid AND assignments.start < intervals.end AND assignments.end > intervals.start GROUP BY intervals.eid, intervals.start, intervals.end) SELECT load.eid AS eid, load.start AS start, load.end AS end, load.fte - engineers.fte AS fte FROM load, engineers WHERE load.eid = engineers.eid"
 
-ENGINEERS="WITH today AS ( SELECT date('now') as nw ), edges AS ( SELECT (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1) AS start, (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1 + 3) AS end FROM today) SELECT engineers.eid AS eid, engineers.start AS start, engineers.end AS end, engineers.fte AS fte, engineers.exact_id AS exact_id, engineers.coordinator AS coordinator, engineers.comments AS comments, sum(min( max(assignments.end - edges.start, edges.end - assignments.start, 0), assignments.end - assignments.start, edges.end - edges.start) * assignments.fte) AS assigned, 3 * engineers.fte AS available FROM edges, assignments, engineers WHERE edges.start < assignments.end AND edges.end > assignments.start AND assignments.eid = engineers.eid GROUP BY engineers.eid"
+ENGINEERS="WITH today AS ( SELECT date('now') as nw ), edges AS ( SELECT (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1) AS start, (strftime('%Y', nw) * 12 + strftime('%m', nw) - 1 + 3) AS end FROM today) SELECT engineers.eid AS eid, engineers.start AS start, engineers.end AS end, engineers.fte AS fte, engineers.exact_id AS exact_id, engineers.coordinator AS coordinator, engineers.comments AS comments, engineers.active AS active, sum(min( max(assignments.end - edges.start, edges.end - assignments.start, 0), assignments.end - assignments.start, edges.end - edges.start) * assignments.fte) AS assigned, 3 * engineers.fte AS available FROM edges, assignments, engineers WHERE edges.start < assignments.end AND edges.end > assignments.start AND assignments.eid = engineers.eid GROUP BY engineers.eid"
 
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 colors = ['#1f77b4',
@@ -823,10 +823,9 @@ def create_all_project_plots(output_folder):
         plt.close()
 
 
-def main():
-    db_name = sys.argv[1]
-    if len(sys.argv) > 2:
-        read_exact_data(sys.argv[2])
+def main(db_name=None, exact_name=None):
+    if exact_name:
+        read_exact_data(exact_name)
     global engine
     global db_session
     engine = create_engine('sqlite:///' + db_name + '?check_same_thread=False', echo=False)
