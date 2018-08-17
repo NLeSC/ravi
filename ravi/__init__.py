@@ -110,10 +110,14 @@ def get_engineer_data():
         series['fillcolor'] = colors[i%10]
         series['mode'] = 'none'
     e = db_session.query(Engineer).filter_by(eid=eid).one()
+    if e.start == None:
+        e.start = 0
+    if e.end == None:
+        e.end = 120000
     data.append({
         'type': 'line',
         'name': 'fte',
-        'y': [e.fte if e.start and e.end and e.start <= ym < e.end else 0 for ym in range(start,end+1)],
+        'y': [e.fte if e.start <= ym < e.end else 0 for ym in range(start,end+1)],
         'showlegend': len(data) == 0,
         'line': {
             'dash': 'dot',
