@@ -92,7 +92,7 @@ function sendAssignmentToServer (assignment) {
   form.append('start', assignment.start || '');
   form.append('end', assignment.end || '');
 
-  fetch('http://localhost:5000/update_assignment', {
+  fetch('/update_assignment', {
     method: 'POST',
     body: form
   })
@@ -113,7 +113,7 @@ function sendDeleteAssignmentToServer (assignmentID) {
   form = new FormData();
   form.append('aid', assignmentID);
 
-  fetch('http://localhost:5000/del_assignment', {
+  fetch('/del_assignment', {
     method: 'POST',
     body: form
   })
@@ -140,7 +140,7 @@ function sendCreateAssignmentToServer (assignment) {
   form.append('start', assignment.start || '');
   form.append('end', assignment.end || '');
 
-  fetch('http://localhost:5000/add_assignment', {
+  fetch('/add_assignment', {
     method: 'POST',
     body: form
   }).then(function (response) {
@@ -169,7 +169,7 @@ function sendRequestForAssignmentsToServer (eid, pid) {
   form.append('eid', eid || '');
   form.append('pid', pid || '');
 
-  return fetch('http://localhost:5000/get_assignments', {
+  return fetch('/get_assignments', {
     method: 'POST',
     body: form
   })

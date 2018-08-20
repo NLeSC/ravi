@@ -150,7 +150,7 @@ function initializeEngineerLoads (loads) {
  *
  */
 function sendRequestForEngineersToServer () {
-  return fetch('http://localhost:5000/get_engineers')
+  return fetch('/get_engineers')
   .then(function (response) {
     return response.json();
   })
@@ -178,7 +178,7 @@ function sendEngineerToServer (engineer) {
   form.append('active', engineer.active ? 1 : 0);
   form.append('coordinator', engineer.coordinator || '');
 
-  fetch('http://localhost:5000/update_engineer', {
+  fetch('/update_engineer', {
     method: 'POST',
     body: form
   })
@@ -196,7 +196,7 @@ function sendEngineerToServer (engineer) {
  *
  */
 function sendRequestForEngineerLoadsToServer (eid, pid) {
-  return fetch('http://localhost:5000/get_engineer_load')
+  return fetch('/get_engineer_load')
   .then(function (response) {
     return response.json();
   })

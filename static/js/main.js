@@ -96,6 +96,9 @@ var timelineOptions = {
 
     sendDeleteAssignmentToServer(item.id);
     callback(null); // we already removed the assignment ourselves, so block any further action
+
+    // give a visual hint to the user that the background plots need refreshing
+    $('#refresh-background').addClass('refresh-background');
   },
   onMove: function (item, callback) {
     var aid = item.id;
@@ -142,6 +145,9 @@ var timelineOptions = {
 
     // the assignment will be added when the server responds, so we're done here
     callback(null);
+
+    // give a visual hint to the user that the background plots need refreshing
+    $('#refresh-background').addClass('refresh-background');
   }
 };
 timelineOptions.onUpdate = timelineOptions.onMove;
@@ -326,7 +332,7 @@ $('#assignmentUpdateApply').on('click', function () {
     sendEngineerToServer(engineer);
   } else if (modalType == 'project' ) {
     var pid =  $('#inputProject').val();
-    var project = allEngineers.get(pid);
+    var project = allProjects.get(pid);
 
     project.fte = $('#inputFTE').val();
     project.start = $('#inputStart').val();
@@ -666,7 +672,7 @@ function applyFilterSettings () {
 }
 
 function sendRequestForLogToServer() {
-  var myRequest = new Request('http://localhost:5000/get_log', {
+  var myRequest = new Request('/get_log', {
     method: 'POST',
     body: JSON.stringify(filterSettings)
   });

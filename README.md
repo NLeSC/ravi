@@ -1,37 +1,25 @@
 # RAVI: Resources Assignment and VIsualization #
-* version 0.1
+* version 0.2
 
 # Requires #
 * Flask
 * SQLAlchemy
-* Plotly
-* Matplotlib (Only for generating the project plots offline)
 
 # Installation
-First install miniconda
-and clone the ravi repository (click the `Clone` button on the top right)
-```
-cd ravi
-wget -P js https://cdn.plot.ly/plotly-latest.min.js
-conda create -n ravi
-source activate ravi
-conda install matplotlib
-conda install pandas
-python setup.py develop
+
+Setup a **virtualenv** containing Flask and SQLAlchemy:
+
+```bash
+virtualenv env --system-site-packages
+. env/bin/activate
+pip install Flask SQLAlchemy
 ```
 
-# Running Ravi
-First start the server:
-```
-source activate ravi
-ravi database.db exported_hours_from_exact.csv
-```
-then open index.html in browser
+# Running
 
-# Generating all project plots offline (planned vs written hours)
-```
-source activate ravi
-ravi database.db exported_hours_from_exact.csv output_folder
+```bash
+ . env/bin/activate
+ flask run
 ```
 
 # Exporting hours from Exact

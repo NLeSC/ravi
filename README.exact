@@ -33,11 +33,19 @@ Login to Exact, and export the data you want to add to Ravi as a spreadsheet.
 
 Manually process the file in a spreadsheat program:
  * remove spurious metadata and columns
- * export to CSV
+ * make sure column order is the same as in the table definition above
+ * export to CSV (NOTE: comma separated, not tabs or anything else)
 
-Note that you can easily select columns on the commandline like this
+Note that you can easily select columns on the commandline like this:
 ```bash
 cat exported_hours_from_exact.csv | cut -d , -f 1,2,4,5,7,8 > dataset
+```
+Reordering columns can be done using *paste*.
+For example, if the file *AB.csv* contains the columns B,A reordering to A,B would go like this:
+```bash
+cut -d , -f 2 BA.csv > colA.csv
+cut -d , -f 1 BA.csv > colB.csv
+paste -d , colA.csv colB.csv > AB.csv
 ```
 
 Import the hours into Ravi

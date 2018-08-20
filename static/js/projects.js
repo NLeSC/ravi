@@ -112,7 +112,7 @@ function initializeProjects(projects) {
  * a call to initializeProjects()
  */
 function sendRequestForProjectsToServer () {
-  return fetch('http://localhost:5000/get_projects')
+  return fetch('/get_projects')
   .then(function (response) {
     return response.json();
   })
@@ -133,14 +133,14 @@ function sendRequestForProjectsToServer () {
  */
 function sendProjectToServer (project) {
   form = new FormData()
-  form.append('pid', project.eid || '');
+  form.append('pid', project.pid || '');
   form.append('fte', project.fte || '');
   form.append('start', project.start || '');
   form.append('end', project.end || '');
   form.append('active', project.active ? 1 : 0);
   form.append('coordinator', project.coordinator || '');
 
-  fetch('http://localhost:5000/update_project', {
+  fetch('/update_project', {
     method: 'POST',
     body: form
   })
@@ -154,7 +154,7 @@ function sendProjectToServer (project) {
  * Send a request for the overview to the server.
  */
 function sendRequestForOverviewToServer () {
-  return fetch('http://localhost:5000/get_overview')
+  return fetch('/get_overview')
   .then(function (response) {
     return response.json();
   })
@@ -190,7 +190,7 @@ function sendRequestForOverviewToServer () {
  * assume response is orderd by date
  */
 function sendRequestForProjectWrittenHours(project) {
-  var myRequest = new Request('http://localhost:5000/get_project_written_hours', {
+  var myRequest = new Request('/get_project_written_hours', {
     method: 'POST',
     body: '{"Projectcode":"' + project.exact_code + '"}'
   });
