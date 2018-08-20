@@ -61,3 +61,10 @@ rect.overview-required-line.vis-point {
 .log-new {
   font-weight: bolder;
 }
+
+.refresh-background {
+  background-color: red;
+}
+.refreshing-background {
+  background-color: orange;
+}

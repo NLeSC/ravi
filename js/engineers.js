@@ -71,19 +71,26 @@ function initializeEngineers (engineers) {
     }
   });
 
-
-  // add to the modal pop up on the project timeline
-  inputBox = $('#inputEngineer');
+  // Add engineers to the filter box, subdivide by active / inactive
   filterBox = $('#inputEngineerOptions');
-
-  inputBox.empty();
   filterBox.empty();
-
   $('<option />', { value: 'all', text: 'All' }).appendTo(filterBox);
+  var activeList = $('<optgroup>', { label: 'Active' }).appendTo(filterBox);
+  var inactiveList = $('<optgroup>', { label: 'Inactive' }).appendTo(filterBox);
 
   allEngineers.forEach(function(engineer) {
-    $('<option />', { value: engineer.id, text: engineer.content }).appendTo(inputBox);
-    $('<option />', { value: engineer.id, text: engineer.content }).appendTo(filterBox);
+    if (engineer.active) {
+      $('<option />', { value: engineer.id, text: engineer.eid }).appendTo(activeList);
+    } else {
+      $('<option />', { value: engineer.id, text: engineer.eid }).appendTo(inactiveList);
+    }
+  });
+
+  // Add engineers to the input box
+  inputBox = $('#inputEngineer');
+  inputBox.empty();
+  allEngineers.forEach(function(engineer) {
+    $('<option />', { value: engineer.id, text: engineer.eid }).appendTo(inputBox);
   });
 
   inputBox = $('#inputLinemanager');
@@ -105,6 +112,7 @@ function initializeEngineers (engineers) {
  * Store the data in the global allLoads variable
  */
 function initializeEngineerLoads (loads) {
+  allLoads.clear();
   loads.forEach(function (load) {
     // sanitize data
     var d;

@@ -46,7 +46,9 @@ function initializeProjects(projects) {
     allProjects.update({
       id: project.pid,
       pid: project.pid,
-      content: project.pid,
+      content: "<b>" + project.pid + "</b>" +
+        "<br>Assgined " + (project.assigned.toFixed(2) || "0") + " / " + (project.fte.toFixed(2) || "0") + " FTE" +
+        "<br>" + (project.coordinator || " - "),
 
       active: project.active,
       comments: project.comments,
@@ -68,23 +70,31 @@ function initializeProjects(projects) {
     }
   });
 
-  // add to the modal pop up on the engineer timeline
-  inputBox = $('#inputProject');
+  // Add projects to the filter box, subdivide by active / inactive
   filterBox = $('#inputProjectOptions');
-
-  inputBox.empty();
   filterBox.empty();
-
   $('<option />', { value: 'all', text: 'All' }).appendTo(filterBox);
+  var activeList = $('<optgroup>', { label: 'Active' }).appendTo(filterBox);
+  var inactiveList = $('<optgroup>', { label: 'Inactive' }).appendTo(filterBox);
 
   allProjects.forEach(function(project) {
-    $('<option />', { value: project.id, text: project.content }).appendTo(inputBox);
-    $('<option />', { value: project.id, text: project.content }).appendTo(filterBox);
+    if (project.active) {
+      $('<option />', { value: project.id, text: project.id }).appendTo(activeList);
+    } else {
+      $('<option />', { value: project.id, text: project.id }).appendTo(inactiveList);
+    }
   });
 
+  // Add projects to the input box
+  inputBox = $('#inputProject');
+  inputBox.empty();
+  allProjects.forEach(function(project) {
+    $('<option />', { value: project.id, text: project.id }).appendTo(inputBox);
+  });
+
+  // Add coordinators to the drop down menus
   inputBox = $('#inputCoordinator');
   filterBox = $('#inputCoordinatorOptions');
-
   inputBox.empty();
   filterBox.empty();
 

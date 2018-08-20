@@ -174,6 +174,9 @@ function applyAssignmentUpdate (assignment) {
   allAssignments.update(assignment);
   engineerTLItems.update(engineerItem);
   projectTLItems.update(projectItem);
+
+  // give a visual hint to the user that the background plots need refreshing
+  $('#refresh-background').addClass('refresh-background');
 };
 
 // Projects and Engineers Timelines
@@ -214,13 +217,14 @@ function openAssignmentModal (properties) {
   if (properties.item) {
     var assignment = allAssignments.get(properties.item);
 
-    $('#inputAid').text(assignment.aid);
+    $('#modal-title-detail').text(assignment.aid);
     $('#inputEngineer').val(assignment.eid);
     $('#inputProject').val(assignment.pid);
     $('#inputFTE').val(assignment.fte);
     $('#inputStart').val(assignment.start);
     $('#inputEnd').val(assignment.end);
 
+    $('#visjs-detail-plot').hide();
     $('#inputAidDiv').show()
     $('#inputEngineerDiv').show()
     $('#inputLinemanagerDiv').hide();
@@ -235,7 +239,7 @@ function openAssignmentModal (properties) {
     sendRequestForProjectWrittenHours(project);
     $('#visjs-detail-plot').show();
 
-    $('#inputAid').text(project.pid);
+    $('#modal-title-detail').text(project.pid + " [exact code: " + project.exact_code + "]");
     $('#inputCoordinator').val(project.coordinator);
     $('#inputFTE').val(project.fte);
     $('#inputStart').val(project.start);
@@ -255,7 +259,7 @@ function openAssignmentModal (properties) {
     var engineer = allEngineers.get(properties.group);
     $('#visjs-detail-plot').hide();
 
-    $('#inputAid').text(engineer.eid);
+    $('#modal-title-detail').text(engineer.eid);
     $('#inputLinemanager').val(engineer.coordinator);
     $('#inputFTE').val(engineer.fte);
     $('#inputStart').val(engineer.start);
@@ -282,7 +286,7 @@ function openAssignmentModal (properties) {
 // update the assignment when the user clicks on the 'Apply changes' button
 $('#assignmentUpdateApply').on('click', function () {
   var assignment = {
-    aid : $('#inputAid').text(), // a span, not an input
+    aid : $('#modal-title-detail').text(), // a span, not an input
     eid : $('#inputEngineer').val(),
     pid : $('#inputProject').val(),
     fte : $('#inputFTE').val(),
@@ -301,7 +305,7 @@ $('#assignmentUpdateApply').on('click', function () {
 
   projectsTimeline.setSelection([assignment.id]);
   projectsTimeline.focus([assignment.id]);
-
+  $('#refresh-background').addClass('refresh-background');
 });
 
 engineersTimeline.on('doubleClick', openAssignmentModal);
@@ -441,6 +445,20 @@ function draw_engineer_background () {
   });
 }
 
+$('#refresh-background').on('click', function () {
+  $('#refresh-background').removeClass('refresh-background');
+  $('#refresh-background').addClass('refreshing-background');
+  Promise.all([
+    sendRequestForEngineersToServer(),
+    sendRequestForEngineerLoadsToServer(),
+    sendRequestForProjectsToServer(),
+    sendRequestForAssignmentsToServer()
+  ]).then(function () {
+    $('#refresh-background').removeClass('refreshing-background');
+    resetViews();
+  });
+});
+
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {
@@ -497,9 +515,9 @@ function applyFilterSettings () {
     if (filterSettings.linemanager != 'all') {
       needle = project.visible;
       // if set, remove projects that are not assigned to a engineer with the select linemanager
-      engineer.visible = needle && allAssignments.get().some(function (assignment) {
+      project.visible = needle && allAssignments.get().some(function (assignment) {
         var engineer = allEngineers.get(assignment.eid) || {linemananer: false};
-        return (assignment.pid == projecct.pid && filterSettings.linemanager == engineer.linemanager);
+        return (assignment.pid == project.pid && filterSettings.linemanager == engineer.coordinator);
       });
     }
     allProjects.update(project);
@@ -517,6 +535,10 @@ function applyFilterSettings () {
       // if set, only show selected engineer
       (filterSettings.engineer == 'all') ||
       (filterSettings.engineer == engineer.id)
+    ) && (
+      // if set, only show projects with selected coordinator
+      (filterSettings.linemanager == 'all') ||
+      (filterSettings.linemanager == engineer.coordinator)
     )) {
       engineer.visible = true;
     }
