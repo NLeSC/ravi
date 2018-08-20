@@ -91,7 +91,6 @@ function sendAssignmentToServer (assignment) {
   form.append('fte', assignment.fte || '');
   form.append('start', assignment.start || '');
   form.append('end', assignment.end || '');
-  console.log(form);
 
   fetch('http://localhost:5000/update_assignment', {
     method: 'POST',
