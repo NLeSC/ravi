@@ -52,3 +52,12 @@ rect.overview-required-line.vis-point {
 .item-fte-80 {
   height: 12ex;
 }
+
+.log-old {
+  font-weight: bolder;
+  text-decoration: line-through
+}
+
+.log-new {
+  font-weight: bolder;
+}

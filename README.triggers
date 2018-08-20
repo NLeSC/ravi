@@ -1,0 +1,65 @@
+Audit log for assignments
+=========================
+
+The purpose of the audit log is to keep track of what changes you made; we implement it using SQL triggers.
+On every update, insert, or delete on the assignments table we add a line to the audit table.
+
+Create the audit table
+----------------------
+
+```
+CREATE TABLE AUDIT(
+date VARCHAR,
+comment VARCHAR,
+aid INTEGER,
+oldfte FLOAT,
+oldeid VARCHAR,
+oldpid VARCHAR,
+oldstart INTEGER,
+oldend INTEGER,
+
+newfte FLOAT,
+neweid VARCHAR,
+newpid VARCHAR,
+newstart INTEGER,
+newend INTEGER,
+FOREIGN KEY(aid) REFERENCES assignments(aid),
+FOREIGN KEY(oldpid) REFERENCES projects(pid),
+FOREIGN KEY(newpid) REFERENCES projects(pid),
+
+FOREIGN KEY(oldeid) REFERENCES engineers(eid),
+FOREIGN KEY(neweid) REFERENCES engineers(eid)
+);
+```
+
+Create the triggers
+-------------------
+
+```sql
+CREATE TRIGGER assignmentnew AFTER INSERT ON assignments FOR EACH ROW
+BEGIN
+INSERT INTO AUDIT
+(date, comment, aid, newfte, neweid, newpid, newstart, newend)
+VALUES 
+(date('now'), 'INSERT', new.aid, new.fte, new.eid, new.pid, new.start, new.end);
+END;
+```
+
+```sql
+CREATE TRIGGER assignmentupdate AFTER UPDATE ON assignments WHEN
+(old.fte <> new.fte OR old.eid <> new.eid OR old.pid <> new.pid OR old.start <> new.start OR old.end <> new.end)
+BEGIN
+INSERT INTO AUDIT(date, comment, aid, oldfte, oldeid, oldpid, oldstart, oldend, newfte, neweid, newpid, newstart, newend)
+VALUES 
+(date('now'), 'UPDATE', old.aid, old.fte, old.eid, old.pid, old.start, old.end, new.fte, new.eid, new.pid, new.start, new.end);
+END;
+```
+
+```sql
+CREATE TRIGGER assignmentdelete BEFORE DELETE ON assignments
+BEGIN
+INSERT INTO AUDIT(date, comment, aid, oldfte, oldeid, oldpid, oldstart, oldend)
+VALUES 
+(date('now'), 'DELETE', old.aid, old.fte, old.eid, old.pid, old.start, old.end);
+END;
+```

@@ -609,6 +609,49 @@ function applyFilterSettings () {
   projectTLItems.update(addPA);
 }
 
+function sendRequestForLogToServer() {
+  var myRequest = new Request('http://localhost:5000/get_log', {
+    method: 'POST',
+    body: JSON.stringify(filterSettings)
+  });
+
+  return fetch(myRequest)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    $('#log-body').empty();
+    var table = $('#log-table');
+
+    var addColumn = function (a,b) {
+      if ((a==b) || (! a || !b)) {
+        return "<td>" + (a || "") + "</td>" + "<td>" + (b || "") + "</td>";
+      } else {
+        return '<td class="log-old">' + (a || "") + "</td>" + '<td class="log-new">' + (b || "") + "</td>";
+      }
+    };
+
+    data.forEach(function(row)  {
+      var tr = "<tr>";
+
+      tr += '<th scope="col">' + row.date + "</td>";
+      tr += "<td>" + row.comment + "</td>";
+      tr += addColumn(row.oldfte, row.newfte);
+      tr += addColumn(row.oldeid, row.neweid);
+      tr += addColumn(row.oldpid, row.newpid);
+      tr += addColumn(row.oldstart, row.newstart);
+      tr += addColumn(row.oldend, row.newend);
+      tr += "</tr>";
+
+      table.append(tr);
+    });
+  })
+  .catch(function (error) {
+    alert('Cannot get log from server');
+    console.error(error);
+  });
+};
+
 function resetViews () {
   var option = $('#inputWindowOptions').val();
   filterSettings.show = option;
@@ -616,6 +659,13 @@ function resetViews () {
   var projTL = $('#visjs-projects-container');
   var engTL = $('#visjs-engineers-container');
   var ovPlt = $('#visjs-overview-container');
+  var logTable = $('#log-container');
+
+  $('#inputStatusOptions').prop("disabled", false);
+  $('#inputCoordinatorOptions').prop("disabled", false);
+  $('#inputLinemanagerOptions').prop("disabled", false);
+  $('#inputEngineerOptions').prop("disabled", false);
+  $('#inputProjectOptions').prop("disabled", false);
 
   if (option == 'eng_and_proj') {
     draw_project_background();
@@ -629,6 +679,7 @@ function resetViews () {
     engTL.show();
 
     ovPlt.hide();
+    logTable.hide();
   } else if (option == 'eng') {
     draw_engineer_background();
     engTL.removeClass('w-50');
@@ -637,6 +688,7 @@ function resetViews () {
 
     projTL.hide();
     ovPlt.hide();
+    logTable.hide();
   } else if (option == 'proj') {
     draw_project_background();
     projTL.removeClass('w-50');
@@ -645,13 +697,30 @@ function resetViews () {
 
     engTL.hide();
     ovPlt.hide();
+    logTable.hide();
   } else if (option == 'overview') {
     sendRequestForOverviewToServer();
     engTL.hide();
     projTL.hide();
+    logTable.hide();
 
     ovPlt.show();
     overviewPlot.fit();
+
+    $('#inputStatusOptions').prop("disabled", true);
+    $('#inputCoordinatorOptions').prop("disabled", true);
+    $('#inputLinemanagerOptions').prop("disabled", true);
+    $('#inputEngineerOptions').prop("disabled", true);
+    $('#inputProjectOptions').prop("disabled", true);
+  } else if (option == 'log') {
+    sendRequestForLogToServer();
+    engTL.hide();
+    projTL.hide();
+    ovPlt.hide();
+    logTable.show();
+    $('#inputStatusOptions').prop("disabled", true);
+    $('#inputCoordinatorOptions').prop("disabled", true);
+    $('#inputLinemanagerOptions').prop("disabled", true);
   }
 
   applyFilterSettings();
@@ -725,12 +794,20 @@ $('#inputLinemanagerOptions').on('change', function () {
 
 $('#inputEngineerOptions').on('change', function () {
   filterSettings.engineer = $('#inputEngineerOptions').val();
-  applyFilterSettings();
+  if (filterSettings.show == 'log') {
+    sendRequestForLogToServer();
+  } else {
+    applyFilterSettings();
+  }
 });
 
 $('#inputProjectOptions').on('change', function () {
   filterSettings.project = $('#inputProjectOptions').val();
-  applyFilterSettings();
+  if (filterSettings.show == 'log') {
+    sendRequestForLogToServer();
+  } else {
+    applyFilterSettings();
+  }
 });
 
 Promise.all([

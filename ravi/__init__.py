@@ -110,6 +110,28 @@ def get_engineers():
         data.append(d)
     return flask_response(data)
 
+@app.route('/get_log', methods = ['POST'])
+def get_log():
+    queryText = "SELECT * FROM AUDIT WHERE 1 "
+
+    filterBy = json.loads(request.get_data())
+    if filterBy['project'] != "all":
+        queryText += " AND (oldpid = '" + filterBy['project'] +"' OR newpid = '" + filterBy['project'] +"')"
+    if filterBy['engineer'] != "all":
+        queryText += " AND (oldeid = '" + filterBy['engineer'] +"' OR neweid = '" + filterBy['engineer'] +"')"
+    queryText += "ORDER BY date DESC LIMIT 25"
+
+    my_query = text(queryText)
+    data = []
+    for e in engine.execute(my_query):
+        d = dict(e)
+        d['oldstart'] = ym2date(d['oldstart'])
+        d['newstart'] = ym2date(d['newstart'])
+        d['oldend'] = ym2date(d['oldend'])
+        d['newend'] = ym2date(d['newend'])
+        data.append(d)
+    return flask_response(data)
+
 @app.route('/get_project_written_hours', methods = ['POST'])
 def get_project_written_hours():
     project_data = json.loads(request.get_data())
