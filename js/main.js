@@ -357,7 +357,7 @@ function remove_backgrounds (dataset) {
  * arguments:
  *   background : string, must be 'full' or 'summary'
  */
-function draw_project_background (background) {
+function draw_project_background () {
   remove_backgrounds(projectTLItems);
 
   // add project duration to the project timeline
@@ -366,24 +366,16 @@ function draw_project_background (background) {
     var style;
     var content;
 
-    if (background == 'summary') {
-      if (project.balance < -0.5) {
-        color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
-      } else if (project.balance < -0.1) {
-        color = 'rgba(75, 75, 75, 0.20)';   // Grey
-      } else if (project.balance < 0.1) {
-        color = 'rgba(10, 255, 10, 0.20)';  // Green
-      } else if (project.balance < 0.5) {
-        color = 'rgba(200, 200, 10, 0.20)'; // Orange
-      } else {
-        color = 'rgba(255, 10, 10, 0.20)';  // Red
-      }
-      content = 'Assigned: ' + project.assigned.toFixed(2) + ' of ' + project.fte.toFixed(2) + ' FTE';
-    } else if (background == 'full') {
-      color = 'rgba(105, 255, 98, 0.20)';
-      content = '';
+    if (project.balance < -0.5) {
+      color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
+    } else if (project.balance < -0.1) {
+      color = 'rgba(75, 75, 75, 0.20)';   // Grey
+    } else if (project.balance < 0.1) {
+      color = 'rgba(10, 255, 10, 0.20)';  // Green
+    } else if (project.balance < 0.5) {
+      color = 'rgba(200, 200, 10, 0.20)'; // Orange
     } else {
-      console.error('Project background not implemented: ', background);
+      color = 'rgba(255, 10, 10, 0.20)';  // Red
     }
 
     projectTLItems.update({
@@ -391,7 +383,7 @@ function draw_project_background (background) {
       group: project.pid,
       start: project.start,
       end: project.end,
-      content: content,
+      content: '',
       type: 'background',
       style: 'background-color: ' + color,
       editable: false
@@ -406,55 +398,41 @@ function draw_project_background (background) {
  * arguments:
  *   background : string, must be 'full' or 'summary'
  */
-function draw_engineer_background (background) {
+function draw_engineer_background () {
   // NOTE: we dont control the ID for the load, as it is the result of
   // some complex SQL query. Therefore we cannot update the items, but
   // we have to remove and add everything
   remove_backgrounds(engineerTLItems);
 
-  if (background == 'full') {
-    allEngineers.forEach(function (engineer) {
-      engineerTLItems.add({
-        group: engineer.eid,
-        type: 'background',
-        start: engineer.start || '2000-01',
-        end: engineer.end || '2050-01',
-        editable: false,
-        content: '',
-        style: 'background-color: rgba(105, 255, 98, 0.20)'
-      });
-    });
-  } else if (background == 'summary') {
-    allLoads.forEach(function (load) {
-      if (load.fte < -0.5) {
-        color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
-      } else if (load.fte < -0.1) {
-        color = 'rgba(75, 75, 75, 0.20)';   // Grey
-      } else if (load.fte < 0.1) {
-        color = 'rgba(10, 255, 10, 0.20)';  // Green
-      } else if (load.fte < 0.5) {
-        color = 'rgba(200, 200, 10, 0.20)'; // Orange
-      } else {
-        color = 'rgba(255, 10, 10, 0.20)';  // Red
-      }
+  allLoads.forEach(function (load) {
+    if (load.fte < -0.5) {
+      color = 'rgba(5, 5, 55, 0.20)';     // Dark grey
+    } else if (load.fte < -0.1) {
+      color = 'rgba(75, 75, 75, 0.20)';   // Grey
+    } else if (load.fte < 0.1) {
+      color = 'rgba(10, 255, 10, 0.20)';  // Green
+    } else if (load.fte < 0.5) {
+      color = 'rgba(200, 200, 10, 0.20)'; // Orange
+    } else {
+      color = 'rgba(255, 10, 10, 0.20)';  // Red
+    }
 
-      engineerTLItems.add({
-        group: load.eid,
-        type: 'background',
-        start: load.start,
-        end: load.end,
-        editable: false,
-        content: "" + load.fte.toFixed(2) + " FTE",
-        style: "background-color: " + color
-      });
+    engineerTLItems.add({
+      group: load.eid,
+      type: 'background',
+      start: load.start,
+      end: load.end,
+      editable: false,
+      content: '', // "" + load.fte.toFixed(2) + " FTE",
+      style: "background-color: " + color
     });
-  }
+  });
 }
 
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {
-  'show': 'eng_and_proj', // eng_and_proj, eng, proj, eng_sum, proj_sum
+  'show': 'eng_and_proj', // eng_and_proj, eng, proj, overview
   'state': 'all', // all, active, inactive
   'coordinator': 'all',
   'linemanager': 'all',
@@ -578,8 +556,7 @@ function applyFilterSettings () {
     // update assignment on engineer timeline
     if (show && (
       (filterSettings.show == 'eng_and_proj') ||
-      (filterSettings.show == 'eng') ||
-      (filterSettings.show == 'eng_sum')
+      (filterSettings.show == 'eng')
     )) {
       addEA.push({
         id: assignment.aid,
@@ -597,8 +574,7 @@ function applyFilterSettings () {
     // update assignment on project timeline
     if (show && (
       (filterSettings.show == 'eng_and_proj') ||
-      (filterSettings.show == 'proj') ||
-      (filterSettings.show == 'proj_sum')
+      (filterSettings.show == 'proj')
     )) {
       addPA.push({
         id: assignment.aid,
@@ -630,19 +606,19 @@ function resetViews () {
   var ovPlt = $('#visjs-overview-container');
 
   if (option == 'eng_and_proj') {
-    draw_project_background('full');
+    draw_project_background();
     projTL.removeClass('w-100');
     projTL.addClass('w-50');
     projTL.show();
 
-    draw_engineer_background ('full');
+    draw_engineer_background();
     engTL.removeClass('w-100');
     engTL.addClass('w-50');
     engTL.show();
 
     ovPlt.hide();
   } else if (option == 'eng') {
-    draw_engineer_background ('full');
+    draw_engineer_background();
     engTL.removeClass('w-50');
     engTL.addClass('w-100');
     engTL.show();
@@ -650,34 +626,12 @@ function resetViews () {
     projTL.hide();
     ovPlt.hide();
   } else if (option == 'proj') {
-    draw_project_background('full');
+    draw_project_background();
     projTL.removeClass('w-50');
     projTL.addClass('w-100');
     projTL.show();
 
     engTL.hide();
-    ovPlt.hide();
-  } else if (option == 'eng_sum') {
-    draw_project_background('summary');
-    projTL.removeClass('w-100');
-    projTL.addClass('w-50');
-    projTL.show();
-
-    draw_engineer_background ('full');
-    engTL.removeClass('w-100');
-    engTL.addClass('w-50');
-    engTL.show();
-    ovPlt.hide();
-  } else if (option == 'proj_sum') {
-    draw_project_background('full');
-    projTL.removeClass('w-100');
-    projTL.addClass('w-50');
-    projTL.show();
-
-    draw_engineer_background ('summary');
-    engTL.removeClass('w-100');
-    engTL.addClass('w-50');
-    engTL.show();
     ovPlt.hide();
   } else if (option == 'overview') {
     sendRequestForOverviewToServer();
@@ -769,9 +723,9 @@ $('#inputProjectOptions').on('change', function () {
 
 Promise.all([
   sendRequestForEngineersToServer(),
+  sendRequestForEngineerLoadsToServer(),
   sendRequestForProjectsToServer(),
   sendRequestForAssignmentsToServer()
 ]).then(resetViews);
 
-sendRequestForEngineerLoadsToServer();
 sendRequestForOverviewToServer();
