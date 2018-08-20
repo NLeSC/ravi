@@ -110,6 +110,17 @@ def get_engineers():
         data.append(d)
     return flask_response(data)
 
+@app.route('/get_project_written_hours', methods = ['POST'])
+def get_project_written_hours():
+    project_data = json.loads(request.get_data())
+    my_query = text("SELECT Medewerker, SUM(Aantal) AS Aantal, Year, Month FROM hours WHERE Projectcode = '" + project_data['Projectcode'] + "' GROUP BY Medewerker, Year, Month ORDER BY Year, Month, Medewerker")
+    data = []
+    for e in engine.execute(my_query):
+        d = dict(e)
+        d['date'] = "{:4d}-{:d}".format(d['Year'], d['Month'])
+        data.append(d)
+    return flask_response(data)
+
 @app.route('/get_project_load', methods = ['POST'])
 def get_project_load():
     my_query = text(PROJECT_LOAD)

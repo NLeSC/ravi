@@ -201,6 +201,15 @@ var overviewContainer = document.getElementById('visjs-overview-container');
 var overviewPlot = new vis.Graph2d(overviewContainer, overviewItems, overviewGroups, {legend: true});
 overviewPlot.on('rangechanged', function () {overviewPlot.redraw()});
 
+var detailGroups = new vis.DataSet();
+var detailItems = new vis.DataSet();
+
+var detailPlotContainer = document.getElementById('visjs-detail-plot');
+var detailPlot = new vis.Graph2d(detailPlotContainer, detailItems, detailGroups, {
+  legend: true
+});
+detailPlot.on('rangechanged', function () {detailPlot.redraw()});
+
 function openAssignmentModal (properties) {
   if (properties.item) {
     var assignment = allAssignments.get(properties.item);
@@ -223,6 +232,8 @@ function openAssignmentModal (properties) {
     $('#inputStatusDiv').hide();
   } else if (properties.what == 'group-label' && allProjects.get(properties.group)) {
     var project = allProjects.get(properties.group);
+    sendRequestForProjectWrittenHours(project);
+    $('#visjs-detail-plot').show();
 
     $('#inputAid').text(project.pid);
     $('#inputCoordinator').val(project.coordinator);
@@ -242,6 +253,7 @@ function openAssignmentModal (properties) {
     $('#inputStatusDiv').show();
   } else if (properties.what == 'group-label' && allEngineers.get(properties.group)) {
     var engineer = allEngineers.get(properties.group);
+    $('#visjs-detail-plot').hide();
 
     $('#inputAid').text(engineer.eid);
     $('#inputLinemanager').val(engineer.coordinator);

@@ -149,3 +149,85 @@ function sendRequestForOverviewToServer () {
     console.error(error);
   });
 }
+
+/**
+ * Send a request for the hours written on the project
+ * assume response is orderd by date
+ */
+function sendRequestForProjectWrittenHours(project) {
+  var myRequest = new Request('http://localhost:5000/get_project_written_hours', {
+    method: 'POST',
+    body: '{"Projectcode":"' + project.exact_code + '"}'
+  });
+
+  return fetch(myRequest)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    detailItems.clear();
+    detailGroups.clear();
+
+    detailGroups.update({
+      id: 0,
+      content: 'Ideal'
+    });
+    detailGroups.update({
+      id: 1,
+      content: 'Actual'
+    });
+
+    var totalByMedewerker = {};
+    var totalByDate = {};
+
+    data.forEach(function (item) {
+      detailGroups.update({
+        id: item.Medewerker,
+        content: item.Medewerker
+      });
+
+      totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] || 0;
+      totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] + item.Aantal;
+
+      totalByDate[item.date] = totalByDate[item.date] || 0;
+      totalByDate[item.date] = totalByDate[item.date] + item.Aantal;
+
+      detailItems.add({
+        x: item.date,
+        y: totalByMedewerker[item.Medewerker],
+        group: item.Medewerker
+      });
+
+    });
+
+    var previous = 0;
+    for (var key in totalByDate) {
+      detailItems.add({
+        x: key,
+        y: totalByDate[key] + previous,
+        group: 1
+      });
+      previous = previous + totalByDate[key];
+    }
+
+    detailItems.add({
+      x: project.start,
+      y: 0,
+      group: 0
+    });
+    detailItems.add({
+      x: project.end,
+      y: project.fte * 1680,
+      group: 0
+    });
+
+
+
+    // update timedetail plot
+    detailPlot.fit();
+  })
+  .catch(function (error) {
+    alert('Cannot get project hours from server');
+    console.error(error);
+  });
+}
