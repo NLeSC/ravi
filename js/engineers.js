@@ -164,6 +164,31 @@ function sendRequestForEngineersToServer () {
 }
 
 /**
+ * Send an engineer object to the server
+ *
+ * arguments:
+ *    engineer
+ */
+function sendEngineerToServer (engineer) {
+  form = new FormData()
+  form.append('eid', engineer.eid || '');
+  form.append('fte', engineer.fte || '');
+  form.append('start', engineer.start || '');
+  form.append('end', engineer.end || '');
+  form.append('active', engineer.active ? 1 : 0);
+  form.append('coordinator', engineer.coordinator || '');
+
+  fetch('http://localhost:5000/update_engineer', {
+    method: 'POST',
+    body: form
+  })
+  .catch(function (error) {
+    alert('Cannot update engineer at server');
+    console.error(error);
+  });
+}
+
+/**
  * Send a request for engineer load to the server.
  *
  * The response is parsed, and the allLoads global variable is update()-ed

@@ -287,7 +287,6 @@ def get_engineer_plot():
 
     return flask_response(data)
 
-
 @app.route('/add_engineer', methods = ['POST'])
 def add_engineer():
     try:
@@ -686,6 +685,50 @@ def rename_project():
     db_session.query(Assignment).filter_by(pid=pid).update({'pid': newid})
     db_session.commit()
     return flask_response([])
+
+@app.route('/update_engineer', methods = ['POST'])
+def update_engineer():
+    try:
+        db_session.query(Engineer).filter_by(eid=str(request.form['eid'])).update({
+            'eid': str(request.form['eid']),
+            'fte': str(request.form['fte']),
+            'start': date2ym(str(request.form['start'])),
+            'end': date2ym(str(request.form['end'])),
+            'coordinator': str(request.form['coordinator']),
+            'active': int(request.form['active'])
+            })
+    except Exception as err:
+        abort(500, "Parsing engineer failed:\n\n" + str(err))
+
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Updating assignment failed:\n\n" + str(err))
+
+    return flask_response(["success"])
+
+@app.route('/update_project', methods = ['POST'])
+def update_project():
+    try:
+        db_session.query(Project).filter_by(pid=str(request.form['pid'])).update({
+            'pid': str(request.form['eid']),
+            'fte': str(request.form['fte']),
+            'start': date2ym(str(request.form['start'])),
+            'end': date2ym(str(request.form['end'])),
+            'coordinator': str(request.form['coordinator']),
+            'active': int(request.form['active'])
+            })
+    except Exception as err:
+        abort(500, "Parsing project failed:\n\n" + str(err))
+
+    try:
+        db_session.commit()
+    except Exception as err:
+        db_session.rollback()
+        abort(500, "Updating assignment failed:\n\n" + str(err))
+
+    return flask_response(["success"])
 
 @app.route('/get_assignments', methods = ['POST'])
 def get_assignments():

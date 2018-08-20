@@ -126,6 +126,31 @@ function sendRequestForProjectsToServer () {
 }
 
 /**
+ * Send a project object to the server
+ *
+ * arguments:
+ *    project
+ */
+function sendProjectToServer (project) {
+  form = new FormData()
+  form.append('pid', project.eid || '');
+  form.append('fte', project.fte || '');
+  form.append('start', project.start || '');
+  form.append('end', project.end || '');
+  form.append('active', project.active ? 1 : 0);
+  form.append('coordinator', project.coordinator || '');
+
+  fetch('http://localhost:5000/update_project', {
+    method: 'POST',
+    body: form
+  })
+  .catch(function (error) {
+    alert('Cannot update project at server');
+    console.error(error);
+  });
+}
+
+/**
  * Send a request for the overview to the server.
  */
 function sendRequestForOverviewToServer () {

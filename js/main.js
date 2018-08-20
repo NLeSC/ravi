@@ -9,6 +9,8 @@ var allLinemanagers = new vis.DataSet(datasetOptions);
 var allCoordinators = new vis.DataSet(datasetOptions);
 var allLoads = new vis.DataSet(datasetOptions);
 
+var modalType; // if we are editing an assignment, an engineer, or a project
+
 // Datasets bound to the timelines.
 // These are filtered depending on filterSettings,
 // and contain only the currently visible data
@@ -215,6 +217,7 @@ detailPlot.on('rangechanged', function () {detailPlot.redraw()});
 
 function openAssignmentModal (properties) {
   if (properties.item) {
+    modalType = 'assignment';
     var assignment = allAssignments.get(properties.item);
 
     $('#modal-title-detail').text(assignment.aid);
@@ -235,11 +238,13 @@ function openAssignmentModal (properties) {
     $('#inputEndDiv').show()
     $('#inputStatusDiv').hide();
   } else if (properties.what == 'group-label' && allProjects.get(properties.group)) {
+    modalType = 'project';
     var project = allProjects.get(properties.group);
     sendRequestForProjectWrittenHours(project);
     $('#visjs-detail-plot').show();
 
     $('#modal-title-detail').text(project.pid + " [exact code: " + project.exact_code + "]");
+    $('#inputProject').val(project.pid);
     $('#inputCoordinator').val(project.coordinator);
     $('#inputFTE').val(project.fte);
     $('#inputStart').val(project.start);
@@ -256,10 +261,12 @@ function openAssignmentModal (properties) {
     $('#inputEndDiv').show();
     $('#inputStatusDiv').show();
   } else if (properties.what == 'group-label' && allEngineers.get(properties.group)) {
+    modalType = 'engineer';
     var engineer = allEngineers.get(properties.group);
     $('#visjs-detail-plot').hide();
 
     $('#modal-title-detail').text(engineer.eid);
+    $('#inputEngineer').val(engineer.eid);
     $('#inputLinemanager').val(engineer.coordinator);
     $('#inputFTE').val(engineer.fte);
     $('#inputStart').val(engineer.start);
@@ -285,26 +292,53 @@ function openAssignmentModal (properties) {
 
 // update the assignment when the user clicks on the 'Apply changes' button
 $('#assignmentUpdateApply').on('click', function () {
-  var assignment = {
-    aid : $('#modal-title-detail').text(), // a span, not an input
-    eid : $('#inputEngineer').val(),
-    pid : $('#inputProject').val(),
-    fte : $('#inputFTE').val(),
-    start : $('#inputStart').val(),
-    end : $('#inputEnd').val()
-  };
-  assignment.id = assignment.aid; // re-use the aid as DataSet id
+  if (modalType == 'assignment') {
+    var assignment = {
+      aid : $('#modal-title-detail').text(), // a span, not an input
+      eid : $('#inputEngineer').val(),
+      pid : $('#inputProject').val(),
+      fte : $('#inputFTE').val(),
+      start : $('#inputStart').val(),
+      end : $('#inputEnd').val()
+    };
+    assignment.id = assignment.aid; // re-use the aid as DataSet id
 
-  applyAssignmentUpdate(assignment);
-  sendAssignmentToServer(assignment);
+    applyAssignmentUpdate(assignment);
+    sendAssignmentToServer(assignment);
+
+    // high-light the updated assignment and zoom to it
+    engineersTimeline.setSelection([assignment.id]);
+    engineersTimeline.focus([assignment.id]);
+
+    projectsTimeline.setSelection([assignment.id]);
+    projectsTimeline.focus([assignment.id]);
+  } else if (modalType == 'engineer') {
+    var eid =  $('#inputEngineer').val();
+    var engineer = allEngineers.get(eid);
+
+    engineer.fte = $('#inputFTE').val();
+    engineer.start = $('#inputStart').val();
+    engineer.end = $('#inputEnd').val();
+    engineer.coordinator = $('#inputCoordinator').val();
+    engineer.active = $('#inputStatus').val();
+    allEngineers.update(engineer);
+
+    sendEngineerToServer(engineer);
+  } else if (modalType == 'project' ) {
+    var pid =  $('#inputProject').val();
+    var project = allEngineers.get(pid);
+
+    project.fte = $('#inputFTE').val();
+    project.start = $('#inputStart').val();
+    project.end = $('#inputEnd').val();
+    project.coordinator = $('#inputCoordinator').val();
+    project.active = $('#inputStatus').val();
+    allProjects.update(project);
+
+    sendProjectToServer(project);
+  }
+
   $('#assignmentModal').modal('hide');
-
-  // high-light the updated assignment and zoom to it
-  engineersTimeline.setSelection([assignment.id]);
-  engineersTimeline.focus([assignment.id]);
-
-  projectsTimeline.setSelection([assignment.id]);
-  projectsTimeline.focus([assignment.id]);
   $('#refresh-background').addClass('refresh-background');
 });
 
