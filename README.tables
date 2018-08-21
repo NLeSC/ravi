@@ -1,0 +1,71 @@
+Database schema 
+===============
+
+Engineers
+---------
+
+An engineer is an employee, with a labour contract running from *start* to *end*.
+We use a human readable combination of first name and family name as the main index *eid*, fe. _JohnD_.
+To link the planning to other administartive systems, we use the *exact_id*, the ID for this employee in our Exact database.
+
+An employee can work part-time. This is reflected in the *fte* property.
+If working full time, we use an administrative year to be 1680 hours, corresponding to 1 year of working 1 fte.
+
+The linemanager of the engineer is given in the *coordinator* field (who can be an engineer himself).
+
+```sql
+CREATE TABLE engineers (
+        eid VARCHAR NOT NULL, 
+        exact_id VARCHAR, 
+        fte FLOAT, 
+        start INTEGER, 
+        "end" INTEGER, 
+        coordinator VARCHAR, comments unicode, active boolean default 1, 
+        PRIMARY KEY (eid), 
+        FOREIGN KEY(coordinator) REFERENCES engineers (eid)
+);
+```
+
+Projects
+--------
+
+The projects we work on are in the *projects* table.
+The main index, *pid*, is again some human readable abbreviation of the full project name.
+*start*, *end*, and *exact_code* have the same meaning as for Engineers.
+The *fte* field indicates the number of hours we can spend on the project.
+
+The project manager is given in the *coordinator* field.
+
+```sql
+CREATE TABLE projects (
+        pid VARCHAR NOT NULL, 
+        exact_code VARCHAR, 
+        fte FLOAT, 
+        start INTEGER, 
+        "end" INTEGER, 
+        coordinator VARCHAR, comments unicode, active boolean default 1, 
+        PRIMARY KEY (pid), 
+        FOREIGN KEY(coordinator) REFERENCES engineers (eid)
+);
+```
+
+Assigments
+----------
+
+Finally, in the planning, engineers are assigned to projects using an *assignment*, stored in the *assignments* table.
+This crossreferences the engineers and projects table, the keys are similar to those above.
+The *fte* field corresponds to the intensity of the assignment; 1 fte means full time, being 40 hours per week.
+
+```sql
+CREATE TABLE assignments (
+        aid INTEGER NOT NULL, 
+        fte FLOAT, 
+        eid VARCHAR, 
+        pid VARCHAR, 
+        start INTEGER, 
+        "end" INTEGER, 
+        PRIMARY KEY (aid), 
+        FOREIGN KEY(eid) REFERENCES engineers (eid), 
+        FOREIGN KEY(pid) REFERENCES projects (pid)
+);
+```

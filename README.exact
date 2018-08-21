@@ -29,12 +29,19 @@ CREATE TABLE hours(
 Export the hours from Exact
 ---------------------------
 
-Login to Exact, and export the data you want to add to Ravi as a spreadsheet.
-
-Manually process the file in a spreadsheat program:
- * remove spurious metadata and columns
- * make sure column order is the same as in the table definition above
- * export to CSV (NOTE: comma separated, not tabs or anything else)
+# Exporting hours from Exact
+* Go to "Projecten" => "Tijd- en kosteninvoer" => "Ingevoerde tijd en kosten"
+* Select tab "Exporteerbaar"
+* Make sure the following columns are included (add if necessary by the option "aanpassen" in the top-right menu):
+    * Projectcode
+    * Project
+    * Medewerker ID
+    * Medewerker
+    * Datum
+    * Aantal
+* Choose "Exporteren: Excel" in the top-right menu
+* In Excel (or any other spreadsheet program): Remove the top 13 or so lines to keep only one header line and data
+* Save as CSV, using "," as field delimiter and no text delimiter
 
 Note that you can easily select columns on the commandline like this:
 ```bash

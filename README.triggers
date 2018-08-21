@@ -1,8 +1,13 @@
 Audit log for assignments
 =========================
 
-The purpose of the audit log is to keep track of what changes you made; we implement it using SQL triggers.
+The purpose of the audit log is to keep track of what changes you made.
+This is purely to assist the planning, it is not meant to improve consistency or security of RAVI.
+The audit table is itself a regular table, and can be modified outside of the log keeping process.
+
+We implement the log using SQL triggers.
 On every update, insert, or delete on the assignments table we add a line to the audit table.
+
 
 Create the audit table
 ----------------------
