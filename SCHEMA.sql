@@ -65,18 +65,18 @@ BEGIN
 INSERT INTO AUDIT
 (date, comment, aid, newfte, neweid, newpid, newstart, newend)
 VALUES
-(date('now'), 'INSERT', new.aid, new.fte, new.eid, new.pid, new.start, new.end);
+(datetime(), 'INSERT', new.aid, new.fte, new.eid, new.pid, new.start, new.end);
 END;
 CREATE TRIGGER assignmentdelete BEFORE DELETE ON assignments
 BEGIN
 INSERT INTO AUDIT(date, comment, aid, oldfte, oldeid, oldpid, oldstart, oldend)
 VALUES
-(date('now'), 'DELETE', old.aid, old.fte, old.eid, old.pid, old.start, old.end);
+(datetime(), 'DELETE', old.aid, old.fte, old.eid, old.pid, old.start, old.end);
 END;
 CREATE TRIGGER assignmentupdate AFTER UPDATE ON assignments WHEN
 (old.fte <> new.fte OR old.eid <> new.eid OR old.pid <> new.pid OR old.start <> new.start OR old.end <> new.end)
 BEGIN
 INSERT INTO AUDIT(date, comment, aid, oldfte, oldeid, oldpid, oldstart, oldend, newfte, neweid, newpid, newstart, newend)
 VALUES
-(date('now'), 'UPDATE', old.aid, old.fte, old.eid, old.pid, old.start, old.end, new.fte, new.eid, new.pid, new.start, new.end);
+(datetime(), 'UPDATE', old.aid, old.fte, old.eid, old.pid, old.start, old.end, new.fte, new.eid, new.pid, new.start, new.end);
 END;
