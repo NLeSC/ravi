@@ -40,7 +40,7 @@ var timelineOptions = {
   zoomable: false,
   moveable: true,
   zoomMin: 15768000000,  // Half a year
-  zoomMax: 157680000000, // 5 years
+  zoomMax: 315360000000, // 10 years
   editable: itemEditableOptions,
   orientation: {
     axis: 'top',
@@ -135,9 +135,9 @@ var timelineOptions = {
     // when adding on projects timeline, the group is the project
     if (allEngineers.get(item.group)) {
       assignment.eid = item.group;
-      assignment.pid = allProjects.get()[0].pid; // by default, to the first project
+      assignment.pid = '' // by default, no project
     } else if (allProjects.get(item.group)) {
-      assignment.eid = allEngineers.get()[0].eid; // by default, to the first engineer
+      assignment.eid = '' // by default, no engineer
       assignment.pid = item.group;
     }
 
