@@ -28,8 +28,8 @@ function initializeEngineers (engineers) {
 
     // sanitize data
     var d;
-    var start = engineers.start || '2015-01';
-    var end = engineers.end || '2050-01';
+    var start = engineer.start || '2015-01';
+    var end = engineer.end || '2050-01';
 
     d = new Date(start);
     if (d.getMonth() < 9) {
