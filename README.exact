@@ -67,3 +67,23 @@ And import the data:
 .mode csv
 .import dataset hours
 ```
+
+Reduce size
+-----------
+As the interface works with monthly sums only, we aggregate to month level.
+This make things slightly more responsive.
+
+```sql
+ALTER TABLE hours RENAME TO fullhours;
+CREATE TABLE hours(
+"Month" INTEGER,
+"Year" INTEGER,
+"Project" TEXT,
+"Projectcode" TEXT,
+"Medewerker" TEXT,
+"Medewerker ID" INTEGER,
+"Aantal" INTEGER
+);
+INSERT INTO hours SELECT Month, Year, Project, Projectcode, Medewerker, "Medewerker ID", SUM(Aantal) AS Aantal FROM fullhours GROUP BY Medewerker, "Medewerker ID", Year, Month, Project, Projectcode ORDER BY Year, Month, Medewerker;
+VACUUM; ANALYZE;
+```

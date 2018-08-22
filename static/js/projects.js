@@ -154,14 +154,15 @@ function sendProjectToServer (project) {
  * Send a request for the overview to the server.
  */
 function sendRequestForOverviewToServer () {
+  overviewItems.clear();
+  overviewItems.flush();
+
   return fetch('/get_overview')
   .then(function (response) {
     return response.json();
   })
   .then(function (data) {
     // Add overview data to plot
-    overviewItems.clear();
-
     data['available'].forEach(function (item) {
       overviewItems.add({
         x: item.start,
@@ -178,6 +179,8 @@ function sendRequestForOverviewToServer () {
         group: 'required'
       });
     });
+    overviewItems.flush();
+    overviewPlot.fit({animation: false});
   })
   .catch(function (error) {
     alert('Cannot get projects from server');
@@ -195,14 +198,17 @@ function sendRequestForProjectWrittenHours(project) {
     body: '{"Projectcode":"' + project.exact_code + '"}'
   });
 
+  detailItems.clear();
+  detailGroups.clear();
+
+  detailGroups.flush();
+  detailItems.flush();
+
   return fetch(myRequest)
   .then(function (response) {
     return response.json();
   })
   .then(function (data) {
-    detailItems.clear();
-    detailGroups.clear();
-
     detailGroups.update({
       id: 0,
       content: 'Ideal'
@@ -256,10 +262,11 @@ function sendRequestForProjectWrittenHours(project) {
       group: 0
     });
 
-
-
     // update timedetail plot
+    detailGroups.flush();
+    detailItems.flush();
     detailPlot.fit();
+    detailPlot.redraw();
   })
   .catch(function (error) {
     alert('Cannot get project hours from server');

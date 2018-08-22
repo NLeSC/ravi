@@ -80,3 +80,9 @@ INSERT INTO AUDIT(date, comment, aid, oldfte, oldeid, oldpid, oldstart, oldend, 
 VALUES
 (datetime(), 'UPDATE', old.aid, old.fte, old.eid, old.pid, old.start, old.end, new.fte, new.eid, new.pid, new.start, new.end);
 END;
+CREATE INDEX projectsstartindex on projects(start);
+CREATE INDEX projectsendindex on projects(end);
+CREATE INDEX asignmentsstartindex on assignments(start);
+CREATE INDEX asignmentsendindex on assignments(end);
+CREATE INDEX assignementspidindex on assignments (pid);
+CREATE INDEX assignmentseidindex on assignments (eid);
