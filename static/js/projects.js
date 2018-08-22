@@ -23,32 +23,21 @@
 
 function initializeProjects(projects) {
   projects.forEach(function(project) {
-
+  console.log(project);
     // sanitize data
     var d;
     var start = project.start || '2015-01';
     var end = project.end || '2050-01';
-
-    d = new Date(start);
-    if (d.getMonth() < 9) {
-      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      start = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
-
-    d = new Date(end);
-    if (d.getMonth() < 9) {
-      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      end = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
+    var assigned = project.assigned || 0;
+    var fte = project.fte || 0;
+    var coordinator = project.coordinator || " - ";
 
     allProjects.update({
       id: project.pid,
       pid: project.pid,
       content: "<b>" + project.pid + "</b>" +
-        "<br>Assgined " + (project.assigned.toFixed(2) || "0") + " / " + (project.fte.toFixed(2) || "0") + " FTE" +
-        "<br>" + (project.coordinator || " - "),
+        "<br>Assgined " + (assigned.toFixed(2) || "0") + " / " + (fte.toFixed(2) || "0") + " FTE" +
+        "<br>" + coordinator,
 
       active: project.active,
       comments: project.comments,

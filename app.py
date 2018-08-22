@@ -10,7 +10,7 @@ import sys
 import datetime
 from builtins import str
 
-PROJECT_AND_FTES ="SELECT assignments.pid AS pid, SUM(assignments.fte * (assignments.end - assignments.start)) / 12 AS assigned, projects.fte AS fte, projects.start AS start, projects.end AS end, projects.coordinator AS coordinator, projects.comments AS comments, projects.exact_code AS exact_code, projects.active AS active FROM assignments, projects WHERE assignments.pid = projects.pid GROUP BY projects.pid"
+PROJECT_AND_FTES = "SELECT * FROM (SELECT pid, fte, start, end, coordinator, comments, exact_code, active FROM projects ORDER BY pid) LEFT OUTER JOIN (SELECT pid, SUM(assignments.fte * (assignments.end - assignments.start)) / 12 AS assigned FROM assignments GROUP BY pid) USING (pid)"
 
 REQUIRED_FTE="WITH boundaries AS ( SELECT start AS 'edge' FROM projects UNION SELECT end AS 'edge' FROM projects ORDER BY edge), intervals AS ( SELECT b1.edge AS start, b2.edge AS end FROM boundaries b1 JOIN boundaries b2 ON b2.edge = (SELECT MIN(edge) FROM boundaries b3 WHERE b3.edge > b1.edge)) SELECT intervals.start AS start, intervals.end AS end, sum(projects.fte * 12 / (projects.end - projects.start)) AS fte, intervals.end - intervals.start AS months FROM projects, intervals WHERE projects.start < intervals.end AND projects.end > intervals.start GROUP BY intervals.start, intervals.end"
 
@@ -25,7 +25,7 @@ app = Flask(__name__)
 def ym2date(ym):
     if ym:
         y, m = divmod(ym, 12)
-        return "{:4d}-{:2d}".format(y, m+1)
+        return "{:4d}-{:02d}".format(y, m+1)
     else:
         return None
 

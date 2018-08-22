@@ -31,20 +31,6 @@ function initializeEngineers (engineers) {
     var start = engineer.start || '2015-01';
     var end = engineer.end || '2050-01';
 
-    d = new Date(start);
-    if (d.getMonth() < 9) {
-      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      start = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
-
-    d = new Date(end);
-    if (d.getMonth() < 9) {
-      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      end = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
-
     allEngineers.update({
       id: engineer.eid,
       eid: engineer.eid,
