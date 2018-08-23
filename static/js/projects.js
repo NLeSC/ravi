@@ -23,7 +23,6 @@
 
 function initializeProjects(projects) {
   projects.forEach(function(project) {
-  console.log(project);
     // sanitize data
     var d;
     var start = project.start || '2015-01';
@@ -36,7 +35,7 @@ function initializeProjects(projects) {
       id: project.pid,
       pid: project.pid,
       content: "<b>" + project.pid + "</b>" +
-        "<br>Assgined " + (assigned.toFixed(2) || "0") + " / " + (fte.toFixed(2) || "0") + " FTE" +
+        "<br>Assigned " + assigned.toFixed(2) + " / " + fte.toFixed(2) + " FTE" +
         "<br>" + coordinator,
 
       active: project.active,

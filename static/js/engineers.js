@@ -30,11 +30,17 @@ function initializeEngineers (engineers) {
     var d;
     var start = engineer.start || '2015-01';
     var end = engineer.end || '2050-01';
+    var assigned = engineer.assigned || 0;
+    var available = engineer.available|| 0;
+    var linemanager = engineer.coordinator || " - ";
 
     allEngineers.update({
       id: engineer.eid,
       eid: engineer.eid,
-      content: engineer.eid,
+      content: "<b>" + engineer.eid + "</b>" +
+        "<br>Assigned " + assigned.toFixed(2) + " / " + available.toFixed(2) + " FTE" +
+        "<br>" + linemanager,
+
       assigned: engineer.assigned,
       balance: engineer.assigned - engineer.available,
 

@@ -78,7 +78,7 @@ var timelineOptions = {
 
     if (allEngineers.get(item.id)) {
       var engineer = allEngineers.get(item.id);
-      html = '<div> <img width=150px src="assets/' + engineer.eid + '.png")> ' + item.content + '</div>';
+      html = '<div"> <img width=150px src="assets/' + engineer.eid + '.png")></div><div>' + item.content + '</div>';
     } else {
       html = '<div>' + item.content + '</div>';
     }
