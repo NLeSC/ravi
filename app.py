@@ -70,6 +70,11 @@ def get_project_written_hours():
         d = dict(e)
         d['date'] = "{:4d}-{:d}".format(d['Year'], d['Month'])
         data.append(d)
+
+    for e in engine.execute(queries.ASSIGNED_FTE_PROJECT, filterBy):
+        d = dict(e)
+        d['date'] = ym2date(d['date'])
+        data.append(d)
     return flask_response(data)
 
 @app.route('/get_engineer_load', methods = ['GET'])
@@ -92,7 +97,7 @@ def get_overview():
         req.append(d)
 
     avl = []
-    for e in engine.execute(queries.AVAILABLE_FTE):
+    for e in engine.execute(queries.ASSIGNED_FTE_TOTAL):
         d = dict(e)
         d['start'] = ym2date(d['start'])
         d['end'] = ym2date(d['end'])

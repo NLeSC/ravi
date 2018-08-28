@@ -183,7 +183,7 @@ function sendRequestForOverviewToServer () {
 function sendRequestForProjectWrittenHours(project) {
   var myRequest = new Request('/get_project_written_hours', {
     method: 'POST',
-    body: '{"Projectcode":"' + project.exact_code + '"}'
+    body: JSON.stringify(project)
   });
 
   detailItems.clear();
@@ -197,57 +197,72 @@ function sendRequestForProjectWrittenHours(project) {
     return response.json();
   })
   .then(function (data) {
-    detailGroups.update({
-      id: 0,
-      content: 'Ideal'
-    });
-    detailGroups.update({
-      id: 1,
-      content: 'Actual'
-    });
-
     var totalByMedewerker = {};
     var totalByDate = {};
 
-    data.forEach(function (item) {
-      detailGroups.update({
-        id: item.Medewerker,
-        content: item.Medewerker
-      });
-
-      totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] || 0;
-      totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] + item.Aantal;
-
-      totalByDate[item.date] = totalByDate[item.date] || 0;
-      totalByDate[item.date] = totalByDate[item.date] + item.Aantal;
-
-      detailItems.add({
-        x: item.date,
-        y: totalByMedewerker[item.Medewerker],
-        group: item.Medewerker
-      });
-
+    detailGroups.update({
+      id: 0,
+      content: '| Actual'
+    });
+    detailGroups.update({
+      id: 1,
+      content: '| Available ' + project.fte.toFixed(2)
     });
 
+    detailGroups.update({
+      id: 2,
+      content: '| Planning'
+    });
+
+    data.forEach(function (item) {
+      if (item.Medewerker == 'Planning') {
+        detailItems.add({
+          x: item.date,
+          y: item.Aantal,
+          group: 2
+        });
+      } else {
+        // Accumulate hours per employee
+        totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] || 0;
+        totalByMedewerker[item.Medewerker] = totalByMedewerker[item.Medewerker] + item.Aantal;
+
+        // Accumulate hours per date
+        totalByDate[item.date] = totalByDate[item.date] || 0;
+        totalByDate[item.date] = totalByDate[item.date] + item.Aantal;
+
+        detailGroups.update({
+          id: item.Medewerker,
+          content: item.Medewerker
+        });
+        detailItems.add({
+          x: item.date,
+          y: totalByMedewerker[item.Medewerker],
+          group: item.Medewerker
+        });
+      }
+    });
+
+    // running sum of actual hours
     var previous = 0;
     for (var key in totalByDate) {
       detailItems.add({
         x: key,
         y: totalByDate[key] + previous,
-        group: 1
+        group: 0
       });
       previous = previous + totalByDate[key];
     }
 
+    // roofline
     detailItems.add({
       x: project.start,
-      y: 0,
-      group: 0
+      y: project.fte * 1680,
+      group: 1
     });
     detailItems.add({
       x: project.end,
       y: project.fte * 1680,
-      group: 0
+      group: 1
     });
 
     // update timedetail plot

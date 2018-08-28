@@ -222,6 +222,7 @@ var detailItems = new vis.DataSet([], {queue: true});
 
 var detailPlotContainer = document.getElementById('visjs-detail-plot');
 var detailPlot = new vis.Graph2d(detailPlotContainer, detailItems, detailGroups, {
+  interpolation: false,
   legend: true
 });
 detailPlot.on('rangechanged', function () {detailPlot.redraw()});

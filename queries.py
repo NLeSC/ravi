@@ -42,8 +42,11 @@ WITH boundaries AS (
     FROM
         projects
     UNION SELECT
-        end AS 'edge' FROM projects
-    ORDER BY edge
+        end AS 'edge'
+    FROM
+        projects
+    ORDER BY
+        edge
 ),
 
 intervals AS (
@@ -81,7 +84,7 @@ GROUP BY
 """
 )
 
-AVAILABLE_FTE=text("""
+ASSIGNED_FTE_TOTAL=text("""
 WITH boundaries AS (
     SELECT
         start AS 'edge'
@@ -103,7 +106,7 @@ intervals AS (
     SELECT
         b1.edge AS start,
         b2.edge AS end
-    FROM 
+    FROM
         boundaries b1
     JOIN
         boundaries b2
@@ -135,6 +138,56 @@ GROUP BY
     intervals.end
 ORDER BY
     intervals.start
+"""
+)
+
+ASSIGNED_FTE_PROJECT=text("""
+WITH boundaries AS (
+    SELECT
+        start AS 'edge'
+    FROM
+        assignments
+    WHERE
+        assignments.pid = :pid
+    UNION SELECT
+        end AS 'edge'
+    FROM
+        assignments
+    WHERE
+        assignments.pid = :pid
+    UNION SELECT
+        start AS 'edge'
+    FROM
+        projects
+    WHERE
+        projects.pid = :pid
+    UNION SELECT
+        end AS 'edge'
+    FROM
+        projects
+    WHERE
+        projects.pid = :pid
+    ORDER BY
+        edge
+)
+
+SELECT
+    'Planning' AS Medewerker,
+    SUM(assignments.fte * (1680 / 12) *
+        (MIN(assignments.end, edge) - assignments.start)
+    ) AS Aantal,
+    edge AS date
+FROM
+    assignments,
+    boundaries
+WHERE
+    assignments.start <= edge
+    AND assignments.pid = :pid
+GROUP BY
+    Medewerker,
+    date
+ORDER BY
+    date
 """
 )
 
@@ -280,7 +333,7 @@ SELECT
 FROM
     hours
 WHERE
-    Projectcode = :Projectcode
+    Projectcode = :exact_code
 GROUP BY
     Medewerker,
     Year,
@@ -297,7 +350,7 @@ SELECT
     *
 FROM
     AUDIT
-WHERE 
+WHERE
     (
         'all' = :engineer
         OR oldpid = :engineer
@@ -322,7 +375,7 @@ SELECT
     end,
     fte
 FROM
-    assignments 
+    assignments
 WHERE
     (
         'all' = :pid
