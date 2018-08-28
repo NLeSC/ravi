@@ -21,60 +21,17 @@
  *    allAssignments
  */
 function initializeAssignments (assignments) {
-  // assignmenents: Array[assignment]
   assignments.forEach(function (assignment) {
-    // sanitize data
-    var d;
-    var start = assignment.start || '2015-01';
-    var end = assignment.end || '2050-01';
-
-    d = new Date(start);
-    if (d.getMonth() < 9) {
-      start = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      start = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
-
-    d = new Date(end);
-    if (d.getMonth() < 9) {
-      end = d.getFullYear() + '-0' + (d.getMonth() + 1);
-    } else {
-      end = d.getFullYear() + '-' + (d.getMonth() + 1);
-    }
-
-    engineerTLItems.update({
-      id: assignment.aid,
-      group: assignment.eid,
-      start: start,
-      end: end,
-      content: assignment.fte + ' FTE: ' + assignment.pid,
-      editable: itemEditableOptions
-    });
-
-    projectTLItems.update({
-      id: assignment.aid,
-      group: assignment.pid,
-      start: start,
-      end: end,
-      content: assignment.fte + ' FTE: ' + assignment.eid,
-      editable: itemEditableOptions
-    });
-
     allAssignments.update({
       id: assignment.aid, // re-use the assignment id as DataSet id
       aid: assignment.aid,
       eid: assignment.eid,
       pid: assignment.pid,
-      start: start,
-      end: end,
+      start: assignment.start || '2000-01-01',
+      end: assignment.end || '2100-01-01',
       fte: assignment.fte
     });
   });
-
-  // remove dummy assignment (issue with empty plots)
-  allProjects.remove(1);
-  engineerTLItems.remove(1);
-  projectTLItems.remove(1);
 }
 
 /**
@@ -164,16 +121,17 @@ function sendCreateAssignmentToServer (assignment) {
  *    pid : Optional, project ID; only request assignments for this project
  */
 function sendRequestForAssignmentsToServer (eid, pid) {
-
-  form = new FormData()
-  form.append('eid', eid || '');
-  form.append('pid', pid || '');
-
-  return fetch('/get_assignments', {
+  var myRequest = new Request('/get_assignments', {
     method: 'POST',
-    body: form
-  })
+    body: JSON.stringify({
+      eid: eid || 'all',
+      pid: pid || 'all'
+    })
+  });
+
+  return fetch(myRequest)
   .then(function (response) {
+    console.log(response);
     return response.json();
   })
   .then(function (data) {
