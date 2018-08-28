@@ -612,10 +612,11 @@ function applyFilterSettings () {
   // so actually remove or add them where necessary
   allAssignments.forEach(function (assignment) {
     var show = false;
-    var project = allProjects.get(assignment.pid) || {active: false, coordinator: false};
+    var project = allProjects.get(assignment.pid) || {active: 'show-always', coordinator: false};
 
     if ((
       (filterSettings.state == 'all') ||
+      (project.active == 'show-always') ||
       (filterSettings.state == 'active' && project.active == true) ||
       (filterSettings.state == 'inactive' && project.active == false)
     ) && (
