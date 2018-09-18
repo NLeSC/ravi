@@ -331,7 +331,7 @@ $('#assignmentUpdateApply').on('click', function () {
     engineer.fte = $('#inputFTE').val();
     engineer.start = $('#inputStart').val();
     engineer.end = $('#inputEnd').val();
-    engineer.coordinator = $('#inputCoordinator').val();
+    engineer.coordinator = $('#inputLinemanager').val();
     engineer.active = $('#inputStatus').val();
     allEngineers.update(engineer);
 
