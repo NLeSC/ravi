@@ -508,6 +508,30 @@ $('#refresh-background').on('click', function () {
   });
 });
 
+$('#inputExtraOptions').on('change', function () {
+  var val = $('#inputExtraOptions').val();
+
+  if (val == 'clear') {
+    filterSettings = {
+      'show': 'eng_and_proj', // eng_and_proj, eng, proj, overview
+      'state': 'active', // all, active, inactive
+      'coordinator': 'all',
+      'linemanager': 'all',
+      'engineer': 'all',
+      'project': 'all'
+    };
+
+    // TODO: select something else than the just clicked-on item for the inputExtraOptions
+    $('#inputExtraOptions').val('...');
+    $('#inputStatusOptions').val(filterSettings['state']);
+    $('#inputCoordinatorOptions').val(filterSettings['coordinator']);
+    $('#inputLinemanagerOptions').val(filterSettings['linemanager']);
+    $('#inputEngineerOptions').val(filterSettings['engineer']);
+    $('#inputProjectOptions').val(filterSettings['project']);
+    resetViews();
+  }
+});
+
 // Hash containing all filterable properties
 // Apply filtering using the 'applyFilterSettings' function below
 var filterSettings = {

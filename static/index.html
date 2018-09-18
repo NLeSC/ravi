@@ -149,10 +149,11 @@
         </div>
         <div class="input-group mb-3 col">
           <div class="input-group-prepend">
-            <label data-toggle="tooltip" data-placement="top" title="Click to recalculate the background coloring on timelines. Grey means the background is up-to-date. Orange means that an update is in progress. Red indicates an update is necessary." class="input-group-text filter-option" for="backgroundLegend" id="refresh-background">Refresh</label>
+            <label data-toggle="tooltip" data-placement="top" title="Click to recalculate the background coloring on timelines. Grey means the background is up-to-date. Orange means that an update is in progress. Red indicates an update is necessary." class="input-group-text filter-option" for="inputExtraOptions" id="refresh-background">Refresh</label>
           </div>
-          <select class="custom-select" id="inputProjectOptions">
-            <option value="1">Legend</option>
+          <select class="custom-select" id="inputExtraOptions">
+            <option value="...">More</option>
+            <option value="clear">Remove all filters</option>
             <optgroup label="VERY LOW: less than -0.5 FTE" style="background: rgba(5,5,55,0.20)"></optgroup>
             <optgroup label="LOW: -0.5 to -0.1 FTE" style="background: rgba(75,75,75,0.20)"</optgroup>
             <optgroup label="OK: -0.1 to 0.1 FTE" style="background: rgba(10,255,10,0.20)"></optgroup>
