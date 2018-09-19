@@ -131,7 +131,6 @@ function sendRequestForAssignmentsToServer (eid, pid) {
 
   return fetch(myRequest)
   .then(function (response) {
-    console.log(response);
     return response.json();
   })
   .then(function (data) {
