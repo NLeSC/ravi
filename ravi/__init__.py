@@ -446,7 +446,9 @@ def get_project_plot_data(pid, history=False):
         # Make sure the x-axis covers all written hours on the project
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
-        total_written_fte = accumulate_written_fte(project_hours, start, min(current_ym, end) + 1)
+        exact_ids = [i[0] for i in db_session.query(Engineer.exact_id).all()]
+        project_engineer_hours = project_hours[exact_data.exact_id.isin(exact_ids)]
+        total_written_fte = accumulate_written_fte(project_engineer_hours, start, min(current_ym, end) + 1)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
     combine_written_planned = exact_data is not None and not history and len(total_written_fte) > 0
