@@ -297,7 +297,7 @@ def get_total_assignments_plot():
     dummy_assigned = []
     for ym in range(start,end):
         total_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in engineer_list]))
-        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list]))
+        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list and ym > current_ym]))
         total_fte.append(sum([e.fte for e in engineers if e.start <= ym < e.end]))
         total_written.append(float(exact_data[(exact_data.ym == ym) &
                                               (exact_data.exact_id.isin(engineer_ids)) &
