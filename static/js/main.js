@@ -366,13 +366,12 @@ engineersTimeline.on('select', function (properties) {
     projectsTimeline.setSelection([]);
     return;
   }
-  var firstSelectedAssignment = allAssignments.get(properties.items[0]);
+  var focusAssignment = allAssignments.get(properties.items[0]);
 
-  if (properties.items[0] && firstSelectedAssignment) {
-    if (projectTLItems.get(firstSelectedAssignment.id)) {
-      projectsTimeline.setSelection([firstSelectedAssignment.id]);
-      projectsTimeline.focus([firstSelectedAssignment.id]);
-    }
+  // if the assignment has a project, focus the projects timeline on that
+  if (focusAssignment.pid) {
+    projectsTimeline.setSelection(focusAssignment.id);
+    projectsTimeline.focus(focusAssignment.id);
   } else {
     projectsTimeline.setSelection([]);
   }
@@ -383,13 +382,12 @@ projectsTimeline.on('select', function (properties) {
     engineersTimeline.setSelection([]);
     return;
   }
-  var firstSelectedAssignment = allAssignments.get(properties.items[0]);
+  var focusAssignment = allAssignments.get(properties.items[0]);
 
-  if (properties.items[0] && firstSelectedAssignment) {
-    if (engineerTLItems.get(firstSelectedAssignment.id)) {
-      engineersTimeline.setSelection([firstSelectedAssignment.id]);
-      engineersTimeline.focus([firstSelectedAssignment.id]);
-    }
+  // if the assignment has an engineer, focus the engineers timeline on that
+  if (focusAssignment.eid) {
+    engineersTimeline.setSelection(focusAssignment.id);
+    engineersTimeline.focus(focusAssignment.id);
   } else {
     engineersTimeline.setSelection([]);
   }
