@@ -674,7 +674,7 @@ def read_exact_data(filename):
     hours = {}
     hours_total = {}
     with open(filename, "r") as csvfile:
-        reader = csv.DictReader(csvfile)
+        reader = csv.DictReader(csvfile, delimiter='\t')
         for ln, line in enumerate(reader):
             try:
                 day, month, year = line['Datum'].split('-')
