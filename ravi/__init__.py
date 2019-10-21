@@ -295,8 +295,10 @@ def get_total_assignments_plot():
     total_written = []
     total_assigned = []
     dummy_assigned = []
+    total_projects = []
     for ym in range(start,end):
         total_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in engineer_list]))
+        total_projects.append(sum([p.fte / (p.end - p.start) * 12 for p in projects if p.start <= ym < p.end]))
         dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list and ym > current_ym]))
         total_fte.append(sum([e.fte for e in engineers if e.start <= ym < e.end]))
         total_written.append(float(exact_data[(exact_data.ym == ym) &
@@ -326,6 +328,16 @@ def get_total_assignments_plot():
                 'dash': 'dot',
                 'width': 2,
                 'color': 'black'}
+            },
+        {
+            'type': 'line',
+            'name': 'total projects',
+            'x': x_axis,
+            'y': total_projects,
+            'line': {
+                'dash': 'dash',
+                'width': 2,
+                'color': 'red'}
             },
         {
             'type': 'line',
