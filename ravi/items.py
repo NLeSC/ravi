@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Unicode, Float, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, Unicode, Float, Boolean, ForeignKey, Date
 # from sqlalchemy import Boolean, TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -9,15 +9,21 @@ class Engineer(Base):
     """
     Table of engineers
     """
-    __tablename__ = 'engineers'
-    eid = Column(Unicode, primary_key = True)
+    __tablename__ = 'person'
+    person_id = Column(Integer, primary_key = True)
+    fname = Column(Unicode)
+    sname = Column(Unicode)
+    line_manager = Column(Integer)
+    status = Column(Unicode)
     exact_id = Column(Unicode)
+    contract_start = Column(Date)
+    contract_end = Column(Date)
     fte = Column(Float)
-    start = Column(Integer)
-    end = Column(Integer)
-    coordinator = Column(Unicode, ForeignKey('engineers.eid'))
+    isCoordinator = Column(Unicode)
+    isLine_manager = Column(Unicode)
+    timestamp = Column(Date)
     comments = Column(Unicode)
-    active = Column(Boolean)
+    tag = Column(Unicode)
     
     def __iter__(self):
         for k,v in self.__dict__.items():
@@ -28,15 +34,20 @@ class Project(Base):
     """
     Table of projects
     """
-    __tablename__ = 'projects'
-    pid = Column(Unicode, primary_key = True)
-    exact_code = Column(Unicode)
-    fte = Column(Float)
-    start = Column(Integer)
-    end = Column(Integer)
-    coordinator = Column(Unicode, ForeignKey('engineers.eid'))
+    __tablename__ = 'project'
+    project_id = Column(Integer, primary_key = True)
+    fname = Column(Unicode)
+    sname = Column(Unicode)
+    coordinator = Column(Integer)
+    status = Column(Unicode)
+    exact_id = Column(Unicode)
+    project_start = Column(Date)
+    project_end = Column(Date)
+    budget = Column(Integer)
+    spend = Column(Integer)
+    timestamp = Column(Date)
+    tag = Column(Unicode)
     comments = Column(Unicode)
-    active = Column(Boolean)
     
     def __iter__(self):
         for k,v in self.__dict__.items():
@@ -47,13 +58,16 @@ class Assignment(Base):
     """
     Table of assignments
     """
-    __tablename__ = 'assignments'
-    aid = Column(Integer, primary_key = True, autoincrement=True)
+    __tablename__ = 'assignment'
+    assignment_id = Column(Integer, primary_key = True, autoincrement=True)
+    assignment_start = Column(Date)
+    assignment_end = Column(Date)
+    person_id = Column(Integer, ForeignKey('engineers.person_id'))
+    project_id = Column(Integer, ForeignKey('projects.project_id'))
     fte = Column(Float)
-    eid = Column(Unicode, ForeignKey('engineers.eid'))
-    pid = Column(Unicode, ForeignKey('projects.pid'))
-    start = Column(Integer)
-    end = Column(Integer)
+    timestamp = Column(Date)
+    comments = Column(Unicode)
+    branch_id = Column(Integer)
 
     def __iter__(self):
         for k,v in self.__dict__.items():

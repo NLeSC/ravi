@@ -3,37 +3,38 @@ var engineers = {}
 function createEngineerTable(engineerList) {
     for(i=0; i<engineerList.length; i++) {
         var e_data = engineerList[i]
-        addEngineerTableRow(e_data.eid)
+        addEngineerTableRow(e_data.person_id, e_data.sname)
         e = new Engineer(e_data)
         e.plot()
-        engineers[e_data.eid] = e
+        engineers[e_data.person_id] = e
         }
     }
 
-function addEngineerTableRow(eid) {
+function addEngineerTableRow(eid, sname) {
     var engineerTable = document.getElementById('engineer_table')
     var newrow = engineerTable.insertRow(-1)
     var cell1 = newrow.insertCell(0)
     var cell2 = newrow.insertCell(1)
-    newrow.id = eid
-    cell1.innerHTML = '<div style="width:135px">' + eid + '</div>'
-    cell2.id = "plot_" + eid
-    document.getElementById(eid).addEventListener("click", function() {
+    newrow.id = 'e' + eid
+    cell1.innerHTML = '<div style="width:135px">' + sname + '</div>'
+    cell2.id = "eplot_" + eid
+    document.getElementById('e' + eid).addEventListener("click", function() {
         selectEngineer(eid)
         })
     }
 
 function Engineer(engineer_data) {
-    this.eid = engineer_data.eid
+    this.person_id = engineer_data.person_id
+    this.sname = engineer_data.sname
     this.exact_id = engineer_data.exact_id
-    this.start = engineer_data.start
-    this.end = engineer_data.end
+    this.start = engineer_data.contract_start
+    this.end = engineer_data.contract_end
     this.fte = engineer_data.fte
     this.comments = engineer_data.comments
-    this.active = engineer_data.active
+    this.active = (engineer_data.status == 'active')
     
     this.plot = function () {
-        var engineerPlot = document.getElementById("plot_" + this.eid)
+        var engineerPlot = document.getElementById("eplot_" + this.person_id)
         var request = new XMLHttpRequest();
 
         request.open('POST', 'http://localhost:5000/get_engineer_data');
@@ -41,11 +42,11 @@ function Engineer(engineer_data) {
             plotPlanning(JSON.parse(request.responseText), engineerPlot);
             }
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request.send('eid=' + this.eid);
+        request.send('eid=' + this.person_id);
         }
     }
 
-function plotEngineer(popup=false) {
+function plotEngineer(person_id, popup=false) {
     var eid = document.getElementById('engineerform').elements['name'].value
     var exact_id = document.getElementById('engineerform').elements['exact'].value
     var request = new XMLHttpRequest();
@@ -54,17 +55,18 @@ function plotEngineer(popup=false) {
         plotDetails(JSON.parse(request.responseText), eid, 0.95, 'right', popup);
         }
     request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request.send('eid=' + eid + '&exact=' + exact_id);
+    request.send('eid=' + person_id + '&exact=' + exact_id);
     }
 
 function selectEngineer(eid) {
     var engineer = engineers[eid]
-    var row = document.getElementById(eid)
+    var row = document.getElementById('e' + eid)
     if (row.style.backgroundColor == "lavender") {
         clearEngineerSelection()
         }
     else {
-        document.getElementById("engineer_name").value = engineer.eid
+        document.getElementById("engineer_name").value = engineer.sname
+        document.getElementById("engineer_id").value = engineer.person_id
         document.getElementById("engineer_fte").value = engineer.fte
         document.getElementById("engineer_start").value = engineer.start
         document.getElementById("engineer_end").value = engineer.end
@@ -74,7 +76,7 @@ function selectEngineer(eid) {
         resetAssignmentForm()
         unhighlightEngineers()
         row.style.backgroundColor = "lavender"
-        plotEngineer()
+        plotEngineer(engineer.person_id)
         }
     updateAssignments()
     }
@@ -98,8 +100,8 @@ function scrollToEngineer() {
     if (query.length > 0) {
         for(eid in engineers) {
             console.log(eid)
-            if (eid.toLowerCase().indexOf(document.getElementById("engineer_name").value.toLowerCase()) == 0) {
-                document.getElementById(eid).scrollIntoView();
+            if (engineers[eid].sname.toLowerCase().indexOf(document.getElementById("engineer_name").value.toLowerCase()) == 0) {
+                document.getElementById('e' + eid).scrollIntoView();
                 break;
                 }
             }
@@ -110,7 +112,7 @@ function updateInactiveEngineers() {
     var tableRows = document.getElementById("engineer_table").getElementsByTagName("tr")
     var showInactives = document.getElementById('timerangeform').elements['inactive_engineers'].checked
     for(r=0; r<tableRows.length; r++) {
-        if (engineers[tableRows[r].id].active || showInactives) {
+        if (engineers[tableRows[r].id.substr(1)].active || showInactives) {
             tableRows[r].style.display = "";
             }
         else {
@@ -167,13 +169,14 @@ function renameEngineer() {
     }
 
 function delEngineer() {
-    var eid = document.getElementById("engineer_name").value
+    var eid = document.getElementById("engineer_id").value
     if (eid) {
-        if (confirm("Do you want to remove engineer \"" + eid + "\" and all his/her assignments?") == true) {
-            document.getElementById(eid).remove()
-            delete engineers[eid]
+        if (confirm("Do you want to remove engineer \"" + engineers[eid].sname + "\" and all his/her assignments?") == true) {
             request_del_engineer = new XMLHttpRequest()
             request_del_engineer.open('POST', 'http://localhost:5000/del_engineer')
+            request_del_engineer.onload = function() {
+                location.reload()
+                }
             request_del_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             request_del_engineer.send('eid=' + eid)
             clearEngineerSelection()

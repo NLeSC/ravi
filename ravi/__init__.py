@@ -34,6 +34,12 @@ current_ym = datetime.date.today().year * 12 + datetime.date.today().month - 1
 app = Flask(__name__)
 
 
+def date2dat(date):
+    if date:
+        return "{:4d}-{:d}".format(date.year, date.month)
+    else:
+        return None
+
 def ym2date(ym):
     if ym:
         y, m = divmod(ym, 12)
@@ -48,10 +54,18 @@ def ym2fulldate(ym):
     else:
         return None
 
-def date2ym(date):
-    if date:
-        d = date.split('-')
+def dat2ym(dat):
+#    print "DAT:", dat
+    if dat:
+        d = dat.split('-')
         return 12 * int(d[0]) + int(d[1]) - 1
+    else:
+        return None
+
+def date2ym(date):
+#    print "DATE:", date
+    if date:
+        return 12 * date.year + date.month - 1
     else:
         return None
 
@@ -69,16 +83,16 @@ def custom500(error):
 def enumerate_assignment_groups(groups, start, end):
     data = []
     sort_values = []
-    for name, assignments_grouped in groups:
+    for gid, assignments_grouped in groups:
         ym_fte = [0] * (end - start)
         sort_value = 0
         for a in assignments_grouped:
-            sort_value += max(0, (min(a.end, end) - max(a.start, start))) * a.fte
+            sort_value += max(0, (min(date2ym(a.assignment_end), end) - max(date2ym(a.assignment_start), start))) * a.fte
             for i in range(end - start):
-                ym_fte[i] += a.fte if a.start <= (i+start) < a.end else 0
+                ym_fte[i] += a.fte if date2ym(a.assignment_start) <= (i+start) < date2ym(a.assignment_end) else 0
         sort_values.append(sort_value)
         data.append({
-            'name': name,
+            'id': gid,
             'y': ym_fte})
     return [x for y, x in sorted(zip(sort_values, data), key=lambda tup:tup[0], reverse=True)]
 
@@ -90,34 +104,36 @@ def stack(data):
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
     data = []
-    for e in db_session.query(Engineer).order_by(Engineer.eid).all():
+    for e in db_session.query(Engineer).filter(Engineer.tag.in_(('engineer', 'MT', 'Techlead'))).order_by(Engineer.sname).all():
         d = dict(e)
-        d['start'] = ym2date(d['start'])
-        d['end'] = ym2date(d['end'])
+        d['contract_start'] = date2dat(d['contract_start'])
+        d['contract_end'] = date2dat(d['contract_end'])
         data.append(d)
     return flask_response(data)
 
 @app.route('/get_engineer_data', methods = ['POST'])
 def get_engineer_data():
     eid = request.form['eid']
-    start = date2ym(get_start_date())
-    end = date2ym(get_end_date())
-    assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
-    data = enumerate_assignment_groups(groupby(assignments, lambda a: a.pid), start, end)
+    start = dat2ym(get_start_date())
+    end = dat2ym(get_end_date())
+    projectname = dict(db_session.query(Project.project_id, Project.sname).all())
+    assignments = db_session.query(Assignment).filter_by(person_id=eid).order_by(Assignment.project_id).all()
+    data = enumerate_assignment_groups(groupby(assignments, lambda a: a.project_id), start, end)
     stack(data)
     for i, series in enumerate(data):
+        series['name'] = projectname[series['id']]
         series['fill'] = 'tonexty'
         series['fillcolor'] = colors[i%10]
         series['mode'] = 'none'
-    e = db_session.query(Engineer).filter_by(eid=eid).one()
-    if e.start == None:
-        e.start = 0
-    if e.end == None:
-        e.end = 120000
+    e = db_session.query(Engineer).filter_by(person_id=eid).one()
+    if e.contract_start == None:
+        e.contract_start = 0
+    if e.contract_end == None:
+        e.contract_end = 120000
     data.append({
         'type': 'line',
         'name': 'fte',
-        'y': [e.fte if e.start <= ym < e.end else 0 for ym in range(start,end+1)],
+        'y': [e.fte if date2ym(e.contract_start) <= ym < date2ym(e.contract_end) else 0 for ym in range(start,end+1)],
         'showlegend': len(data) == 0,
         'line': {
             'dash': 'dot',
@@ -141,29 +157,31 @@ def get_engineer_plot():
     """
     eid = request.form['eid']
     exact_id = request.form['exact']
-    start = date2ym(get_start_date())
-    end = date2ym(get_end_date())
-    assignments = db_session.query(Assignment).filter_by(eid=eid).order_by(Assignment.pid).all()
+    start = dat2ym(get_start_date())
+    end = dat2ym(get_end_date())
+    assignments = db_session.query(Assignment).filter_by(person_id=eid).order_by(Assignment.project_id).all()
+    projectname = dict(db_session.query(Project.project_id, Project.sname).all())
     x_axis = [ym2fulldate(ym) for ym in range(start, end + 1)]
     data_written = []
-    data_planned = enumerate_assignment_groups(groupby(assignments, lambda a: a.pid), start, end)
+    data_planned = enumerate_assignment_groups(groupby(assignments, lambda a: a.project_id), start, end)
     for series in data_planned:
         series['type'] = 'line'
         series['x'] = x_axis
         series['showlegend'] = (exact_data is None) #show this legend only if there are no hours from exact
         series['line'] = {'dash': 'dot'}
 
-        pid = series['name']
+        pid = series['id']
+        series['name'] = projectname[pid]
         if exact_data is not None:
             # Written hours
-            exact_code = db_session.query(Project.exact_code).filter_by(pid=pid).one()[0].split('#')
+            exact_code = db_session.query(Project.exact_id).filter_by(project_id=pid).one()[0].split('#')
             select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
                                       (exact_data.exact_id == exact_id)]
             if len(exact_code) > 1:
                 select_hours = select_hours[exact_data.hour_code == exact_code[1]]
             data_written.append({
                 'type': 'line',
-                'name': pid,
+                'name': projectname[pid],
                 'x': x_axis,
                 'y': list_written_fte(select_hours, start, current_ym),
                 'showlegend': True, #show this legend only if there are hours from exact
@@ -176,10 +194,12 @@ def get_engineer_plot():
 
     # Written hours on non-assigned projects
     if exact_data is not None:
-        assigned_projects = [a.pid for a in assignments]
+        assigned_projects = [a.project_id for a in assignments]
         pc = len(assigned_projects)
-        for pid, exact_code in db_session.query(Project.pid, Project.exact_code).\
-                filter(~Project.pid.in_(assigned_projects)).all():
+        for pid, exact_code in db_session.query(Project.project_id, Project.exact_id).\
+                filter(~Project.project_id.in_(assigned_projects)).all():
+            if exact_code is None:
+                exact_code = ""
             exact_codes = exact_code.split('#')
             select_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
                                       (exact_data.exact_id == exact_id)]
@@ -192,7 +212,7 @@ def get_engineer_plot():
                 data.append({
                     'type': 'line',
                     'mode': 'lines',
-                    'name': pid,
+                    'name': projectname[pid],
                     'x': x_axis,
                     'y': list_written_fte(select_hours, start, current_ym),
                     'showlegend': True, #show this legend only if there are hours from exact
@@ -233,10 +253,10 @@ def add_engineer():
 
 @app.route('/del_engineer', methods = ['POST'])
 def del_engineer():
-    eid = request.form['eid']
-    e = db_session.query(Engineer).filter_by(eid=eid).one()
+    person_id = request.form['eid']
+    e = db_session.query(Engineer).filter_by(person_id=eid).one()
     db_session.delete(e)
-    for a in db_session.query(Assignment).filter_by(eid=eid):
+    for a in db_session.query(Assignment).filter_by(person_id=eid):
         db_session.delete(a)
     db_session.commit()
     return flask_response([])
@@ -257,8 +277,8 @@ def rename_engineer():
 def get_xlabels():
     start = get_start_date()
     end = get_end_date()
-    start_ym = date2ym(start)
-    end_ym = date2ym(end)
+    start_ym = dat2ym(start)
+    end_ym = dat2ym(end)
     x_axis = [ym2fulldate(ymi) for ymi in range(start_ym, end_ym)]
     y_axis = [1 for ymi in range(start_ym, end_ym)]
     data = {
@@ -272,11 +292,13 @@ def get_xlabels():
     return flask_response(data)
 
 def get_start_date():
-    start, = db_session.query(Usersetting.value).filter_by(setting = u'start_date').one()
+#    start, = db_session.query(Usersetting.value).filter_by(setting = u'start_date').one()
+    start = '2018-01'
     return start
 
 def get_end_date():
-    end, = db_session.query(Usersetting.value).filter_by(setting = u'end_date').one()
+#    end, = db_session.query(Usersetting.value).filter_by(setting = u'end_date').one()
+    end = '2021-01'
     return end
 
 @app.route('/get_total_assignments_plot', methods = ['GET'])
@@ -355,27 +377,29 @@ def get_total_assignments_plot():
 @app.route('/get_projects', methods = ['GET'])
 def get_projects():
     data = []
-    for p in db_session.query(Project).order_by(collate(Project.pid, 'NOCASE')).all():
+    for p in db_session.query(Project).order_by(collate(Project.sname, 'NOCASE')).all():
         d = dict(p)
-        d['start'] = ym2date(d['start'])
-        d['end'] = ym2date(d['end'])
+        d['project_start'] = date2dat(d['project_start'])
+        d['project_end'] = date2dat(d['project_end'])
+        if d['budget'] > 0:
+            d['fte'] = d['budget'] / 1680  
         data.append(d)
     return flask_response(data)
 
 def get_totals(project):
-    assignments = db_session.query(Assignment).filter_by(pid=project.pid)
-    total_planned = sum([a.fte * (a.end - a.start) / 12 for a in assignments])
+    assignments = db_session.query(Assignment).filter_by(project_id=project.project_id)
+    total_planned = sum([a.fte * (date2ym(a.assignment_end) - date2ym(a.assignment_start)) / 12 for a in assignments])
     total_combined = total_planned
-    if exact_data is not None and project.start is not None:
-        project_hours = get_project_hours(project.exact_code)
-        total_written_fte = accumulate_written_fte(project_hours, project.start, current_ym + 1)
+    if exact_data is not None and project.project_start is not None:
+        project_hours = get_project_hours(project.exact_id)
+        total_written_fte = accumulate_written_fte(project_hours, date2ym(project.project_start), current_ym + 1)
         if len(total_written_fte) > 0:
-            rest_planned = sum([a.fte * (max(a.end, current_ym) - max(a.start, current_ym)) / 12 for a in assignments])
+            rest_planned = sum([a.fte * (max(date2ym(a.assignment_end), current_ym) - max(date2ym(a.assignment_start), current_ym)) / 12 for a in assignments])
             total_combined = total_written_fte[-1] + rest_planned
     return total_planned, total_combined
 
 def get_color(planned, allocated):
-    if allocated == 0:
+    if allocated is None or allocated == 0:
         return 'red'
     else:
         ratio = planned / allocated
@@ -388,28 +412,35 @@ def get_color(planned, allocated):
 @app.route('/get_project_data', methods = ['POST'])
 def get_project_data():
     pid = request.form['pid']
-    start = date2ym(get_start_date())
-    end = date2ym(get_end_date())
+    start = dat2ym(get_start_date())
+    end = dat2ym(get_end_date())
     x_axis = [ym2date(ymi) for ymi in range(start, end)]
-    assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
-    plot_data = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
+    personname = dict(db_session.query(Engineer.person_id, Engineer.sname).all())
+    assignments = db_session.query(Assignment).filter_by(project_id=pid).order_by(Assignment.person_id).all()
+    grouped_data = groupby(assignments, lambda a: a.person_id)
+    plot_data = enumerate_assignment_groups(grouped_data, start, end)
     stack(plot_data)
     for i, series in enumerate(plot_data):
+        series['name'] = personname[series['id']]
         series['fill'] = 'tonexty'
         series['fillcolor'] = colors[i%10]
         series['mode'] = 'none'
-        if series['name'][:3] == '00_':
-            series['name'] = '<span style="color:red">' + series['name'] + '</span>'
+        #if series['name'][:3] == '00_':
+        #    series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 
-    p = db_session.query(Project).filter_by(pid=pid).one()
+    p = db_session.query(Project).filter_by(project_id=pid).one()
+    if p.budget > 0:
+        p.fte = p.budget / 1680
+    else:
+        p.fte = 0
     total_planned, total_combined = get_totals(p)
     color_planned = get_color(total_planned, p.fte)
     color_combined = get_color(total_combined, p.fte)
     data = {
         'planned': '''<span title='{1:.2f} Out of {2:.2f} person years are assigned in total to project "{3}".'>
-                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_planned, total_planned, p.fte, p.pid),
+                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_planned, total_planned, p.fte, p.sname),
         'combined': '''<span title='{1:.2f} Out of {2:.2f} person years are written so far, plus still assigned, to project "{3}".'>
-                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_combined, total_combined, p.fte, p.pid),
+                      <font color="{0}">{1:.2f} / {2:.2f}</font></span>'''.format(color_combined, total_combined, p.fte, p.sname),
         'plot': plot_data
         }
     return flask_response(data)
@@ -448,13 +479,14 @@ def get_project_plot_data(pid, history=False):
     Returns data needed for a detailed plot of planned and written hours for a project
     """
     data_written = []
-    p = db_session.query(Project).filter_by(pid=pid).one()
-    assignments = db_session.query(Assignment).filter_by(pid=pid).order_by(Assignment.eid).all()
+    p = db_session.query(Project).filter_by(project_id=pid).one()
+    assignments = db_session.query(Assignment).filter_by(project_id=pid).order_by(Assignment.person_id).all()
+    personname = dict(db_session.query(Engineer.person_id, Engineer.sname).all())
     # Make sure the x-axis covers all assignments
-    start = min([p.start] + [a.start for a in assignments])
-    end = max([p.end] + [a.end for a in assignments])
+    start = min([date2ym(p.project_start)] + [date2ym(a.assignment_start) for a in assignments])
+    end = max([date2ym(p.project_end)] + [date2ym(a.assignment_end) for a in assignments])
     if exact_data is not None:
-        project_hours = get_project_hours(p.exact_code)
+        project_hours = get_project_hours(p.exact_id)
         # Make sure the x-axis covers all written hours on the project
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
@@ -469,19 +501,20 @@ def get_project_plot_data(pid, history=False):
 
     data = [{
         'x': x_axis,
-        'y': [p.fte] * (end - start),
+        'y': [p.budget/1680] * (end - start),
         'fill': 'tozeroy',
         'fillcolor': '#eeeeee',
         'mode': 'none',
         'showlegend': False,
         'line': {}
         }]
-    data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.eid), start, end)
+    data_projected = enumerate_assignment_groups(groupby(assignments, lambda a: a.person_id), start, end)
     for series in data_projected:
+        person_id = series['id']
+        series['name'] = personname[person_id]
         if exact_data is not None:
-            eid = series['name']
             # Written hours
-            exact_id = db_session.query(Engineer.exact_id).filter_by(eid=eid).first()
+            exact_id = db_session.query(Engineer.exact_id).filter_by(person_id=person_id).first()
             if exact_id == None:
                 continue
 
@@ -489,7 +522,7 @@ def get_project_plot_data(pid, history=False):
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
-                'name': eid,
+                'name': personname[person_id],
                 'x': x_axis,
                 'y': written_fte,
                 'showlegend': bool(sum(written_fte) > 0), #show this legend only if there are hours from exact
@@ -539,11 +572,11 @@ def get_project_plot_data(pid, history=False):
 
     # Written hours by non-assigned engineers
     if exact_data is not None:
-        assigned_engineers = [eid for eid, a in groupby(assignments, lambda a: a.eid)]
+        assigned_engineers = [person_id for person_id, a in groupby(assignments, lambda a: a.person_id)]
         writing_engineers = project_hours.groupby('exact_id').count().index.values
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
-        other_engineers = [(e.eid, e.exact_id) for e in writing_engineer_ids if e.eid not in assigned_engineers]
-        for i, (eid, exact_id) in enumerate(other_engineers):
+        other_engineers = [(e.person_id, e.exact_id) for e in writing_engineer_ids if e.person_id not in assigned_engineers]
+        for i, (person_id, exact_id) in enumerate(other_engineers):
             select_hours = project_hours[(exact_data.exact_id == exact_id)]
             ec = i + len(assigned_engineers)
             color = colors[ec%10]
@@ -551,7 +584,7 @@ def get_project_plot_data(pid, history=False):
             data.append({
                 'type': 'line',
                 'mode': 'lines',
-                'name': eid,
+                'name': personname[person_id],
                 'x': x_axis,
                 'y': accumulate_written_fte(select_hours, start, min(current_ym+1, end)),
                 'showlegend': True, #show this legend only if there are hours from exact
@@ -619,15 +652,21 @@ def get_assignments():
     pid = request.form['pid']
     query = db_session.query(Assignment)
     if eid != "":
-        query = query.filter_by(eid=eid)
+        person_id, = db_session.query(Engineer.person_id).filter_by(sname=eid).one()
+        query = query.filter_by(person_id=person_id)
     if pid != "":
-        query = query.filter_by(pid=pid)
-    query = query.order_by(Assignment.pid, Assignment.eid, Assignment.start)
+        project_id, = db_session.query(Project.project_id).filter_by(sname=pid).one()
+        query = query.filter_by(project_id=project_id)
+    query = query.order_by(Assignment.project_id, Assignment.person_id, Assignment.assignment_start)
     data = []
+    personname = dict(db_session.query(Engineer.person_id, Engineer.sname).all())
+    projectname = dict(db_session.query(Project.project_id, Project.sname).all())
     for a in query.all():
         d = dict(a)
-        d['start'] = ym2date(d['start'])
-        d['end'] = ym2date(d['end'])
+        d['start'] = date2dat(d['assignment_start'])
+        d['end'] = date2dat(d['assignment_end'])
+        d['eid'] = personname[d['person_id']]
+        d['pid'] = projectname[d['project_id']]
         data.append(d)
     return flask_response(data)
   
@@ -690,14 +729,14 @@ def read_exact_data(filename):
         for ln, line in enumerate(reader):
             try:
                 day, month, year = line['Datum'].split('-')
-                ym = date2ym("-".join([year,month]))
+                ym = dat2ym("-".join([year,month]))
                 t = (str(line['Projectcode']), str(line['Uur- of kostensoort (Code)']), str(line['Medewerker ID']), ym)
                 if t in hours:
                     hours[t] += int(float(line['Aantal']))
                 else:
                     hours[t] = int(float(line['Aantal']))
-            except:
-                sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n")
+            except Exception as error:
+                sys.stderr.write("Exact file could not be read at line " + str(ln+1) + "\n" + str(error) + "\n")
     data = [list(k) + [v] for k,v in hours.items()]
     exact_data = pd.DataFrame(data, columns=['exact_code', 'hour_code', 'exact_id', 'ym', 'hours'])
     return exact_data
@@ -709,7 +748,7 @@ def create_all_project_plots(output_folder):
         os.makedirs(output_folder)
     except OSError as error:
         sys.stderr.write(str(error))
-    projects = db_session.query(Project).filter(Project.active == True).all()
+    projects = db_session.query(Project).filter(Project.status == "active").all()
     for p in projects:
         total_planned, total_combined = get_totals(p)
         text = 'Person-years budgetted: {:.2f}\nWritten + planned:      {:.2f}\n'.format(p.fte, total_combined)
@@ -760,13 +799,13 @@ def main():
     session.configure(bind=engine)
     global db_session
     db_session = session()
-    Base.metadata.create_all(engine)
-    if len(db_session.query(Usersetting).all()) < 2:
-        start_date = Usersetting(setting = u'start_date', value = u'2015-01')
-        end_date = Usersetting(setting = u'end_date', value = u'2019-01')
-        db_session.add(start_date)
-        db_session.add(end_date)
-    db_session.commit()
+    #Base.metadata.create_all(engine)
+#    if len(db_session.query(Usersetting).all()) < 2:
+#        start_date = Usersetting(setting = u'start_date', value = u'2015-01')
+#        end_date = Usersetting(setting = u'end_date', value = u'2019-01')
+#        db_session.add(start_date)
+#        db_session.add(end_date)
+#    db_session.commit()
     if len(sys.argv) == 4:
         create_all_project_plots(sys.argv[3])
         exit()
