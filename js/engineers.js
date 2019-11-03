@@ -99,7 +99,6 @@ function scrollToEngineer() {
     var query = document.getElementById("engineer_name").value.toLowerCase()
     if (query.length > 0) {
         for(eid in engineers) {
-            console.log(eid)
             if (engineers[eid].sname.toLowerCase().indexOf(document.getElementById("engineer_name").value.toLowerCase()) == 0) {
                 document.getElementById('e' + eid).scrollIntoView();
                 break;
@@ -122,7 +121,8 @@ function updateInactiveEngineers() {
     }
 
 function addEngineer() {
-    var eid = document.getElementById("engineer_name").value
+    var sname = document.getElementById("engineer_name").value
+    var eid = document.getElementById("engineer_id").value
     var fte = document.getElementById("engineer_fte").value
     var start = document.getElementById("engineer_start").value
     var end = document.getElementById("engineer_end").value
@@ -130,24 +130,30 @@ function addEngineer() {
     var comments = document.getElementById("engineer_comments").value
     var active = document.getElementById("engineer_active").checked
     var engineer_data = {
-        "eid": eid,
+        "sname": sname,
+        "person_id": eid,
         "fte": fte,
-        "start": start,
-        "end": end,
+        "contract_start": (start == "") ? new Date().toISOString().substr(0,7) : start,
+        "contract_end": (end == "") ? document.getElementById("timerangeform").elements["end_date"].value : end,
         "exact_id": exact,
         "comments": comments,
-        "active": active
+        "status": (active) ? "active" : "inactive"
         }
     request_add_engineer = new XMLHttpRequest()
     request_add_engineer.open('POST', 'http://localhost:5000/add_engineer')
     request_add_engineer.onload = function() {
         if (checkResponse(request_add_engineer)) {
+            eid = JSON.parse(request_add_engineer.responseText)
+            console.log(eid)
+            engineer_data["person_id"] = eid
             if (!(eid in engineers)) {
-                addEngineerTableRow(eid)
+                addEngineerTableRow(eid, sname)
                 }
             engineers[eid] = new Engineer(engineer_data)
-            engineers[eid].plot()
-            updateInactiveEngineers()
+            engineers[eid].plot();
+            updateInactiveEngineers();
+            document.getElementById('e' + eid).scrollIntoView();
+            selectEngineer(eid);
             }
         }
     request_add_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -155,16 +161,16 @@ function addEngineer() {
     }
 
 function renameEngineer() {
-    var eid = document.getElementById("engineer_name").value
+    var eid = document.getElementById("engineer_id").value
     if (eid) {
-        var newID = prompt("Change name of engineer \"" + eid + "\" into:", eid)
+        var newname = prompt("Change name of engineer \"" + engineers[eid].sname + "\" into:", engineers[eid].sname)
         request_rename_engineer = new XMLHttpRequest()
         request_rename_engineer.open('POST', 'http://localhost:5000/rename_engineer')
         request_rename_engineer.onload = function() {
             location.reload()
             }
         request_rename_engineer.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request_rename_engineer.send('eid=' + eid + '&newid=' + newID)
+        request_rename_engineer.send('eid=' + eid + '&newname=' + newname)
         }
     }
 

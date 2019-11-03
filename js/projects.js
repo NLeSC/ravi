@@ -51,7 +51,7 @@ function Project(project_data) {
     this.exact = project_data.exact_id
     this.start = project_data.project_start
     this.end = project_data.project_end
-    this.fte = project_data.budget/1680
+    this.fte = project_data.fte
     this.coordinator = project_data.coordinator
     this.comments = project_data.comments
     this.active = (project_data.status == 'active')
@@ -153,7 +153,8 @@ function updateInactiveProjects() {
     }
 
 function addProject() {
-    var pid = document.getElementById("project_name").value
+    var sname = document.getElementById("project_name").value
+    var pid = document.getElementById("project_id").value
     var fte = document.getElementById("project_fte").value
     var start = document.getElementById("project_start").value
     var end = document.getElementById("project_end").value
@@ -162,26 +163,31 @@ function addProject() {
     var comments = document.getElementById("project_comments").value
     var active = document.getElementById("project_active").checked
     var project_data = {
-        "pid": pid,
+        "sname": sname,
+        "project_id": pid,
         "fte": fte,
-        "start": start,
-        "end": end,
-        "exact_code": exact,
+        "project_start": (start == "") ? new Date().toISOString().substr(0,7) : start,
+        "project_end": (end == "") ? document.getElementById("timerangeform").elements["end_date"].value : end,
+        "exact_id": exact,
         "coordinator": coordinator,
         "comments": comments,
-        "active": active
+        "status": (active) ? "active": "inactive"
         }
     request_add_project = new XMLHttpRequest()
     request_add_project.open('POST', 'http://localhost:5000/add_project')
     request_add_project.onload = function() {
         if (checkResponse(request_add_project)) {
+            pid = JSON.parse(request_add_project.responseText)
+            console.log(pid)
+            project_data["project_id"] = pid
             if (!(pid in projects)) {
-                addProjectTableRow(pid)
+                addProjectTableRow(pid, sname)
                 }
             projects[pid] = new Project(project_data)
             projects[pid].plot()
-            plotProject()
             updateInactiveProjects()
+            document.getElementById('p' + pid).scrollIntoView();
+            selectProject(pid);
             }
         }
     request_add_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -189,16 +195,16 @@ function addProject() {
     }
 
 function renameProject() {
-    var pid = document.getElementById("project_name").value
+    var pid = document.getElementById("project_id").value
     if (pid) {
-        var newID = prompt("Change name of project \"" + pid + "\" into:", pid)
+        var newname = prompt("Change name of project \"" + projects[pid].sname + "\" into:", projects[pid].sname)
         request_rename_project = new XMLHttpRequest()
         request_rename_project.open('POST', 'http://localhost:5000/rename_project')
         request_rename_project.onload = function() {
             location.reload()
             }
         request_rename_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request_rename_project.send('pid=' + pid + '&newid=' + newID)
+        request_rename_project.send('pid=' + pid + '&newname=' + newname)
         }
     }
 
@@ -208,7 +214,7 @@ function delProject() {
         if (confirm("Do you want to remove project \"" + projects[pid].sname + "\" and all its assignments?") == true) {
             request_del_project = new XMLHttpRequest()
             request_del_project.open('POST', 'http://localhost:5000/del_project')
-            request_rename_engineer.onload = function() {
+            request_del_project.onload = function() {
                 location.reload()
                 }
             request_del_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")

@@ -40,6 +40,14 @@ def date2dat(date):
     else:
         return None
 
+def dat2date(dat):
+    if dat:
+        d = dat.split('-')
+        date = datetime.date(int(d[0]), int(d[1]), 1)
+        return date
+    else:
+        return None
+
 def ym2date(ym):
     if ym:
         y, m = divmod(ym, 12)
@@ -113,7 +121,7 @@ def get_engineers():
 
 @app.route('/get_engineer_data', methods = ['POST'])
 def get_engineer_data():
-    eid = request.form['eid']
+    eid = int(request.form['eid'])
     start = dat2ym(get_start_date())
     end = dat2ym(get_end_date())
     projectname = dict(db_session.query(Project.project_id, Project.sname).all())
@@ -225,51 +233,53 @@ def get_engineer_plot():
 def add_engineer():
     try:
         engineer_data = json.loads(request.form['data'])
-        if 0 == db_session.query(Engineer).filter_by(eid=engineer_data['eid']).update({
-                'fte': str(engineer_data['fte']),
-                'start': date2ym(engineer_data['start']),
-                'end': date2ym(engineer_data['end']),
+        eid = engineer_data['person_id']
+        if eid == '' or 0 == db_session.query(Engineer).filter_by(person_id=int(eid)).filter_by(sname=engineer_data['sname']).update({
+                'fte': float(engineer_data['fte']),
+                'contract_start': dat2date(engineer_data['contract_start']),
+                'contract_end': dat2date(engineer_data['contract_end']),
                 'exact_id': engineer_data['exact_id'],
                 'comments': engineer_data['comments'],
-                'active': engineer_data['active']
+                'status': engineer_data['status']
                 }):
             engineer = Engineer()
-            engineer.eid = str(engineer_data['eid'])
+            engineer.sname = engineer_data['sname']
             engineer.exact_id = engineer_data['exact_id']
-            engineer.fte = engineer_data['fte']
-            engineer.start = date2ym(engineer_data['start'])
-            engineer.end = date2ym(engineer_data['end'])
+            engineer.fte = float(engineer_data['fte'])
+            engineer.contract_start = dat2date(engineer_data['contract_start'])
+            engineer.contract_end = dat2date(engineer_data['contract_end'])
             engineer.comments = engineer_data['comments']
-            engineer.active = engineer_data['active']
+            engineer.status = engineer_data['status']
+            engineer.tag = "engineer"
             db_session.add(engineer)
+            db_session.commit()
+            eid = engineer.person_id
+        else:
+            db_session.commit()
     except Exception as err:
-        abort(500, "Incorrect engineer input:\n\n" + str(err))
-    try:
-        db_session.commit()
-    except Exception as err:
-        db_session.rollback()
+#        abort(500, "Incorrect engineer input:\n\n" + str(err))
+#    try:
+#        db_session.commit()
+#    except Exception as err:
+#        db_session.rollback()
         abort(500, "Adding engineer failed:\n\n" + str(err))
-    return flask_response(["success"])
+    return flask_response(eid)
 
 @app.route('/del_engineer', methods = ['POST'])
 def del_engineer():
     person_id = request.form['eid']
-    e = db_session.query(Engineer).filter_by(person_id=eid).one()
+    e = db_session.query(Engineer).filter_by(person_id=person_id).one()
     db_session.delete(e)
-    for a in db_session.query(Assignment).filter_by(person_id=eid):
+    for a in db_session.query(Assignment).filter_by(person_id=person_id):
         db_session.delete(a)
     db_session.commit()
     return flask_response([])
 
 @app.route('/rename_engineer', methods = ['POST'])
 def rename_engineer():
-    eid = request.form['eid']
-    newid = request.form['newid']
-    e = db_session.query(Engineer).filter_by(eid=str(eid)).one()
-    db_session.delete(e)
-    e.eid = newid
-    db_session.add(e)
-    db_session.query(Assignment).filter_by(eid=eid).update({'eid': newid})
+    person_id = request.form['eid']
+    newname = request.form['newname']
+    db_session.query(Engineer).filter_by(person_id=person_id).update({'sname': newname})
     db_session.commit()
     return flask_response([])
 
@@ -447,7 +457,7 @@ def get_project_data():
 
 @app.route('/get_project_plot', methods = ['POST'])
 def get_project_plot():
-    pid = request.form['pid']
+    pid = int(request.form['pid'])
     history = request.form['history']
     data = get_project_plot_data(pid, history=="true")
     return flask_response(data)
@@ -596,53 +606,55 @@ def get_project_plot_data(pid, history=False):
 def add_project():
     try:
         project_data = json.loads(request.form['data'])
-        if 0 == db_session.query(Project).filter_by(pid=project_data['pid']).update({
-                'fte': float(project_data['fte']),
-                'start': date2ym(project_data['start']),
-                'end': date2ym(project_data['end']),
-                'exact_code': str(project_data['exact_code']),
-                'coordinator': str(project_data['coordinator']),
-                'comments': str(project_data['comments']),
-                'active': project_data['active']
+        pid = project_data['project_id']
+        if pid == '' or 0 == db_session.query(Project).filter_by(project_id=int(pid)).filter_by(sname=project_data['sname']).update({
+                'budget': float(project_data['fte'])*1680,
+                'project_start': dat2date(project_data['project_start']),
+                'project_end': dat2date(project_data['project_end']),
+                'exact_id': project_data['exact_id'],
+                'coordinator': project_data['coordinator'],
+                'comments': project_data['comments'],
+                'status': project_data['status']
                 }):
             project = Project()
-            project.pid = str(project_data['pid'])
-            project.exact_code = str(project_data['exact_code'])
-            project.fte = float(project_data['fte'])
-            project.start = date2ym(project_data['start'])
-            project.end = date2ym(project_data['end'])
-            project.coordinator = str(project_data['coordinator'])
-            project.comments = str(project_data['comments'])
-            project.active = project_data['active']
+            project.sname = str(project_data['sname'])
+            project.exact_id = project_data['exact_id']
+            project.budget = float(project_data['fte'])*1680
+            project.project_start = dat2date(project_data['project_start'])
+            project.project_end = dat2date(project_data['project_end'])
+            project.coordinator = project_data['coordinator']
+            project.comments = project_data['comments']
+            project.status = project_data['status']
             db_session.add(project)
+            db_session.commit()
+            pid = project.project_id
+        else:
+            db_session.commit()
     except Exception as err:
-        abort(500, "Incorrect project input:\n\n" + str(err))
-    try:
-        db_session.commit()
-    except Exception as err:
-        db_session.rollback()
+#        abort(500, "Incorrect project input:\n\n" + str(err))
+#    try:
+#        db_session.commit()
+#    except Exception as err:
+#        db_session.rollback()
         abort(500, "Adding project failed:\n\n" + str(err))
-    return flask_response(["success"])
+#        pid = project.project_id
+    return flask_response(pid)
 
 @app.route('/del_project', methods = ['POST'])
 def del_project():
-    pid = request.form['pid']
-    p = db_session.query(Project).filter_by(pid=str(pid)).one()
+    project_id = request.form['pid']
+    p = db_session.query(Project).filter_by(project_id=project_id).one()
     db_session.delete(p)
-    for a in db_session.query(Assignment).filter_by(pid=pid):
+    for a in db_session.query(Assignment).filter_by(project_id=project_id):
         db_session.delete(a)
     db_session.commit()
     return flask_response([])
 
 @app.route('/rename_project', methods = ['POST'])
 def rename_project():
-    pid = request.form['pid']
-    newid = request.form['newid']
-    p = db_session.query(Project).filter_by(pid=str(pid)).one()
-    db_session.delete(p)
-    p.pid = newid
-    db_session.add(p)
-    db_session.query(Assignment).filter_by(pid=pid).update({'pid': newid})
+    project_id = request.form['pid']
+    newname = request.form['newname']
+    db_session.query(Project).filter_by(project_id=project_id).update({'sname': newname})
     db_session.commit()
     return flask_response([])
 
