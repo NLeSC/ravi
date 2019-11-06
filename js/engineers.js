@@ -144,7 +144,6 @@ function addEngineer() {
     request_add_engineer.onload = function() {
         if (checkResponse(request_add_engineer)) {
             eid = JSON.parse(request_add_engineer.responseText)
-            console.log(eid)
             engineer_data["person_id"] = eid
             if (!(eid in engineers)) {
                 addEngineerTableRow(eid, sname)

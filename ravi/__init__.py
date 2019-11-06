@@ -664,11 +664,9 @@ def get_assignments():
     pid = request.form['pid']
     query = db_session.query(Assignment)
     if eid != "":
-        person_id, = db_session.query(Engineer.person_id).filter_by(sname=eid).one()
-        query = query.filter_by(person_id=person_id)
+        query = query.filter_by(person_id=eid)
     if pid != "":
-        project_id, = db_session.query(Project.project_id).filter_by(sname=pid).one()
-        query = query.filter_by(project_id=project_id)
+        query = query.filter_by(project_id=pid)
     query = query.order_by(Assignment.project_id, Assignment.person_id, Assignment.assignment_start)
     data = []
     personname = dict(db_session.query(Engineer.person_id, Engineer.sname).all())
@@ -687,11 +685,11 @@ def add_assignment():
     try:
         assignment_data = json.loads(request.form['data'])
         assignment = Assignment()
-        assignment.eid = str(assignment_data['eid'])
-        assignment.pid = str(assignment_data['pid'])
+        assignment.person_id = assignment_data['person_id']
+        assignment.project_id = assignment_data['project_id']
         assignment.fte = assignment_data['fte']
-        assignment.start = date2ym(assignment_data['start'])
-        assignment.end = date2ym(assignment_data['end'])
+        assignment.assignment_start = dat2date(assignment_data['start'])
+        assignment.assignment_end = dat2date(assignment_data['end'])
         db_session.add(assignment)
     except Exception as err:
         abort(500, "Incorrect assignment input:\n\n" + str(err))
@@ -705,10 +703,12 @@ def add_assignment():
 @app.route('/del_assignment', methods = ['POST'])
 def del_assignment():
     aid = request.form['aid']
-    a = db_session.query(Assignment).filter_by(aid=aid).one()
+    a = db_session.query(Assignment).filter_by(assignment_id=aid).one()
     data = dict(a)
-    data['start'] = ym2date(data['start'])
-    data['end'] = ym2date(data['end'])
+    data['eid'] = db_session.query(Engineer.sname).filter_by(person_id = data['person_id']).one()[0]
+    data['pid'] = db_session.query(Project.sname).filter_by(project_id = data['project_id']).one()[0]
+    data['start'] = date2dat(data['assignment_start'])
+    data['end'] = date2dat(data['assignment_end'])
     db_session.delete(a)
     db_session.commit()
     return flask_response(data)

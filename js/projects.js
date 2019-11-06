@@ -178,7 +178,6 @@ function addProject() {
     request_add_project.onload = function() {
         if (checkResponse(request_add_project)) {
             pid = JSON.parse(request_add_project.responseText)
-            console.log(pid)
             project_data["project_id"] = pid
             if (!(pid in projects)) {
                 addProjectTableRow(pid, sname)

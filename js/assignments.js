@@ -1,7 +1,7 @@
 function updateAssignments() {
     clearAssignmentTable()
-    var eid = document.getElementById("assignment_eid").value
-    var pid = document.getElementById("assignment_pid").value
+    var eid = document.getElementById("assignment_personid").value
+    var pid = document.getElementById("assignment_projectid").value
     request_assignments = new XMLHttpRequest()
     request_assignments.open('POST', 'http://localhost:5000/get_assignments')
     request_assignments.onload = function() {
@@ -18,9 +18,9 @@ function fillAssignmentTable(assignments) {
         a = assignments[i]
         var newrow = assignmentTable.insertRow(i)
         var c1 = newrow.insertCell(0)
-        c1.innerHTML = '<input type="button" value="' + a.eid + '" onClick="selectEngineer(\'' + a.eid + '\');scrollToEngineer();">'
+        c1.innerHTML = '<input type="button" value="' + a.eid + '" onClick="selectEngineer(\'' + a.person_id + '\');scrollToEngineer();">'
         var c2 = newrow.insertCell(1)
-        c2.innerHTML = '<input type="button" value="' + a.pid + '" onClick="selectProject(\'' + a.pid + '\');scrollToProject();">'
+        c2.innerHTML = '<input type="button" value="' + a.pid + '" onClick="selectProject(\'' + a.project_id + '\');scrollToProject();">'
         var c3 = newrow.insertCell(2)
         c3.innerHTML = a.fte
         var c4 = newrow.insertCell(3)
@@ -29,7 +29,7 @@ function fillAssignmentTable(assignments) {
         c5.innerHTML = a.end
         var c6 = newrow.insertCell(5)
         c6.innerHTML = '<span title="This deletes the assignment, allowing to make changes and to add it back to the list.">' +
-                       '<input type="button" name="button" value="Change" onClick="delAssignment('+a.aid+');">' +
+                       '<input type="button" name="button" value="Change" onClick="delAssignment('+a.assignment_id+');">' +
                        '</span>'
         }
     }
@@ -45,7 +45,9 @@ function clearAssignmentTable() {
 function resetAssignmentForm() {
     var aform = document.getElementById('assignmentsform')
     aform.elements['eid'].value = document.getElementById('engineer_name').value
+    aform.elements['person_id'].value = document.getElementById('engineer_id').value
     aform.elements['pid'].value = document.getElementById('project_name').value
+    aform.elements['project_id'].value = document.getElementById('project_id').value
     aform.elements['fte'].value = ''
     aform.elements['start'].value = document.getElementById('project_start').value
     aform.elements['end'].value = document.getElementById('project_end').value
@@ -65,21 +67,22 @@ function addAssignment(data) {
     var form = document.getElementById('assignmentsform')
     assignment_data = {
         "eid": form.elements["eid"].value,
+        "person_id": form.elements["person_id"].value,
         "pid": form.elements["pid"].value,
+        "project_id": form.elements["project_id"].value,
         "fte": form.elements["fte"].value,
         "start": form.elements["start"].value,
         "end": form.elements["end"].value
         }
-    console.log(assignment_data)
     request_add_assignment = new XMLHttpRequest()
     request_add_assignment.open('POST', 'http://localhost:5000/add_assignment')
     request_add_assignment.onload = function() {
         if (checkResponse(request_add_assignment)) {
             resetAssignmentForm()
             updateAssignments()
-            engineers[assignment_data['eid']].plot()
-            projects[assignment_data['pid']].plot()
-            plotProject()
+            engineers[assignment_data['person_id']].plot()
+            projects[assignment_data['project_id']].plot()
+            plotProject(assignment_data['project_id'])
             }
         }
     request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -92,12 +95,14 @@ function delAssignment(aid) {
     request_del_assignment.onload = function() {
         var assignment = JSON.parse(request_del_assignment.responseText)
         updateAssignments()
-        engineers[assignment.eid].plot()
-        projects[assignment.pid].plot()
-        plotProject()
+        engineers[assignment.person_id].plot()
+        projects[assignment.project_id].plot()
+        plotProject(assignment.project_id)
         form = document.getElementById('assignmentsform')
         form.elements["eid"].value = assignment.eid
+        form.elements["person_id"].value = assignment.person_id
         form.elements["pid"].value = assignment.pid
+        form.elements["project_id"].value = assignment.project_id
         form.elements["fte"].value = assignment.fte
         form.elements["start"].value = assignment.start
         form.elements["end"].value = assignment.end

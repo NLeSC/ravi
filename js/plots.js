@@ -1,23 +1,24 @@
 function plotPlanning(data, DOMelement) {
-    var layout = {
-        autosize: false,
-        height: 110,
-        margin: {l:20,r:0,b:20,t:10},
-        showlegend: true,
-        legend: {
-            x: -0.25,
-            y: 1,
-            traceorder: "normal"},
-        xaxis: {
-            range: [-0.5, data[0].y.length - 0.5],
-            autotick: false,
-            ticks: 'outside',
-            showticklabels: false},
-        yaxis: {range: [0, this.fte+0.1]},
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)'
+    if(data.length > 0) {
+        var layout = {
+            autosize: false,
+            height: 110,
+            margin: {l:20,r:0,b:20,t:10},
+            showlegend: true,
+            legend: {
+                x: -0.25,
+                y: 1,
+                traceorder: "normal"},
+            xaxis: {
+                range: [-0.5, data[0].y.length - 0.5],
+                autotick: false,
+                ticks: 'outside',
+                showticklabels: false},
+            yaxis: {range: [0, this.fte+0.1]},
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)'
+            };
         };
-
     Plotly.newPlot(DOMelement, data, layout, {displayModeBar: false});
     };
 
