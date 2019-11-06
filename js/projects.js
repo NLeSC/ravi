@@ -41,7 +41,7 @@ function togglePlanningHistory() {
             }
         }
     if (document.getElementById("project_name").value != "") {
-        plotProject(document.getElementById("project_id").value); // Update the project plot
+        plotProject(); // Update the project plot
         }
     }
 
@@ -74,8 +74,9 @@ function Project(project_data) {
         }
     }
 
-function plotProject(project_id, popup=false) {
+function plotProject(popup=false) {
     var pid = document.getElementById('projectform').elements['name'].value
+    var project_id = document.getElementById('projectform').elements['project_id'].value
     var history = document.getElementById('timerangeform').elements['planning_history'].checked;
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_project_plot');
@@ -106,7 +107,7 @@ function selectProject(pid) {
         resetAssignmentForm()
         unhighlightProjects()
         row.style.backgroundColor = "lavender"
-        plotProject(project.project_id)
+        plotProject()
         }
     updateAssignments()
     }

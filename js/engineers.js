@@ -46,8 +46,9 @@ function Engineer(engineer_data) {
         }
     }
 
-function plotEngineer(person_id, popup=false) {
+function plotEngineer(popup=false) {
     var eid = document.getElementById('engineerform').elements['name'].value
+    var person_id = document.getElementById('engineerform').elements['engineer_id'].value
     var exact_id = document.getElementById('engineerform').elements['exact'].value
     var request = new XMLHttpRequest();
     request.open('POST', 'http://localhost:5000/get_engineer_plot');
@@ -76,7 +77,7 @@ function selectEngineer(eid) {
         resetAssignmentForm()
         unhighlightEngineers()
         row.style.backgroundColor = "lavender"
-        plotEngineer(engineer.person_id)
+        plotEngineer()
         }
     updateAssignments()
     }

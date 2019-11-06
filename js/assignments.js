@@ -82,7 +82,7 @@ function addAssignment(data) {
             updateAssignments()
             engineers[assignment_data['person_id']].plot()
             projects[assignment_data['project_id']].plot()
-            plotProject(assignment_data['project_id'])
+            plotProject()
             }
         }
     request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -97,7 +97,7 @@ function delAssignment(aid) {
         updateAssignments()
         engineers[assignment.person_id].plot()
         projects[assignment.project_id].plot()
-        plotProject(assignment.project_id)
+        plotProject()
         form = document.getElementById('assignmentsform')
         form.elements["eid"].value = assignment.eid
         form.elements["person_id"].value = assignment.person_id
