@@ -392,7 +392,7 @@ def get_projects():
         d['project_start'] = date2dat(d['project_start'])
         d['project_end'] = date2dat(d['project_end'])
         if d['budget'] > 0:
-            d['fte'] = d['budget'] / 1680  
+            d['fte'] = d['budget'] / 1680.0
         data.append(d)
     return flask_response(data)
 
@@ -440,7 +440,7 @@ def get_project_data():
 
     p = db_session.query(Project).filter_by(project_id=pid).one()
     if p.budget > 0:
-        p.fte = p.budget / 1680
+        p.fte = p.budget / 1680.0
     else:
         p.fte = 0
     total_planned, total_combined = get_totals(p)
@@ -511,7 +511,7 @@ def get_project_plot_data(pid, history=False):
 
     data = [{
         'x': x_axis,
-        'y': [p.budget/1680] * (end - start),
+        'y': [p.budget/1680.0] * (end - start),
         'fill': 'tozeroy',
         'fillcolor': '#eeeeee',
         'mode': 'none',
