@@ -313,26 +313,26 @@ def get_end_date():
 
 @app.route('/get_total_assignments_plot', methods = ['GET'])
 def get_total_assignments_plot():
-    start = date2ym(get_start_date())
-    end = date2ym(get_end_date())
+    start = dat2ym(get_start_date())
+    end = dat2ym(get_end_date())
     x_axis = [ym2date(ym) for ym in range(start, end)]
     assignments = db_session.query(Assignment).all()
     engineers = db_session.query(Engineer).all()
-    engineer_list = [e.eid for e in engineers if e.eid[:2] != '00']
-    dummy_list = [e.eid for e in engineers if e.eid[:2] == '00']
-    engineer_ids = [e.exact_id for e in engineers if e.eid[:2] != '00']
+    engineer_list = [e.person_id for e in engineers if e.sname[:2] != '00']
+    dummy_list = [e.person_id for e in engineers if e.sname[:2] == '00']
+    engineer_ids = [e.exact_id for e in engineers if e.sname[:2] != '00']
     projects = db_session.query(Project).all()
-    project_codes = [p.exact_code.split('#')[0] for p in projects if p.fte > 0]
+    project_codes = [p.exact_id.split('#')[0] for p in projects if p.exact_id is not None and p.budget > 0]
     total_fte = []
     total_written = []
     total_assigned = []
     dummy_assigned = []
     total_projects = []
     for ym in range(start,end):
-        total_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in engineer_list]))
-        total_projects.append(sum([p.fte / (p.end - p.start) * 12 for p in projects if p.start <= ym < p.end]))
-        dummy_assigned.append(sum([a.fte for a in assignments if a.start <= ym < a.end and a.eid in dummy_list and ym > current_ym]))
-        total_fte.append(sum([e.fte for e in engineers if e.start <= ym < e.end]))
+        total_assigned.append(sum([a.fte for a in assignments if date2ym(a.assignment_start) <= ym < date2ym(a.assignment_end) and a.person_id in engineer_list]))
+        total_projects.append(sum([float(p.budget) / 1680.0 / (date2ym(p.project_end) - date2ym(p.project_start)) * 12 for p in projects if date2ym(p.project_start) <= ym < date2ym(p.project_end) if p.budget is not None]))
+        dummy_assigned.append(sum([a.fte for a in assignments if date2ym(a.assignment_start) <= ym < date2ym(a.assignment_end) and a.person_id in dummy_list and ym > current_ym]))
+        total_fte.append(sum([e.fte for e in engineers if date2ym(e.contract_start) <= ym < date2ym(e.contract_end)]))
         total_written.append(float(exact_data[(exact_data.ym == ym) &
                                               (exact_data.exact_id.isin(engineer_ids)) &
                                               (exact_data.exact_code.isin(project_codes))].hours.sum()) / 140.0)
