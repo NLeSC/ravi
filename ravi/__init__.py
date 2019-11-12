@@ -153,7 +153,7 @@ def list_written_fte(written_hours, start, end):
     written_fte = []
     for ym in range(start, end):
         try:
-            written_fte.append(written_hours[exact_data.ym == ym].hours.sum() / 140.0)
+            written_fte.append(written_hours[written_hours.ym == ym].hours.sum() / 140.0)
         except IndexError:
             written_fte.append(written_fte[-1])
     return written_fte
@@ -172,6 +172,8 @@ def get_engineer_plot():
     x_axis = [ym2fulldate(ym) for ym in range(start, end + 1)]
     data_written = []
     data_planned = enumerate_assignment_groups(groupby(assignments, lambda a: a.project_id), start, end)
+    if exact_data is not None:
+        engineer_hours = exact_data[(exact_data.exact_id == exact_id)]
     for series in data_planned:
         series['type'] = 'line'
         series['x'] = x_axis
@@ -183,10 +185,9 @@ def get_engineer_plot():
         if exact_data is not None:
             # Written hours
             exact_code = db_session.query(Project.exact_id).filter_by(project_id=pid).one()[0].split('#')
-            select_hours = exact_data[(exact_data.exact_code == exact_code[0]) &
-                                      (exact_data.exact_id == exact_id)]
+            select_hours = engineer_hours[(engineer_hours.exact_code == exact_code[0])]
             if len(exact_code) > 1:
-                select_hours = select_hours[exact_data.hour_code == exact_code[1]]
+                select_hours = select_hours[select_hours.hour_code == exact_code[1]]
             data_written.append({
                 'type': 'line',
                 'name': projectname[pid],
@@ -209,10 +210,9 @@ def get_engineer_plot():
             if exact_code is None:
                 exact_code = ""
             exact_codes = exact_code.split('#')
-            select_hours = exact_data[(exact_data.exact_code == exact_codes[0]) &
-                                      (exact_data.exact_id == exact_id)]
+            select_hours = engineer_hours[(engineer_hours.exact_code == exact_codes[0])]
             if len(exact_codes) > 1:
-                select_hours = select_hours[(exact_data.hour_code == exact_codes[1])]
+                select_hours = select_hours[(select_hours.hour_code == exact_codes[1])]
             if select_hours.hours.sum() > 0:
                 written_fte = []
                 color = colors[pc%10]
@@ -479,7 +479,7 @@ def accumulate_written_fte(written_hours, start, end):
     written_fte = []
     for ym in range(start, end):
         try:
-            written_fte.append(written_hours[exact_data.ym < ym].hours.sum() / 1680.0)
+            written_fte.append(written_hours[written_hours.ym < ym].hours.sum() / 1680.0)
         except IndexError:
             written_fte.append(written_fte[-1])
     return written_fte
@@ -501,7 +501,7 @@ def get_project_plot_data(pid, history=False):
         start = min([start] + list(project_hours['ym']))
         end = max([end] + list(project_hours['ym']))
         exact_ids = [i[0] for i in db_session.query(Engineer.exact_id).all()]
-        project_engineer_hours = project_hours[exact_data.exact_id.isin(exact_ids)]
+        project_engineer_hours = project_hours[project_hours.exact_id.isin(exact_ids)]
         total_written_fte = accumulate_written_fte(project_engineer_hours, start, min(current_ym, end) + 1)
     end += 1
     x_axis = [ym2fulldate(ym) for ym in range(start, end)]
@@ -528,7 +528,7 @@ def get_project_plot_data(pid, history=False):
             if exact_id == None:
                 continue
 
-            written_fte = accumulate_written_fte(project_hours[(exact_data.exact_id == exact_id[0])], start, min(current_ym+1, end))
+            written_fte = accumulate_written_fte(project_hours[(project_hours.exact_id == exact_id[0])], start, min(current_ym+1, end))
             data_written.append({
                 'type': 'line',
                 'mode': 'lines',
@@ -587,7 +587,7 @@ def get_project_plot_data(pid, history=False):
         writing_engineer_ids = db_session.query(Engineer).filter(Engineer.exact_id.in_(writing_engineers)).all()
         other_engineers = [(e.person_id, e.exact_id) for e in writing_engineer_ids if e.person_id not in assigned_engineers]
         for i, (person_id, exact_id) in enumerate(other_engineers):
-            select_hours = project_hours[(exact_data.exact_id == exact_id)]
+            select_hours = project_hours[(project_hours.exact_id == exact_id)]
             ec = i + len(assigned_engineers)
             color = colors[ec%10]
 
