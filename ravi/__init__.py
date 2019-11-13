@@ -400,9 +400,9 @@ def get_totals(project):
     assignments = db_session.query(Assignment).filter_by(project_id=project.project_id)
     total_planned = sum([a.fte * (date2ym(a.assignment_end) - date2ym(a.assignment_start)) / 12 for a in assignments])
     total_combined = total_planned
-    if exact_data is not None and project.project_start is not None:
+    if exact_data is not None and project.exact_id is not None and project.project_start is not None:
         project_hours = get_project_hours(project.exact_id)
-        total_written_fte = project_hours[exact_data.ym <= current_ym].hours.sum() / 1680.0
+        total_written_fte = project_hours[project_hours.ym <= current_ym].hours.sum() / 1680.0
         if total_written_fte > 0:
             rest_planned = sum([a.fte * (max(date2ym(a.assignment_end), current_ym) - max(date2ym(a.assignment_start), current_ym)) / 12 for a in assignments])
             total_combined = total_written_fte + rest_planned

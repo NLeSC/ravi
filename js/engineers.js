@@ -208,12 +208,24 @@ function printEngineers() {
     return true;
 }
 
+function createCoordinatorDropdown() {
+    var dropdown = document.getElementById("project_coordinator")
+    for (person_id in engineers) {
+        var option = document.createElement("option")
+        option.textContent = engineers[person_id].sname
+        option.value = person_id
+        dropdown.appendChild(option)
+        dropdown.value = 0
+        }
+    }
+
 var request_engineers = new XMLHttpRequest();
 request_engineers.open('GET', 'http://localhost:5000/get_engineers');
 request_engineers.onload = function() {
     var engineerList = JSON.parse(request_engineers.responseText);
     createEngineerTable(engineerList);
     updateInactiveEngineers();
+    createCoordinatorDropdown();
     }
 request_engineers.send();
 

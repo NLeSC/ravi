@@ -100,7 +100,7 @@ function selectProject(pid) {
         document.getElementById("project_fte").value = project.fte
         document.getElementById("project_start").value = project.start
         document.getElementById("project_end").value = project.end
-        document.getElementById("project_coordinator").value = engineers[project.coordinator].sname
+        document.getElementById("project_coordinator").value = project.coordinator
         document.getElementById("project_exact").value = project.exact
         document.getElementById("project_comments").value = project.comments
         document.getElementById("project_active").checked = project.active
@@ -114,6 +114,7 @@ function selectProject(pid) {
 
 function clearProjectSelection() {
     document.getElementById("projectform").reset()
+    document.getElementById("project_coordinator").value = 0
     unhighlightProjects()
     resetAssignmentForm()
     updateAssignments()
