@@ -112,7 +112,7 @@ def stack(data):
 @app.route('/get_engineers', methods = ['GET'])
 def get_engineers():
     data = []
-    for e in db_session.query(Engineer).filter(Engineer.tag.in_(('engineer', 'MT', 'Techlead'))).order_by(Engineer.sname).all():
+    for e in db_session.query(Engineer).filter(Engineer.tag.in_(('engineer', 'MT', 'Techlead', 'webdev'))).order_by(Engineer.sname).all():
         d = dict(e)
         d['contract_start'] = date2dat(d['contract_start'])
         d['contract_end'] = date2dat(d['contract_end'])
@@ -303,12 +303,12 @@ def get_xlabels():
 
 def get_start_date():
 #    start, = db_session.query(Usersetting.value).filter_by(setting = u'start_date').one()
-    start = '2018-01'
+    start = '2019-01'
     return start
 
 def get_end_date():
 #    end, = db_session.query(Usersetting.value).filter_by(setting = u'end_date').one()
-    end = '2021-01'
+    end = '2022-01'
     return end
 
 @app.route('/get_total_assignments_plot', methods = ['GET'])
@@ -690,6 +690,7 @@ def add_assignment():
         assignment.fte = assignment_data['fte']
         assignment.assignment_start = dat2date(assignment_data['start'])
         assignment.assignment_end = dat2date(assignment_data['end'])
+        assignment.branch_id = 0
         db_session.add(assignment)
     except Exception as err:
         abort(500, "Incorrect assignment input:\n\n" + str(err))
