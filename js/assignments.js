@@ -86,7 +86,7 @@ function addAssignment(data) {
             }
         }
     request_add_assignment.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_add_assignment.send('data=' + JSON.stringify(assignment_data))    
+    request_add_assignment.send('data=' + escape(JSON.stringify(assignment_data)))
     }
 
 function delAssignment(aid) {

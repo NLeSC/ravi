@@ -205,7 +205,7 @@ function renameProject() {
             location.reload()
             }
         request_rename_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-        request_rename_project.send('pid=' + pid + '&newname=' + newname)
+        request_rename_project.send('pid=' + pid + '&newname=' + escape(newname))
         }
     }
 
