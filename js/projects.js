@@ -192,7 +192,7 @@ function addProject() {
             }
         }
     request_add_project.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    request_add_project.send('data=' + JSON.stringify(project_data))    
+    request_add_project.send('data=' + escape(JSON.stringify(project_data)))
     }
 
 function renameProject() {

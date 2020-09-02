@@ -391,7 +391,7 @@ def get_projects():
         d = dict(p)
         d['project_start'] = date2dat(d['project_start'])
         d['project_end'] = date2dat(d['project_end'])
-        if d['budget'] > 0:
+        if d['budget'] and d['budget'] > 0:
             d['fte'] = d['budget'] / 1680.0
         data.append(d)
     return flask_response(data)
@@ -439,7 +439,7 @@ def get_project_data():
         #    series['name'] = '<span style="color:red">' + series['name'] + '</span>'
 
     p = db_session.query(Project).filter_by(project_id=pid).one()
-    if p.budget > 0:
+    if p.budget and p.budget > 0:
         p.fte = p.budget / 1680.0
     else:
         p.fte = 0
@@ -636,7 +636,7 @@ def add_project():
 #        db_session.commit()
 #    except Exception as err:
 #        db_session.rollback()
-        abort(500, "Adding project failed:\n\n" + str(err))
+        abort(500, "Adding project failed:\n\n" + str(err) + "\n" + str(request.form['data']))
 #        pid = project.project_id
     return flask_response(pid)
 
@@ -670,6 +670,7 @@ def get_assignments():
     query = query.order_by(Assignment.project_id, Assignment.person_id, Assignment.assignment_start)
     data = []
     personname = dict(db_session.query(Engineer.person_id, Engineer.sname).all())
+    personname[''] = None
     projectname = dict(db_session.query(Project.project_id, Project.sname).all())
     for a in query.all():
         d = dict(a)
